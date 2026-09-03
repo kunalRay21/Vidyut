@@ -2,15 +2,202 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   Vidyut — Government of India (SIH 2026) Theme & Design Tokens
+   Colors based on the Indian National Tricolor (Tiranga) & Ashoka Chakra:
+     - Kesari (Saffron): #FF9933 (Courage, Energy, Action)
+     - Satya (White/Light): #FFFFFF / #F8FAFC (Clarity, Truth, Peace)
+     - Harit (India Green): #138808 (Growth, Prosperity, Competence)
+     - Ashoka Chakra Navy: #000080 / #1E3A8A (Dharma, Law, Movement)
+   ========================================================================== */
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: dark;
+  /* Indian Tricolor Primary Tokens */
+  --color-saffron: #FF9933;
+  --color-saffron-light: #FFB366;
+  --color-saffron-dark: #E65C00;
+  --color-saffron-gradient: linear-gradient(135deg, #FF9933 0%, #EA580C 100%);
+
+  --color-white: #FFFFFF;
+  --color-ashoka-navy: #000080;
+  --color-chakra-blue: #1E3A8A;
+  --color-chakra-light: #3B82F6;
+
+  --color-green: #138808;
+  --color-green-light: #22C55E;
+  --color-green-dark: #0D6305;
+  --color-green-gradient: linear-gradient(135deg, #16A34A 0%, #138808 100%);
+
+  /* Backgrounds & Surfaces (GovTech Dark Midnight Theme) */
+  --bg-app: #0A111F;
+  --bg-surface: #111D32;
+  --bg-elevated: #172540;
+  --border-subtle: #1F3152;
+  --border-focus: #FF9933;
+
+  /* Typography Colors */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-saffron: #FF9933;
+  --text-green: #22C55E;
+
+  /* Iconic Indian Flag Gradient Ribbon */
+  --tricolor-strip: linear-gradient(90deg, #FF9933 0%, #FF9933 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #138808 66.6%, #138808 100%);
+  --tricolor-glow: radial-gradient(ellipse at 50% -20%, rgba(255, 153, 51, 0.15), rgba(19, 136, 8, 0.08) 50%, rgba(10, 17, 31, 0) 80%);
+
+  /* Fonts */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+@layer base {
+  * {
+    border-color: var(--border-subtle);
+  }
+
+  body {
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    margin: 0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image: var(--tricolor-glow);
+    background-repeat: no-repeat;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+    font-weight: 700;
+  }
+}
+
+/* ==========================================================================
+   Reusable Government of India / Tricolor Components & Utilities
+   ========================================================================== */
+
+@layer components {
+  /* Official Indian National Flag Top Header Ribbon */
+  .gov-tricolor-banner {
+    height: 4px;
+    width: 100%;
+    background: var(--tricolor-strip);
+  }
+
+  /* National Emblem / Government Scheme Badge */
+  .gov-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase;
+    background: rgba(255, 153, 51, 0.1);
+    color: var(--color-saffron);
+    border: 1px solid rgba(255, 153, 51, 0.3);
+  }
+
+  .gov-badge-green {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase;
+    background: rgba(19, 136, 8, 0.12);
+    color: #4ADE80;
+    border: 1px solid rgba(19, 136, 8, 0.35);
+  }
+
+  .gov-badge-chakra {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase;
+    background: rgba(59, 130, 246, 0.12);
+    color: #93C5FD;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+  }
+
+  /* GovTech Surface Cards */
+  .gov-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .gov-card:hover {
+    border-color: rgba(255, 153, 51, 0.4);
+    box-shadow: 0 14px 30px -5px rgba(255, 153, 51, 0.1);
+  }
+
+  /* Action Buttons */
+  .btn-saffron {
+    background: var(--color-saffron-gradient);
+    color: #FFFFFF;
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 14px 0 rgba(234, 88, 12, 0.35);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .btn-saffron:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 6px 20px 0 rgba(234, 88, 12, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .btn-green {
+    background: var(--color-green-gradient);
+    color: #FFFFFF;
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 14px 0 rgba(19, 136, 8, 0.35);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .btn-green:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 6px 20px 0 rgba(19, 136, 8, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .btn-chakra {
+    background: linear-gradient(135deg, #1E3A8A 0%, #000080 100%);
+    color: #FFFFFF;
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .btn-chakra:hover {
+    background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
+    box-shadow: 0 6px 20px 0 rgba(30, 58, 138, 0.4);
+    transform: translateY(-1px);
+  }
+}
+
+/* ==========================================================================
+   Text Gradients & Accents
+   ========================================================================== */
+
+.text-gradient-saffron {
+  background: linear-gradient(135deg, #FFA94D 0%, #FF9933 50%, #EA580C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-tricolor {
+  background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #22C55E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
