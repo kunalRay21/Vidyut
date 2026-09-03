@@ -31,19 +31,13 @@ Start PostgreSQL 16 and Redis using Docker:
 docker compose up -d
 ```
 
-### 2. Backend (FastAPI Modular Monolith)
+### 2. Backend (Express / Node.js Modular Monolith)
 ```bash
 cd backend
-python -m venv venv
-# On Windows:
-.\venv\Scripts\activate
-# On Linux/macOS:
-source venv/bin/activate
-
-pip install -r requirements.txt
-uvicorn src.main:app --reload --port 8000
+npm install
+npm run dev
 ```
-API Documentation will be live at: `http://localhost:8000/docs`
+Backend server will be live at: `http://localhost:8000` (Health check: `http://localhost:8000/health`)
 
 ### 3. Frontend (React + Vite + Tailwind CSS)
 ```bash

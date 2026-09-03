@@ -17,9 +17,9 @@ As the project leader taking the highest responsibility:
 ## 2. Your Core Responsibilities
 
 ### A. System Foundation & DevOps
-- Set up **FastAPI** (Python) or **Express/NestJS** (TypeScript) modular monolith repository.
+- Set up **Express / Node.js** (TypeScript) modular monolith repository.
 - Configure `docker-compose.yml` with **PostgreSQL 16** and **Redis** (caching & sessions).
-- Set up DB migration tooling (Alembic for Python / Prisma or Knex for Node).
+- Set up DB migration tooling (Prisma or Knex/TypeORM for Node).
 
 ### B. Authentication & Authorization (RBAC)
 - Multi-role JWT Auth system with bcrypt password hashing:
@@ -56,27 +56,27 @@ Create these primary tables first to unblock the other 3 backend/data/AI develop
 
 ### Prompt 1: Project Skeleton & Database Setup
 ```text
-I am the Project Lead. Initialize a modular monolith backend with FastAPI and PostgreSQL using async SQLAlchemy and Alembic.
+I am the Project Lead. Initialize an Express and TypeScript modular monolith backend with PostgreSQL.
 1. Create docker-compose.yml with PostgreSQL 16 and Redis.
-2. Create config.py reading from .env (DB url, JWT secrets).
-3. Set up the core database connection pool and standard API response envelope format:
+2. Create src/database/db.ts with pg Pool connection reading from .env.
+3. Set up src/server.ts with cors, express.json(), and standard API response envelope format:
    {"success": true, "data": {}, "meta": {"timestamp": "...", "version": "1.0"}}
 ```
 
 ### Prompt 2: Multi-Role JWT Authentication
 ```text
 Build a production-ready JWT authentication module in src/auth/:
-1. Password hashing with bcrypt (cost factor 12).
+1. Password hashing with bcryptjs (cost factor 12).
 2. JWT generation (HS256) with access_token (15 min) and refresh_token (7 days).
-3. Endpoints: /api/v1/auth/register, /api/v1/auth/login, /api/v1/auth/refresh.
-4. FastAPI dependency / middleware: get_current_user with role enforcement (STUDENT, INSTITUTION, INDUSTRY, ADMIN).
+3. Endpoints in router.ts: /api/v1/auth/register, /api/v1/auth/login, /api/v1/auth/refresh.
+4. Express middleware in middleware.ts: authenticateJWT with role enforcement (STUDENT, INSTITUTION, INDUSTRY, ADMIN).
 ```
 
 ### Prompt 3: Student, Institution, and Company Profile APIs
 ```text
-Build profile CRUD services and endpoints in src/core/:
-1. StudentProfile model and router for GET/PUT /api/v1/profile/me.
-2. Institution model and router for POST /api/v1/institution/register and GET /api/v1/institution/metrics.
-3. Company model and router for POST /api/v1/industry/register.
+Build profile CRUD routes in src/core/profileRouter.ts:
+1. StudentProfile routes for GET / PUT /api/v1/profile/me.
+2. Institution routes for POST /api/v1/institution/register and GET /api/v1/institution/metrics.
+3. Company routes for POST /api/v1/industry/register.
 Enforce data ownership: students can only access their own record.
 ```
