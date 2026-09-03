@@ -1,6 +1,6 @@
 from typing import List, Optional
 from datetime import date, datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class SkillRequirement(BaseModel):
@@ -11,22 +11,21 @@ class SkillRequirement(BaseModel):
 
 
 class OpportunitySkillTagResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     skill_id: str
     raw_mention: Optional[str] = None
     min_proficiency: str = "BEGINNER"
 
-    class Config:
-        from_attributes = True
-
 
 class OpportunityBase(BaseModel):
-    title: str = Field(..., example="Backend Engineering Intern")
-    organization: str = Field(..., example="Razorpay")
-    type: str = Field(..., example="INTERNSHIP", description="INTERNSHIP, HACKATHON, PROJECT")
-    mode: str = Field(..., example="REMOTE", description="REMOTE, ON_SITE, HYBRID")
-    location: Optional[str] = Field(None, example="Bengaluru, Karnataka")
+    title: str = Field(..., description="Opportunity title")
+    organization: str = Field(..., description="Company or host institution")
+    type: str = Field(..., description="INTERNSHIP, HACKATHON, PROJECT")
+    mode: str = Field(..., description="REMOTE, ON_SITE, HYBRID")
+    location: Optional[str] = Field(None, description="Location details")
     deadline: Optional[date] = None
-    stipend: Optional[str] = Field(None, example="₹35,000 / month")
+    stipend: Optional[str] = Field(None, description="Stipend or prize details")
 
 
 class OpportunityDirectCreate(OpportunityBase):
@@ -48,6 +47,8 @@ class OpportunityCreate(OpportunityBase):
 
 class OpportunitySummary(BaseModel):
     """Clean summary item for list browse endpoints matching Frontend 2's contract."""
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     title: str
     organization: str
@@ -60,9 +61,6 @@ class OpportunitySummary(BaseModel):
     location: Optional[str] = None
     skill_tags: List[OpportunitySkillTagResponse] = []
     is_active: Optional[bool] = True
-
-    class Config:
-        from_attributes = True
 
 
 class OpportunityDetail(OpportunitySummary):

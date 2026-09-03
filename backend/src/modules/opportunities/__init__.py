@@ -11,6 +11,7 @@ from src.modules.opportunities.schemas import (
     SkillRequirement,
     OpportunitySkillTagResponse,
 )
+from src.modules.opportunities.router import router
 
 __all__ = [
     "Opportunity",
@@ -25,4 +26,5 @@ __all__ = [
     "DirectOpportunityResponse",
     "SkillRequirement",
     "OpportunitySkillTagResponse",
+    "router",
 ]
