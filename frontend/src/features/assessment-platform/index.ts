@@ -14,4 +14,5 @@ export * from './components/ProctorAlertModal';
 export * from './components/SubmitConfirmation';
 export * from './components/ResultAnalyticsView';
 export * from './components/MobileRestrictedGate';
+export * from './components/FullscreenGateModal';
 export * from './ExamPlatformPage';

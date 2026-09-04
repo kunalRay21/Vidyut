@@ -5,20 +5,56 @@ interface UseProctoringProps {
   sessionId: string | null;
   maxStrikes?: number;
   onMaxStrikesReached?: () => void;
+  isActive?: boolean;
 }
 
 export function useProctoring({
   sessionId,
-  maxStrikes = 3,
+  maxStrikes = 4,
   onMaxStrikesReached,
+  isActive = true,
 }: UseProctoringProps) {
   const [tabSwitchCount, setTabSwitchCount] = useState<number>(0);
   const [showAlertModal, setShowAlertModal] = useState<boolean>(false);
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
+    if (typeof document === 'undefined') return false;
+    return Boolean(document.fullscreenElement);
+  });
+  const [hasEnteredFullscreenOnce, setHasEnteredFullscreenOnce] = useState<boolean>(false);
+  const [isForceSubmitted, setIsForceSubmitted] = useState<boolean>(false);
 
-  // Visibility change & window blur detection
+  // Fullscreen change listener
   useEffect(() => {
-    if (!sessionId) return;
+    const handleFullscreenChange = () => {
+      const active = Boolean(document.fullscreenElement);
+      setIsFullscreen(active);
+      if (active) {
+        setHasEnteredFullscreenOnce(true);
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Request fullscreen function
+  const requestFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+        setIsFullscreen(true);
+        setHasEnteredFullscreenOnce(true);
+      }
+    } catch (err) {
+      console.warn('Fullscreen request dismissed or blocked:', err);
+    }
+  }, []);
+
+  // Tab switch & visibility change listener
+  useEffect(() => {
+    if (!sessionId || !isActive || isForceSubmitted) return;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -28,14 +64,18 @@ export function useProctoring({
 
           // Report telemetry to backend
           assessmentApi.recordHeartbeat(sessionId, {
-            time_remaining_seconds: 0, // Heartbeat service ignores 0 or keeps existing
+            time_remaining_seconds: 0,
             tab_switch_increment: 1,
           }).catch(err => {
             console.warn('[Proctoring Telemetry] Sync issue:', err.message);
           });
 
-          if (nextCount >= maxStrikes && onMaxStrikesReached) {
-            onMaxStrikesReached();
+          // Forceful auto-submission at 4 strikes
+          if (nextCount >= maxStrikes) {
+            setIsForceSubmitted(true);
+            if (onMaxStrikesReached) {
+              onMaxStrikesReached();
+            }
           }
           return nextCount;
         });
@@ -46,29 +86,7 @@ export function useProctoring({
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [sessionId, maxStrikes, onMaxStrikesReached]);
-
-  // Fullscreen tracking
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, []);
-
-  const requestFullscreen = useCallback(async () => {
-    try {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen();
-      }
-    } catch (err) {
-      console.warn('Fullscreen request dismissed or blocked:', err);
-    }
-  }, []);
+  }, [sessionId, isActive, isForceSubmitted, maxStrikes, onMaxStrikesReached]);
 
   const dismissAlert = useCallback(() => {
     setShowAlertModal(false);
@@ -78,7 +96,9 @@ export function useProctoring({
     tabSwitchCount,
     showAlertModal,
     isFullscreen,
+    hasEnteredFullscreenOnce,
     maxStrikes,
+    isForceSubmitted,
     requestFullscreen,
     dismissAlert,
   };

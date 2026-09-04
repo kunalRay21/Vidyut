@@ -13,18 +13,19 @@ import { ProctorAlertModal } from './components/ProctorAlertModal';
 import { SubmitConfirmation } from './components/SubmitConfirmation';
 import { ResultAnalyticsView } from './components/ResultAnalyticsView';
 import { MobileRestrictedGate } from './components/MobileRestrictedGate';
+import { FullscreenGateModal } from './components/FullscreenGateModal';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 export const ExamPlatformPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
 
-  // Mobile Device Check Gate (Restricts assessment on mobile)
+  // 1. Mobile Device Check Gate (Restricts assessment on mobile)
   const { isMobile } = useDeviceCheck(1024);
 
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
-  // 1. Session state hook
+  // 2. Session state hook
   const {
     sessionId,
     testTitle,
@@ -49,7 +50,7 @@ export const ExamPlatformPage: React.FC = () => {
     initSession,
   } = useExamSession({ initialSessionId: id });
 
-  // 2. Timer hook with auto-submit upon expiry
+  // 3. Timer hook with auto-submit upon expiry
   const handleTimerExpire = useCallback(() => {
     if (examStatus === 'READY') {
       submitExam();
@@ -66,22 +67,27 @@ export const ExamPlatformPage: React.FC = () => {
     onExpire: handleTimerExpire,
   });
 
-  // 3. Proctoring hook
-  const handleMaxStrikes = useCallback(() => {
-    console.warn('[Proctoring Alert] Max strikes reached.');
-  }, []);
+  // 4. Forceful auto-submission at 4 tab-switch strikes
+  const handleForcefulSubmit = useCallback(() => {
+    console.warn('[Proctoring Alert] 4 tab switches exceeded. Forcefully completing test...');
+    submitExam();
+  }, [submitExam]);
 
+  // 5. Proctoring hook (Strict 4-strike limit + Fullscreen monitoring)
   const {
     tabSwitchCount,
     showAlertModal,
     isFullscreen,
+    hasEnteredFullscreenOnce,
     maxStrikes,
+    isForceSubmitted,
     requestFullscreen,
     dismissAlert,
   } = useProctoring({
     sessionId,
-    maxStrikes: 3,
-    onMaxStrikesReached: handleMaxStrikes,
+    maxStrikes: 4,
+    onMaxStrikesReached: handleForcefulSubmit,
+    isActive: examStatus === 'READY',
   });
 
   // Handle final submission confirm
@@ -96,7 +102,7 @@ export const ExamPlatformPage: React.FC = () => {
   };
 
   // ----------------------------------------------------------------------------
-  // Gate: Block mobile devices from starting/taking assessment
+  // Gate 1: Block mobile devices from starting/taking assessment
   // ----------------------------------------------------------------------------
   if (isMobile) {
     return <MobileRestrictedGate />;
@@ -162,7 +168,7 @@ export const ExamPlatformPage: React.FC = () => {
   }
 
   // ----------------------------------------------------------------------------
-  // Render Modern Full-Height Application Workspace (HackerRank / CodeSignal style)
+  // Render Live Exam Mode (Split-Pane Full-Height Workspace)
   // ----------------------------------------------------------------------------
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-white text-slate-800">
@@ -233,12 +239,20 @@ export const ExamPlatformPage: React.FC = () => {
         />
       </div>
 
-      {/* Proctoring Tab-Switch Alert Modal */}
+      {/* Gate 2: Fullscreen Mode Enforcement Modal (Blocks interaction when not in fullscreen) */}
+      <FullscreenGateModal
+        isOpen={!isFullscreen && examStatus === 'READY'}
+        onEnterFullscreen={requestFullscreen}
+        hasStarted={hasEnteredFullscreenOnce}
+      />
+
+      {/* Proctoring Tab-Switch Alert Modal (Strict 4-strike limit) */}
       <ProctorAlertModal
         isOpen={showAlertModal}
         strikeCount={tabSwitchCount}
         maxStrikes={maxStrikes}
         onDismiss={dismissAlert}
+        isForceSubmitted={isForceSubmitted}
       />
 
       {/* Pre-Submission Confirmation Modal */}
