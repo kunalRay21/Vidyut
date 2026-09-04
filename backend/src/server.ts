@@ -34,86 +34,23 @@ app.use(express.json());
 // Replace each stub with the real implementation when Role 1/2/4 provide them.
 
 import { createRecommendationRouter } from './modules/recommendation/recommendation.routes';
-import type {
-  RecommendationPersistenceClient,
-  ProfileService,
-  OpportunityRepository,
-} from './modules/recommendation/recommendation.service';
 import { GeminiClient } from './modules/ai/ai.client';
 import { CentralizedAIService } from './modules/ai/ai.service';
 import { ExplanationService } from './modules/recommendation/explanation.service';
-import { ResourceRecommendationService, type ResourceRepository, type RoadmapRepository } from './modules/recommendation/resource-recommendation.service';
+import { ResourceRecommendationService } from './modules/recommendation/resource-recommendation.service';
+import { 
+  PrismaProfileService, 
+  PrismaOpportunityRepository,
+  PrismaRecommendationPersistenceClient,
+  PrismaResourceRepository,
+  PrismaRoadmapRepository
+} from './modules/recommendation/recommendation.adapters';
 
-/**
- * Stub persistence client — satisfies the interface but throws if called.
- * Replace with the real Prisma client when the schema is generated.
- */
-const stubDb: RecommendationPersistenceClient = {
-  recommendation: {
-    upsert: async () => {
-      console.warn('[STUB] RecommendationPersistenceClient.upsert — real DB not wired yet.');
-      return { id: 'stub-id' };
-    },
-    findMany: async () => {
-      console.warn('[STUB] RecommendationPersistenceClient.findMany — real DB not wired yet.');
-      return [];
-    },
-  },
-};
-
-/**
- * Stub profile service — returns a neutral profile so scoring doesn't crash.
- * Replace with Role 2's real service when available.
- */
-const stubProfileService: ProfileService = {
-  getProfile: async (studentId: string) => {
-    console.warn(`[STUB] ProfileService.getProfile(${studentId}) — real service not wired.`);
-    return {
-      id: studentId,
-      yearOfStudy: 2,
-      interests: [],
-      selectedDomainId: null,
-      selectedDomainName: null,
-    };
-  },
-  getSkillStates: async (studentId: string) => {
-    console.warn(`[STUB] ProfileService.getSkillStates(${studentId}) — real service not wired.`);
-    return [];
-  },
-};
-
-/**
- * Stub opportunity repository — returns an empty list.
- * Replace with Role 4's real repository when available.
- */
-const stubOpportunityRepo: OpportunityRepository = {
-  findAllActive: async () => {
-    console.warn('[STUB] OpportunityRepository.findAllActive — real repo not wired.');
-    return [];
-  },
-};
-
-/**
- * Stub roadmap repository — returns an empty roadmap.
- * Replace with Role 3's real repository when available.
- */
-const stubRoadmapRepo: RoadmapRepository = {
-  getStudentRoadmap: async (studentId: string) => {
-    console.warn(`[STUB] RoadmapRepository.getStudentRoadmap(${studentId}) — real repo not wired.`);
-    return [];
-  }
-};
-
-/**
- * Stub resource repository — returns an empty array.
- * Replace with Role 3's real repository when available.
- */
-const stubResourceRepo: ResourceRepository = {
-  findResourcesBySkillId: async (skillId: string) => {
-    console.warn(`[STUB] ResourceRepository.findResourcesBySkillId(${skillId}) — real repo not wired.`);
-    return [];
-  }
-};
+const prismaProfileService = new PrismaProfileService();
+const prismaOpportunityRepo = new PrismaOpportunityRepository();
+const prismaRecommendationDb = new PrismaRecommendationPersistenceClient();
+const prismaResourceRepo = new PrismaResourceRepository();
+const prismaRoadmapRepo = new PrismaRoadmapRepository();
 
 /**
  * Initialize AI and Explanation services.
@@ -123,11 +60,11 @@ const stubResourceRepo: ResourceRepository = {
 const aiClient = new GeminiClient(process.env.GEMINI_API_KEY);
 const aiService = new CentralizedAIService(aiClient);
 const explanationService = new ExplanationService(aiService);
-const resourceRecommendationService = new ResourceRecommendationService(stubResourceRepo, stubRoadmapRepo);
+const resourceRecommendationService = new ResourceRecommendationService(prismaResourceRepo, prismaRoadmapRepo);
 
 app.use(
   '/api/v1/recommendations',
-  createRecommendationRouter(stubDb, stubProfileService, stubOpportunityRepo, explanationService, resourceRecommendationService)
+  createRecommendationRouter(prismaRecommendationDb, prismaProfileService, prismaOpportunityRepo, explanationService, resourceRecommendationService)
 );
 
 // ---------------------------------------------------------------------------
