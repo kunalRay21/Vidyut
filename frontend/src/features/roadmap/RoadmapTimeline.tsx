@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { GitBranch, CheckCircle2, Check, Clock, Lock, BookOpen, Calculator, Database, BrainCircuit, Lightbulb } from 'lucide-react';
+import { GitBranch, CheckCircle2, Check, Clock, Lock, BookOpen, Calculator, Database, BrainCircuit, Lightbulb, Code, Layers, FileCode2, Table, LayoutList, Server, LineChart } from 'lucide-react';
 import { MilestoneStatus } from './MilestoneCard';
 
 export interface Milestone {
@@ -28,10 +28,13 @@ interface RoadmapTimelineProps {
 
 const getPhaseIcon = (phaseNumber: number) => {
   switch (phaseNumber) {
-    case 1: return <BookOpen className="w-6 h-6" />;
-    case 2: return <Calculator className="w-6 h-6" />;
-    case 3: return <Database className="w-6 h-6" />;
+    case 1: return <Code className="w-6 h-6" />;
+    case 2: return <Database className="w-6 h-6" />;
+    case 3: return <Calculator className="w-6 h-6" />;
     case 4: return <BrainCircuit className="w-6 h-6" />;
+    case 5: return <Layers className="w-6 h-6" />;
+    case 6: return <BookOpen className="w-6 h-6" />;
+    case 7: return <Server className="w-6 h-6" />;
     default: return <Lightbulb className="w-6 h-6" />;
   }
 };
@@ -41,9 +44,10 @@ const PhaseCard: React.FC<{
   index: number;
   isTimelineReached: boolean;
   isLast: boolean;
+  nextPhaseHasStarted: boolean;
   onEvidenceClick: (id: string) => void;
   onDecisionClick: (p: Phase) => void;
-}> = ({ phase, index: _index, isTimelineReached, isLast, onEvidenceClick, onDecisionClick }) => {
+}> = ({ phase, index: _index, isTimelineReached, isLast, nextPhaseHasStarted, onEvidenceClick, onDecisionClick }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -70,9 +74,11 @@ const PhaseCard: React.FC<{
   
   const showAsCompleted = isCompleted && isTimelineReached;
   const showAsCurrent = isCurrent && isTimelineReached;
+  
+  const shouldFillOutgoingLine = showAsCompleted && nextPhaseHasStarted;
 
   return (
-    <div className="relative pl-10 md:pl-12">
+    <div id={phase.id} className="relative pl-10 md:pl-12">
       {/* Connecting vertical line for timeline (Background) */}
       {!isLast && (
         <div className="absolute left-[11px] top-9 w-0.5 h-[calc(100%+2rem)] bg-[#EAE3B3] z-0" />
@@ -82,7 +88,7 @@ const PhaseCard: React.FC<{
       {!isLast && (
         <div 
           className="absolute left-[11px] top-9 w-0.5 h-[calc(100%+2rem)] bg-[#FF9933] z-0 origin-top transition-transform duration-500 ease-linear"
-          style={{ transform: showAsCompleted ? 'scaleY(1)' : 'scaleY(0)' }}
+          style={{ transform: shouldFillOutgoingLine ? 'scaleY(1)' : 'scaleY(0)' }}
         />
       )}
 
@@ -247,7 +253,7 @@ export const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ phases, onEvid
 
     setAnimatedIndex(0);
     let curr = 0;
-    const lastTarget = phases.findIndex(p => p.status === 'IN_PROGRESS' || p.status === 'LOCKED');
+    const lastTarget = phases.findIndex(p => p.status === 'LOCKED');
     const maxIndex = lastTarget === -1 ? phases.length : lastTarget;
 
     const interval = setInterval(() => {
@@ -263,17 +269,23 @@ export const RoadmapTimeline: React.FC<RoadmapTimelineProps> = ({ phases, onEvid
 
   return (
     <div ref={timelineRef} className="py-4 space-y-8 ml-2 relative">
-      {phases.map((phase, index) => (
-        <PhaseCard 
-          key={phase.id}
-          phase={phase} 
-          index={index} 
-          isTimelineReached={animatedIndex >= index}
-          isLast={index === phases.length - 1}
-          onEvidenceClick={onEvidenceClick} 
-          onDecisionClick={onDecisionClick} 
-        />
-      ))}
+      {phases.map((phase, index) => {
+        const nextPhase = phases[index + 1];
+        const nextPhaseHasStarted = nextPhase ? (nextPhase.status === 'IN_PROGRESS' || nextPhase.status === 'COMPLETED' || nextPhase.status === 'FAST_TRACKED') : false;
+
+        return (
+          <PhaseCard 
+            key={phase.id}
+            phase={phase} 
+            index={index} 
+            isTimelineReached={animatedIndex >= index}
+            isLast={index === phases.length - 1}
+            nextPhaseHasStarted={nextPhaseHasStarted}
+            onEvidenceClick={onEvidenceClick} 
+            onDecisionClick={onDecisionClick} 
+          />
+        );
+      })}
     </div>
   );
 };

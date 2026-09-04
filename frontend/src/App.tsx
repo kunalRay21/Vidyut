@@ -390,7 +390,7 @@ export default function App() {
               <NavLink 
                 to="/explore" 
                 className={({ isActive }) => 
-                  `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
+                  `whitespace-nowrap px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
                     isActive 
                       ? 'text-gray-900 font-bold bg-saffron/5 underline decoration-saffron decoration-2 underline-offset-[6px]' 
                       : 'text-gray-700 font-medium'
@@ -401,7 +401,7 @@ export default function App() {
               <NavLink 
                 to="/dashboard" 
                 className={({ isActive }) => 
-                  `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
+                  `whitespace-nowrap px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
                     isActive 
                       ? 'text-gray-900 font-bold bg-saffron/5 underline decoration-saffron decoration-2 underline-offset-[6px]' 
                       : 'text-gray-700 font-medium'
@@ -412,7 +412,7 @@ export default function App() {
               <NavLink 
                 to="/roadmap" 
                 className={({ isActive }) => 
-                  `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
+                  `whitespace-nowrap px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
                     isActive 
                       ? 'text-gray-900 font-bold bg-saffron/5 underline decoration-saffron decoration-2 underline-offset-[6px]' 
                       : 'text-gray-700 font-medium'
@@ -423,7 +423,7 @@ export default function App() {
               <NavLink 
                 to="/opportunities" 
                 className={({ isActive }) => 
-                  `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
+                  `whitespace-nowrap px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
                     isActive 
                       ? 'text-gray-900 font-bold bg-saffron/5 underline decoration-saffron decoration-2 underline-offset-[6px]' 
                       : 'text-gray-700 font-medium'
@@ -437,7 +437,7 @@ export default function App() {
               <NavLink 
                 to="/industry/onboard" 
                 className={({ isActive }) => 
-                  `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:text-saffron hover:underline hover:decoration-saffron/70 hover:decoration-2 hover:underline-offset-[6px] ${
+                  `whitespace-nowrap px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:text-saffron hover:underline hover:decoration-saffron/70 hover:decoration-2 hover:underline-offset-[6px] ${
                     isActive 
                       ? 'text-indiaGreen font-bold bg-indiaGreen/5 underline decoration-indiaGreen decoration-2 underline-offset-[6px]' 
                       : 'text-[#B85C16] font-bold'
@@ -449,7 +449,7 @@ export default function App() {
               <NavLink 
                 to="/institution/dashboard" 
                 className={({ isActive }) => 
-                  `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:text-[#000080] hover:underline hover:decoration-[#000080]/70 hover:decoration-2 hover:underline-offset-[6px] ${
+                  `whitespace-nowrap px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:text-[#000080] hover:underline hover:decoration-[#000080]/70 hover:decoration-2 hover:underline-offset-[6px] ${
                     isActive 
                       ? 'text-[#000080] font-bold bg-blue-50 underline decoration-[#000080] decoration-2 underline-offset-[6px]' 
                       : 'text-[#000080] font-medium'
@@ -459,13 +459,13 @@ export default function App() {
               </NavLink>
             </nav>
 
-            <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
-              <Link to="/login" className="btn-saffron text-xs py-2 px-3.5">
+            <div className="flex items-center gap-2 border-l border-gray-300 pl-4">
+              <Link to="/login" className="btn-saffron whitespace-nowrap text-xs font-semibold py-2 px-4 flex items-center justify-center">
                 Sign In
               </Link>
               <Link
                 to="/register"
-                className="text-xs py-2 px-3 rounded-lg border border-gray-300 bg-white hover:border-saffron hover:text-saffron font-medium text-gray-700 transition"
+                className="whitespace-nowrap text-xs font-semibold py-2 px-4 flex items-center justify-center rounded-lg border border-gray-300 bg-white hover:border-saffron hover:text-saffron text-gray-700 transition"
               >
                 Register
               </Link>

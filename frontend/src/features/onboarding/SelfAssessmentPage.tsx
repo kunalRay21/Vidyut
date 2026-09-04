@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FadeIn } from '../../components/animations/FadeIn';
+import { ChevronDown, Check } from 'lucide-react';
 
 type Rating = 'BEGINNER' | 'AVERAGE' | 'GOOD' | 'EXPERT';
 
@@ -9,7 +10,62 @@ interface Skill {
   name: string;
 }
 
-const roles = [
+const CustomDropdown = ({ roles, selectedRole, onSelect }: { roles: any[], selectedRole: string, onSelect: (id: string) => void }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const selected = roles.find(r => r.id === selectedRole);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center justify-between bg-[#FFFEF2] border ${isOpen ? 'border-[#FF9933] ring-1 ring-[#FF9933]/30' : 'border-[#EAE3B3]'} rounded-xl px-4 py-3 text-left transition-all duration-200 shadow-sm hover:border-[#FF9933]/70 focus:outline-none focus:border-[#FF9933]`}
+      >
+        <span className={`block truncate ${!selected ? 'text-gray-400 font-medium' : 'text-[#000080] font-bold'}`}>
+          {selected ? selected.name : "Select a career role..."}
+        </span>
+        <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#FF9933]' : 'text-gray-400'}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-2 bg-[#FFFEF2] border border-[#EAE3B3] rounded-xl shadow-lg py-1.5 max-h-60 overflow-auto">
+          {roles.map((role) => (
+            <button
+              key={role.id}
+              type="button"
+              onClick={() => {
+                onSelect(role.id);
+                setIsOpen(false);
+              }}
+              className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors duration-150 ${
+                selectedRole === role.id
+                  ? 'bg-[#FF9933]/10 text-[#000080] font-bold'
+                  : 'text-gray-700 font-medium hover:bg-[#EAE3B3]/30 hover:text-[#000080]'
+              }`}
+            >
+              <span className="block truncate">{role.name}</span>
+              {selectedRole === role.id && <Check className="w-4 h-4 text-[#FF9933] stroke-[3px]" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const roles = [
   {
     id: 'role-ml-engineer',
     name: 'Machine Learning Engineer',
@@ -90,10 +146,7 @@ export default function SelfAssessmentPage() {
     (role) => role.id === selectedRole
   );
 
-  const handleRoleChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const roleId = e.target.value;
+  const handleRoleChange = (roleId: string) => {
     setSelectedRole(roleId);
     setRatings({});
     setError('');
@@ -176,18 +229,11 @@ export default function SelfAssessmentPage() {
               Select Your Target Career Role
             </label>
 
-            <select
-              value={selectedRole}
-              onChange={handleRoleChange}
-              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
-            >
-              <option value="">Select a career role...</option>
-              {roles.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
+            <CustomDropdown 
+              roles={roles} 
+              selectedRole={selectedRole} 
+              onSelect={handleRoleChange} 
+            />
 
             {currentRole && (
               <div className="mt-4 bg-white rounded-xl p-4 border border-[#EAE3B3]">

@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FadeIn } from '../../components/animations/FadeIn';
+import { roles } from './SelfAssessmentPage';
+import { MOCK_STUDENT_PROFILE } from '../../mocks/studentSessionMock';
 
 interface Question {
   id: string;
@@ -13,80 +15,185 @@ interface Question {
   correct_answer: string;
 }
 
-const demoQuestions: Question[] = [
-  {
-    id: 'q1',
+const questionBank: Record<string, Question> = {
+  'skill-python': {
+    id: 'q-python',
     skill_id: 'skill-python',
     text: 'Which Python data type is used to store an unordered collection of unique values?',
     options: [
-      { label: 'A', text: 'List' },
-      { label: 'B', text: 'Tuple' },
-      { label: 'C', text: 'Set' },
-      { label: 'D', text: 'Dictionary' },
+      { label: 'A', text: 'List' }, { label: 'B', text: 'Tuple' },
+      { label: 'C', text: 'Set' }, { label: 'D', text: 'Dictionary' },
     ],
     correct_answer: 'C',
   },
-  {
-    id: 'q2',
+  'skill-git': {
+    id: 'q-git',
     skill_id: 'skill-git',
     text: 'Which Git command is commonly used to create and switch to a new branch in one step?',
     options: [
-      { label: 'A', text: 'git checkout -b <branch>' },
-      { label: 'B', text: 'git branch --new <branch>' },
-      { label: 'C', text: 'git push --set-upstream' },
-      { label: 'D', text: 'git merge <branch>' },
+      { label: 'A', text: 'git checkout -b <branch>' }, { label: 'B', text: 'git branch --new <branch>' },
+      { label: 'C', text: 'git push --set-upstream' }, { label: 'D', text: 'git merge <branch>' },
     ],
     correct_answer: 'A',
   },
-  {
-    id: 'q3',
+  'skill-machine-learning': {
+    id: 'q-ml',
     skill_id: 'skill-machine-learning',
     text: 'Which type of machine learning uses labeled historical training data?',
     options: [
-      { label: 'A', text: 'Unsupervised learning' },
-      { label: 'B', text: 'Supervised learning' },
-      { label: 'C', text: 'Reinforcement learning' },
-      { label: 'D', text: 'Self-organizing maps' },
+      { label: 'A', text: 'Unsupervised learning' }, { label: 'B', text: 'Supervised learning' },
+      { label: 'C', text: 'Reinforcement learning' }, { label: 'D', text: 'Self-organizing maps' },
     ],
     correct_answer: 'B',
   },
-  {
-    id: 'q4',
+  'skill-sql': {
+    id: 'q-sql',
     skill_id: 'skill-sql',
     text: 'Which SQL clause is used to filter aggregated group records?',
     options: [
-      { label: 'A', text: 'WHERE' },
-      { label: 'B', text: 'HAVING' },
-      { label: 'C', text: 'GROUP BY' },
-      { label: 'D', text: 'ORDER BY' },
+      { label: 'A', text: 'WHERE' }, { label: 'B', text: 'HAVING' },
+      { label: 'C', text: 'GROUP BY' }, { label: 'D', text: 'ORDER BY' },
     ],
     correct_answer: 'B',
   },
-  {
-    id: 'q5',
+  'skill-statistics': {
+    id: 'q-stats',
     skill_id: 'skill-statistics',
     text: 'Which measure represents the middle value of an ordered dataset?',
     options: [
-      { label: 'A', text: 'Mean' },
-      { label: 'B', text: 'Median' },
-      { label: 'C', text: 'Variance' },
-      { label: 'D', text: 'Standard Deviation' },
+      { label: 'A', text: 'Mean' }, { label: 'B', text: 'Median' },
+      { label: 'C', text: 'Variance' }, { label: 'D', text: 'Standard Deviation' },
     ],
     correct_answer: 'B',
   },
-];
+  'skill-java': {
+    id: 'q-java',
+    skill_id: 'skill-java',
+    text: 'Which keyword in Java is used to inherit a class?',
+    options: [
+      { label: 'A', text: 'implement' }, { label: 'B', text: 'extends' },
+      { label: 'C', text: 'inherits' }, { label: 'D', text: 'super' },
+    ],
+    correct_answer: 'B',
+  },
+  'skill-dsa': {
+    id: 'q-dsa',
+    skill_id: 'skill-dsa',
+    text: 'Which data structure follows the First In First Out (FIFO) principle?',
+    options: [
+      { label: 'A', text: 'Stack' }, { label: 'B', text: 'Tree' },
+      { label: 'C', text: 'Queue' }, { label: 'D', text: 'Graph' },
+    ],
+    correct_answer: 'C',
+  },
+  'skill-oop': {
+    id: 'q-oop',
+    skill_id: 'skill-oop',
+    text: 'Which OOP principle is demonstrated by hiding internal state and requiring all interaction to be performed through an object\'s methods?',
+    options: [
+      { label: 'A', text: 'Inheritance' }, { label: 'B', text: 'Polymorphism' },
+      { label: 'C', text: 'Encapsulation' }, { label: 'D', text: 'Abstraction' },
+    ],
+    correct_answer: 'C',
+  },
+  'skill-pandas': {
+    id: 'q-pandas',
+    skill_id: 'skill-pandas',
+    text: 'In Pandas, what is the primary 2-dimensional data structure called?',
+    options: [
+      { label: 'A', text: 'Series' }, { label: 'B', text: 'Array' },
+      { label: 'C', text: 'DataFrame' }, { label: 'D', text: 'Table' },
+    ],
+    correct_answer: 'C',
+  },
+  'skill-linux': {
+    id: 'q-linux',
+    skill_id: 'skill-linux',
+    text: 'Which Linux command is used to list directory contents with detailed permissions?',
+    options: [
+      { label: 'A', text: 'ls -a' }, { label: 'B', text: 'ls -l' },
+      { label: 'C', text: 'dir /w' }, { label: 'D', text: 'cd -' },
+    ],
+    correct_answer: 'B',
+  },
+  'skill-docker': {
+    id: 'q-docker',
+    skill_id: 'skill-docker',
+    text: 'Which file contains instructions to build a Docker image?',
+    options: [
+      { label: 'A', text: 'docker.yaml' }, { label: 'B', text: 'Dockerbuild' },
+      { label: 'C', text: 'Dockerfile' }, { label: 'D', text: 'docker-compose' },
+    ],
+    correct_answer: 'C',
+  },
+  'skill-cloud': {
+    id: 'q-cloud',
+    skill_id: 'skill-cloud',
+    text: 'Which cloud service model provides a platform allowing customers to develop, run, and manage applications without the complexity of building infrastructure?',
+    options: [
+      { label: 'A', text: 'IaaS' }, { label: 'B', text: 'PaaS' },
+      { label: 'C', text: 'SaaS' }, { label: 'D', text: 'FaaS' },
+    ],
+    correct_answer: 'B',
+  },
+  'skill-networking': {
+    id: 'q-networking',
+    skill_id: 'skill-networking',
+    text: 'Which protocol is used to securely browse the web?',
+    options: [
+      { label: 'A', text: 'HTTP' }, { label: 'B', text: 'FTP' },
+      { label: 'C', text: 'HTTPS' }, { label: 'D', text: 'SSH' },
+    ],
+    correct_answer: 'C',
+  }
+};
 
 export default function QuizEngine() {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const [activeQuestions, setActiveQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [showDiscrepancy, setShowDiscrepancy] = useState(false);
 
-  const question = demoQuestions[currentQuestion];
-  const progress = ((currentQuestion + 1) / demoQuestions.length) * 100;
+  // Load questions dynamically based on selected role's skills
+  useEffect(() => {
+    const saved = localStorage.getItem('self_assessment');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        const questions: Question[] = [];
+        if (data.ratings) {
+          data.ratings.forEach((r: any) => {
+            if (questionBank[r.skill_id]) {
+              questions.push(questionBank[r.skill_id]);
+            }
+          });
+        }
+        if (questions.length > 0) {
+          setActiveQuestions(questions);
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    // Fallback if no valid assessment data is found (defaults to ML Engineer prototype)
+    setActiveQuestions([
+      questionBank['skill-python'],
+      questionBank['skill-git'],
+      questionBank['skill-machine-learning'],
+      questionBank['skill-sql'],
+      questionBank['skill-statistics']
+    ]);
+  }, []);
+
+  if (activeQuestions.length === 0) return null;
+
+  const question = activeQuestions[currentQuestion];
+  const progress = ((currentQuestion + 1) / activeQuestions.length) * 100;
 
   const handleAnswer = (answer: string) => {
     setAnswers((previous) => ({
@@ -97,7 +204,7 @@ export default function QuizEngine() {
 
   const handleNext = () => {
     if (!answers[question.id]) return;
-    if (currentQuestion < demoQuestions.length - 1) {
+    if (currentQuestion < activeQuestions.length - 1) {
       setCurrentQuestion((previous) => previous + 1);
     }
   };
@@ -113,21 +220,21 @@ export default function QuizEngine() {
 
     setLoading(true);
 
-    const submittedAnswers = demoQuestions.map((item) => ({
+    const submittedAnswers = activeQuestions.map((item) => ({
       question_id: item.id,
       selected_option: answers[item.id] || '',
       time_taken_secs: 0,
     }));
 
-    const correctCount = demoQuestions.filter(
+    const correctCount = activeQuestions.filter(
       (item) => answers[item.id] === item.correct_answer
     ).length;
 
     const discrepancyData = {
       session_id: id,
-      total_questions: demoQuestions.length,
+      total_questions: activeQuestions.length,
       correct_answers: correctCount,
-      discrepancies: demoQuestions
+      discrepancies: activeQuestions
         .filter(
           (item) =>
             answers[item.id] && answers[item.id] !== item.correct_answer
@@ -146,6 +253,64 @@ export default function QuizEngine() {
       setLoading(false);
       setShowDiscrepancy(true);
     }, 500);
+  };
+
+  const handleContinue = () => {
+    const saved = localStorage.getItem('self_assessment');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        const selectedRoleId = data.role_id;
+        const role = roles.find(r => r.id === selectedRoleId);
+        
+        if (role) {
+          MOCK_STUDENT_PROFILE.selected_role = role.name;
+          
+          const newSkills = role.skills.map((skill, index) => {
+            const userRating = data.ratings.find((r: any) => r.skill_id === skill.id)?.rating || 'BEGINNER';
+            
+            let baseProgress = 0;
+            let currentLevel = 0;
+            switch(userRating) {
+              case 'BEGINNER': baseProgress = 20; currentLevel = 1; break;
+              case 'AVERAGE': baseProgress = 50; currentLevel = 2; break;
+              case 'GOOD': baseProgress = 75; currentLevel = 3; break;
+              case 'EXPERT': baseProgress = 90; currentLevel = 4; break;
+            }
+            
+            const questionForSkill = activeQuestions.find(q => q.skill_id === skill.id);
+            if (questionForSkill) {
+               const isCorrect = answers[questionForSkill.id] === questionForSkill.correct_answer;
+               if (isCorrect) {
+                 baseProgress = Math.min(100, baseProgress + 15);
+                 currentLevel = Math.min(4, currentLevel + 1);
+               } else {
+                 baseProgress = Math.max(0, baseProgress - 15);
+                 currentLevel = Math.max(0, currentLevel - 1);
+               }
+            }
+            
+            const stepNum = Math.min(5, Math.floor(1 + (index * 5) / role.skills.length));
+            
+            return {
+              id: skill.id.replace('skill-', ''),
+              name: skill.name,
+              progress: baseProgress,
+              currentLevel,
+              roadmap_id: `step${stepNum}`
+            };
+          });
+          
+          MOCK_STUDENT_PROFILE.skills = newSkills;
+          
+          const correctCount = activeQuestions.filter((item) => answers[item.id] === item.correct_answer).length;
+          MOCK_STUDENT_PROFILE.readiness_pct = Math.round((correctCount / activeQuestions.length) * 100);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    navigate('/dashboard');
   };
 
   return (
@@ -268,18 +433,18 @@ export default function QuizEngine() {
             <div className="mt-5 rounded-xl border border-gray-200 bg-white p-4 space-y-2.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-gray-500">Total Questions:</span>
-                <span className="font-bold text-gray-900">{demoQuestions.length}</span>
+                <span className="font-bold text-gray-900">{activeQuestions.length}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Correct Answers:</span>
                 <span className="font-bold text-green-600">
-                  {demoQuestions.filter((item) => answers[item.id] === item.correct_answer).length}
+                  {activeQuestions.filter((item) => answers[item.id] === item.correct_answer).length}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Identified Gaps:</span>
                 <span className="font-bold text-saffron">
-                  {demoQuestions.filter((item) => answers[item.id] && answers[item.id] !== item.correct_answer).length}
+                  {activeQuestions.filter((item) => answers[item.id] && answers[item.id] !== item.correct_answer).length}
                 </span>
               </div>
             </div>
@@ -292,7 +457,7 @@ export default function QuizEngine() {
 
             <button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={handleContinue}
               className="mt-6 w-full btn-saffron py-3 font-bold text-sm rounded-xl"
             >
               Continue to Dashboard →

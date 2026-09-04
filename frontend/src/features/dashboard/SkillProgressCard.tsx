@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export interface Skill {
   name: string;
@@ -183,7 +184,19 @@ export const SkillProgressCard: React.FC<SkillProgressCardProps> = ({ skill }) =
             </div>
           );
         })}
+        </div>
       </div>
+
+      <div className="mt-8 pt-4 border-t border-[#EAE3B3]/50 flex justify-end">
+        <Link 
+          to={`/roadmap#${(skill as any).roadmap_id || ''}`}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[#FF9933] hover:text-[#e68a2e] transition-colors"
+        >
+          View in Roadmap
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </Link>
       </div>
     </div>
   );

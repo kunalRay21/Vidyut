@@ -3,87 +3,136 @@ import { RoadmapTimeline, Phase } from '../features/roadmap/RoadmapTimeline';
 import { DecisionPointModal } from '../features/roadmap/DecisionPointModal';
 import { EvidenceSubmitModal } from '../features/roadmap/EvidenceSubmitModal';
 
+import { useLocation } from 'react-router-dom';
+import { MOCK_STUDENT_PROFILE } from '../mocks/studentSessionMock';
+
 const INITIAL_PHASES: Phase[] = [
   {
-    id: "p1",
+    id: "step1",
     phase_number: 1,
-    title: "Programming Fundamentals",
+    title: "Programming Foundations",
     description: "Build a strong foundation in programming by understanding the core concepts and logic required to write structured programs.",
     learning_outcome: "Understand how programs are structured and develop the logical thinking required to solve programming problems.",
     status: "FAST_TRACKED",
-    topics: ["Programming Basics", "Variables and Data Types", "Input and Output", "Operators", "Conditional Statements", "Loops", "Functions", "Basic Problem Solving", "Control Flow"]
+    topics: ["Programming Fundamentals", "Problem Solving"]
   },
   {
-    id: "p2",
+    id: "step2",
     phase_number: 2,
-    title: "Python Programming",
-    description: "Learn Python as a programming language and understand how to use its syntax, built-in features, and core programming concepts to write efficient programs.",
-    learning_outcome: "Write complete Python programs, work with different data structures, organize code using functions and modules, and handle common runtime errors.",
+    title: "Python & Core Development",
+    description: "Learn Python as a programming language and understand how to use its syntax, built-in features, and core concepts to write efficient programs.",
+    learning_outcome: "Write complete Python programs, work with different data structures, and handle common runtime errors.",
     status: "IN_PROGRESS",
-    topics: ["Python Syntax", "Variables and Data Types in Python", "Lists, Tuples, Sets and Dictionaries", "Strings", "Conditional Statements", "Loops", "Functions", "Modules and Packages", "File Handling", "Exception Handling"]
+    topics: ["Python Basics", "Data Structures", "Functions & Modules"]
   },
   {
-    id: "p3",
+    id: "step3",
     phase_number: 3,
-    title: "Object-Oriented Programming",
-    description: "Learn how to design larger and more structured applications using classes and objects.",
-    learning_outcome: "Understand how real-world entities can be represented in software and how object-oriented principles help build scalable and maintainable applications.",
-    status: "LOCKED",
-    topics: ["Classes and Objects", "Constructors", "Instance Variables", "Methods", "Encapsulation", "Inheritance", "Polymorphism", "Abstraction", "Method Overriding", "Composition"]
-  },
-  {
-    id: "p4",
-    phase_number: 4,
-    title: "Data Structures & Problem Solving",
-    description: "Learn how to organize data efficiently and select appropriate approaches for solving computational problems.",
-    learning_outcome: "Understand how data is stored and processed efficiently and improve your ability to solve programming problems systematically.",
-    status: "LOCKED",
-    topics: ["Arrays and Lists", "Stacks", "Queues", "Linked Lists", "Hashing", "Recursion", "Searching", "Sorting", "Basic Algorithmic Complexity"]
-  },
-  {
-    id: "p5",
-    phase_number: 5,
-    title: "Mathematics Foundations",
-    description: "Develop the mathematical intuition needed to understand machine learning algorithms under the hood.",
-    learning_outcome: "Apply concepts of linear algebra, calculus, and probability to understand and implement machine learning models.",
-    status: "LOCKED",
-    topics: ["Linear Algebra", "Statistics & Probability", "Calculus Basics"]
-  },
-  {
-    id: "p6",
-    phase_number: 6,
-    title: "Data Handling",
+    title: "Data & Database Fundamentals",
     description: "Learn to query databases, clean messy datasets, and visualize insights effectively.",
     learning_outcome: "Extract data from relational databases, manipulate large datasets, and build informative visualizations.",
     status: "LOCKED",
-    topics: ["SQL Fundamentals", "pandas / Data Manipulation", "Data Visualization"]
+    topics: ["Python for Data", "SQL", "Data Handling", "Data Analysis"]
   },
   {
-    id: "p7",
-    phase_number: 7,
-    title: "Core Machine Learning",
-    description: "Train, evaluate, and tune predictive models using industry-standard machine learning techniques.",
+    id: "step4",
+    phase_number: 4,
+    title: "Machine Learning Foundations",
+    description: "Develop mathematical intuition and train predictive models using industry-standard machine learning techniques.",
     learning_outcome: "Build end-to-end machine learning pipelines to solve classification and regression problems.",
     status: "LOCKED",
-    topics: ["Machine Learning Fundamentals", "scikit-learn", "Feature Engineering", "Model Evaluation & Metrics"],
+    topics: ["Statistics & Probability", "Supervised Learning", "Unsupervised Learning", "Feature Engineering"]
+  },
+  {
+    id: "step5",
+    phase_number: 5,
+    title: "Advanced Learning & Specialization",
+    description: "Dive deep into specialized subfields like Deep Learning, Natural Language Processing, or Computer Vision.",
+    learning_outcome: "Develop, train, and deploy advanced neural network architectures.",
+    status: "LOCKED",
+    topics: ["Deep Learning Basics", "Neural Networks"],
     has_decision_point: true,
     decision_options: [
       { branch_id: "branch-tf", name: "TensorFlow" },
       { branch_id: "branch-pytorch", name: "PyTorch" }
     ]
+  },
+  {
+    id: "step6",
+    phase_number: 6,
+    title: "Projects, Portfolio & Career Readiness",
+    description: "Apply your knowledge to practical projects, build a strong portfolio, and prepare for industry roles.",
+    learning_outcome: "Complete end-to-end projects, deploy models, and gain career-ready experience.",
+    status: "LOCKED",
+    topics: ["Practical Projects", "Portfolio Development", "Deployment / MLOps", "Career Readiness"]
   }
 ];
 
+const calculatePhaseStatuses = (phases: Phase[], skills: typeof MOCK_STUDENT_PROFILE.skills): Phase[] => {
+  return phases.map((phase, index) => {
+    // Find all skills explicitly mapped to this roadmap step
+    const mappedSkills = skills.filter(s => s.roadmap_id === phase.id);
+    
+    // If no explicit skills mapped, we assume it's locked by default
+    if (mappedSkills.length === 0) return { ...phase, status: "LOCKED" as any };
+
+    // Calculate average progress
+    const totalProgress = mappedSkills.reduce((sum, s) => sum + s.progress, 0);
+    const avgProgress = totalProgress / mappedSkills.length;
+
+    let newStatus = phase.status;
+    if (avgProgress === 100) {
+      newStatus = "COMPLETED" as any;
+    } else if (avgProgress > 0) {
+      newStatus = "IN_PROGRESS" as any;
+    } else {
+      newStatus = "LOCKED" as any;
+    }
+
+    return { ...phase, status: newStatus };
+  });
+};
+
 import { FadeIn } from '../components/animations/FadeIn';
-import { MOCK_STUDENT_PROFILE } from '../mocks/studentSessionMock';
 
 export const RoadmapPage: React.FC = () => {
-  const [phases, setPhases] = useState<Phase[]>(INITIAL_PHASES);
+  const [phases, setPhases] = useState<Phase[]>(calculatePhaseStatuses(INITIAL_PHASES, MOCK_STUDENT_PROFILE.skills));
   const [readinessScore, setReadinessScore] = useState(MOCK_STUDENT_PROFILE.readiness_pct);
+  const location = useLocation();
+
+  // If skills change externally, resync the statuses but preserve any dynamic branching
+  useEffect(() => {
+    setPhases(prevPhases => {
+      return prevPhases.map(phase => {
+        const mappedSkills = MOCK_STUDENT_PROFILE.skills.filter(s => s.roadmap_id === phase.id);
+        if (mappedSkills.length === 0) return phase;
+
+        const avgProgress = mappedSkills.reduce((sum, s) => sum + s.progress, 0) / mappedSkills.length;
+        let newStatus = phase.status;
+        if (avgProgress === 100) newStatus = "COMPLETED" as any;
+        else if (avgProgress > 0) newStatus = "IN_PROGRESS" as any;
+        else newStatus = "LOCKED" as any;
+
+        return { ...phase, status: newStatus };
+      });
+    });
+  }, [MOCK_STUDENT_PROFILE.skills]);
   
   // Animation states for the readiness gauge
   const [displayedScore, setDisplayedScore] = useState(0);
   const [isGaugeLoaded, setIsGaugeLoaded] = useState(false);
+
+  useEffect(() => {
+    if (location.hash) {
+      setTimeout(() => {
+        const id = location.hash.replace('#', '');
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500); // Wait for animations to settle
+    }
+  }, [location.hash]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsGaugeLoaded(true), 100);
@@ -125,25 +174,51 @@ export const RoadmapPage: React.FC = () => {
   const handleDecisionSelect = (branchId: string) => {
     setPhases(prev => {
       const updated = [...prev];
-      const p7 = updated.find(p => p.phase_number === 7);
-      if (p7) {
-        p7.has_decision_point = false;
-        if (!p7.topics) p7.topics = [];
-        p7.topics.push(`Specialization: ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'} Selected`);
+      const p5Index = updated.findIndex(p => p.phase_number === 5);
+      
+      if (p5Index !== -1) {
+        updated[p5Index] = {
+          ...updated[p5Index],
+          has_decision_point: false,
+          topics: [
+            ...(updated[p5Index].topics || []),
+            `Specialization: ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'} Selected`
+          ]
+        };
       }
       
-      updated.push({
-        id: "p8",
-        phase_number: 8,
-        title: branchId === 'branch-pytorch' ? 'PyTorch Deep Learning' : 'TensorFlow Deep Learning',
-        description: `Learn to build deep neural networks using ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'}.`,
+      // The final phase (Projects & Career Readiness) should be shifted to step 7
+      const projectsPhaseIndex = updated.findIndex(p => p.id === 'step6');
+      if (projectsPhaseIndex !== -1) {
+        updated[projectsPhaseIndex] = {
+          ...updated[projectsPhaseIndex],
+          id: "step7",
+          phase_number: 7,
+          status: "LOCKED" // Keeps it locked until specialization is done
+        };
+      }
+
+      // Insert the new specialization phase at step 6
+      const specializationPhase: Phase = {
+        id: "step6-specialization",
+        phase_number: 6,
+        title: branchId === 'branch-pytorch' ? 'PyTorch Specialization' : 'TensorFlow Specialization',
+        description: `Learn to build deep neural networks and advanced models using ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'}.`,
         learning_outcome: `Develop, train, and deploy advanced neural network models using ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'}.`,
         status: 'IN_PROGRESS',
         topics: [
           branchId === 'branch-pytorch' ? 'PyTorch Tensors & Autograd' : 'TF Tensors & Keras',
-          'Build a CNN'
+          'Build a CNN',
+          'Transfer Learning'
         ]
-      });
+      };
+
+      // Insert it right after step 5 (which is index p5Index)
+      if (p5Index !== -1) {
+        updated.splice(p5Index + 1, 0, specializationPhase);
+      } else {
+        updated.push(specializationPhase);
+      }
       
       return updated;
     });
