@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
-import { authApi, setStoredToken, setStoredUser } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterForm() {
   const navigate = useNavigate();
+  const { registerStudent } = useAuth();
 
   const [form, setForm] = useState({
     full_name: '',
@@ -52,7 +53,7 @@ export default function RegisterForm() {
       .filter(Boolean);
 
     try {
-      const response = await authApi.register({
+      const res = await registerStudent({
         email: form.email,
         password: form.password,
         full_name: form.full_name,
@@ -62,29 +63,11 @@ export default function RegisterForm() {
         interests: parsedInterests,
       });
 
-      if (response.success && response.data) {
-        if (response.data.access_token) {
-          setStoredToken(response.data.access_token);
-        }
-        if (response.data.user) {
-          setStoredUser(response.data.user);
-        }
+      if (res.success) {
+        navigate('/explore');
       } else {
-        // Fallback for offline demo mode
-        const demoUser = {
-          id: `student-${Date.now()}`,
-          full_name: form.full_name,
-          email: form.email,
-          institution: form.institution,
-          degree: form.degree,
-          year_of_study: Number(form.year_of_study),
-          interests: parsedInterests,
-        };
-        setStoredUser(demoUser);
-        setStoredToken('demo-token');
+        setError(res.error || 'Registration failed. Please try again.');
       }
-
-      navigate('/explore');
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {

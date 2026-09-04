@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Globe, Briefcase } from 'lucide-react';
 import { industryApi } from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 
 export const IndustryRegisterForm: React.FC = () => {
   const navigate = useNavigate();
+  const { loginIndustry } = useAuth();
   const [companyName, setCompanyName] = useState('');
   const [sector, setSector] = useState('Artificial Intelligence & Analytics');
   const [website, setWebsite] = useState('');
@@ -23,25 +25,17 @@ export const IndustryRegisterForm: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await industryApi.register({
+      await industryApi.register({
         company_name: companyName,
         sector,
         website,
       });
 
-      if (res.success) {
-        setSuccess(true);
-        setTimeout(() => {
-          navigate('/industry/talent');
-        }, 800);
-      } else {
-        // Fallback demo storage
-        localStorage.setItem('industry_company', JSON.stringify({ companyName, sector, website }));
-        setSuccess(true);
-        setTimeout(() => {
-          navigate('/industry/talent');
-        }, 800);
-      }
+      loginIndustry({ companyName, sector, website });
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/industry/talent');
+      }, 800);
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
     } finally {

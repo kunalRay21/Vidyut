@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { School, CheckSquare, User, Mail, Hash } from 'lucide-react';
 import { institutionApi } from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 
 export const InstitutionRegisterForm: React.FC = () => {
   const navigate = useNavigate();
+  const { loginInstitution } = useAuth();
   const [collegeName, setCollegeName] = useState('');
   const [aisheCode, setAisheCode] = useState('');
   const [officerName, setOfficerName] = useState('');
@@ -41,20 +43,21 @@ export const InstitutionRegisterForm: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await institutionApi.register({
+      await institutionApi.register({
         college_name: collegeName,
         aishe_code: aisheCode,
         officer_name: officerName,
         departments: selectedDepts,
       });
 
-      if (res.success) {
-        setSuccess(true);
-        setTimeout(() => navigate('/institution/dashboard'), 800);
-      } else {
-        setSuccess(true);
-        setTimeout(() => navigate('/institution/dashboard'), 800);
-      }
+      loginInstitution({
+        collegeName,
+        aisheCode,
+        officerName,
+      });
+
+      setSuccess(true);
+      setTimeout(() => navigate('/institution/dashboard'), 800);
     } catch (err: any) {
       setError(err.message || 'Institution registration failed.');
     } finally {

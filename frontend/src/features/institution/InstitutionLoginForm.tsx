@@ -1,28 +1,40 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { GraduationCap } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const InstitutionLoginForm: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { loginInstitution } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const targetPath = (location.state as any)?.from?.pathname || '/institution/dashboard';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password) {
-      alert('Please enter email and password.');
+      setError('Please enter college officer email and password.');
       return;
     }
 
+    setError('');
     setLoading(true);
-    localStorage.setItem('institution_token', 'demo-institution-token');
+
+    loginInstitution({
+      collegeName: 'VIT Chennai',
+      aisheCode: 'C-36944',
+      officerName: 'Dr. Ramesh Rao (Dean)',
+    });
 
     setTimeout(() => {
       setLoading(false);
-      navigate('/institution/dashboard');
+      navigate(targetPath, { replace: true });
     }, 400);
   };
 
@@ -70,10 +82,16 @@ const InstitutionLoginForm: React.FC = () => {
             />
           </div>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-chakra py-3 rounded-lg font-bold text-sm disabled:opacity-50 mt-2"
+            className="w-full btn-chakra py-3 rounded-lg font-bold text-sm disabled:opacity-50 mt-2 cursor-pointer"
           >
             {loading ? 'Authenticating...' : 'Sign In to Portal'}
           </button>

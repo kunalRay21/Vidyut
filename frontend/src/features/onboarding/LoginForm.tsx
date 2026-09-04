@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
-import { authApi, setStoredToken, setStoredUser } from '../../services/api';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { LogIn, Sparkles, Building2, GraduationCap, User } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, loginAsDemo } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const targetPath = (location.state as any)?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,33 +27,27 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await authApi.login(email, password);
-
-      if (response.success && response.data) {
-        if (response.data.access_token) {
-          setStoredToken(response.data.access_token);
-        }
-        if (response.data.user) {
-          setStoredUser(response.data.user);
-        }
+      const res = await login(email, password);
+      if (res.success) {
+        navigate(targetPath, { replace: true });
       } else {
-        // Fallback for offline demo mode
-        setStoredToken('demo-token');
-        setStoredUser({
-          id: 'student-demo',
-          email,
-          full_name: 'Priya Sharma',
-          institution: 'VIT Chennai',
-          degree: 'B.Tech CSE',
-          year_of_study: 2,
-        });
+        setError(res.error || 'Login failed. Please verify credentials.');
       }
-
-      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Login failed. Please verify your credentials.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = (role: 'STUDENT' | 'INDUSTRY' | 'INSTITUTION') => {
+    loginAsDemo(role);
+    if (role === 'STUDENT') {
+      navigate(targetPath, { replace: true });
+    } else if (role === 'INDUSTRY') {
+      navigate('/industry/talent', { replace: true });
+    } else if (role === 'INSTITUTION') {
+      navigate('/institution/dashboard', { replace: true });
     }
   };
 
@@ -68,6 +66,40 @@ export default function LoginForm() {
           <p className="text-gray-600 text-sm mt-1">
             Sign in to continue your Vidyut career readiness journey
           </p>
+        </div>
+
+        {/* Quick Demo Switcher for Evaluation */}
+        <div className="mb-6 p-3.5 rounded-xl bg-saffron/5 border border-saffron/20">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-saffron-700 uppercase tracking-wider mb-2.5">
+            <Sparkles className="w-3.5 h-3.5" />
+            Quick Demo Access (1-Click)
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => handleDemoLogin('STUDENT')}
+              className="px-2 py-1.5 rounded-lg bg-white border border-gray-200 text-[11px] font-semibold text-gray-700 hover:border-saffron hover:text-saffron transition flex flex-col items-center gap-1 shadow-2xs cursor-pointer"
+            >
+              <User className="w-3.5 h-3.5 text-saffron" />
+              <span>Student</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDemoLogin('INDUSTRY')}
+              className="px-2 py-1.5 rounded-lg bg-white border border-gray-200 text-[11px] font-semibold text-gray-700 hover:border-[#B85C16] hover:text-[#B85C16] transition flex flex-col items-center gap-1 shadow-2xs cursor-pointer"
+            >
+              <Building2 className="w-3.5 h-3.5 text-[#B85C16]" />
+              <span>Industry</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDemoLogin('INSTITUTION')}
+              className="px-2 py-1.5 rounded-lg bg-white border border-gray-200 text-[11px] font-semibold text-gray-700 hover:border-[#000080] hover:text-[#000080] transition flex flex-col items-center gap-1 shadow-2xs cursor-pointer"
+            >
+              <GraduationCap className="w-3.5 h-3.5 text-[#000080]" />
+              <span>College</span>
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">

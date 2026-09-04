@@ -28,6 +28,14 @@ export function setStoredUser(user: any) {
   localStorage.setItem('demo_user', JSON.stringify(user));
 }
 
+export function clearStoredAuth() {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('demo_user');
+  localStorage.removeItem('institution_token');
+  localStorage.removeItem('industry_token');
+  localStorage.removeItem('industry_company');
+}
+
 async function request<T = any>(
   endpoint: string,
   options: RequestInit = {}
