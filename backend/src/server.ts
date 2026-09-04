@@ -19,6 +19,9 @@ import assessmentRouter from './modules/assessment/router';
 import roadmapRouter from './modules/roadmap/router';
 import portfolioRouter from './modules/portfolio/router';
 
+// Help & Guided Assistant Router
+import helpRouter from './modules/help/router';
+
 dotenv.config();
 
 const app = express();
@@ -96,6 +99,7 @@ app.use('/api/v1/skills', skillGraphRouter);            // Member 4 (Skill Graph
 app.use('/api/v1/assessments', assessmentRouter);       // Member 4 (Assessment Engine)
 app.use('/api/v1/roadmap', roadmapRouter);              // Member 4 (Adaptive Roadmap)
 app.use('/api/v1/portfolio', portfolioRouter);          // Member 4 (Portfolio & Evidence)
+app.use('/api/v1/help', helpRouter);                    // Guided Help Assistant (Pre-defined FAQs)
 
 // ---------------------------------------------------------------------------
 // Generic error handler (must be last middleware)

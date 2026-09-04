@@ -20,6 +20,7 @@ import InstitutionDashboardPage from './features/institution/InstitutionDashboar
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Navbar } from './components/layout/Navbar';
+import { HelpAssistant } from './features/help/HelpAssistant';
 
 function NotFoundPage() {
   return (
@@ -134,6 +135,8 @@ function AppContent() {
       <footer className="border-t border-gray-200/80 bg-white py-6 text-center text-xs text-slate-500 mt-auto">
         <p>{t('footer.text')}</p>
       </footer>
+
+      <HelpAssistant />
     </div>
   );
 }
