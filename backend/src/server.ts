@@ -10,6 +10,8 @@ const PORT = process.env.PORT || 8000;
 app.use(cors());
 app.use(express.json());
 
+import assessmentRouter from './modules/assessment/router';
+
 // Root & Health check
 app.get('/', (req: Request, res: Response) => {
   res.json({
@@ -23,6 +25,10 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'healthy' });
 });
+
+// Assessment Platform Diagnostic Subsystem
+app.use('/api/v1/assessments', assessmentRouter);
+
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {

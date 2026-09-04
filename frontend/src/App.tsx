@@ -1,6 +1,10 @@
-import React from 'react';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { ExamPlatformPage } from './features/assessment-platform';
+import { Sparkles, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
-export default function App() {
+function LandingPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0A111F] text-slate-100 selection:bg-saffron selection:text-white">
       {/* Official Indian National Flag Top Header Ribbon */}
@@ -23,8 +27,11 @@ export default function App() {
 
         <div className="flex items-center gap-3">
           <span className="gov-badge-chakra hidden sm:inline-flex">Ashoka Chakra Dharma Theme</span>
-          <button className="btn-saffron text-xs py-2 px-4">
-            Sign In / Register
+          <button
+            onClick={() => navigate('/assessment/quiz/session-sih-demo')}
+            className="btn-saffron text-xs py-2 px-4 shadow-sm"
+          >
+            Launch Assessment Engine
           </button>
         </div>
       </header>
@@ -46,17 +53,48 @@ export default function App() {
           Standardized skill graphs, calibrated diagnostic evaluations, prerequisite-ordered roadmaps, and verified opportunity matching.
         </p>
 
-        {/* CTAs */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
-          <button className="btn-saffron text-sm px-6 py-3">
-            Explore Career Domains
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-4 mb-14">
+          <button
+            onClick={() => navigate('/assessment/quiz/session-sih-demo')}
+            className="btn-saffron text-sm px-6 py-3 shadow-lg flex items-center gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Start Diagnostic Exam</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
-          <button className="btn-green text-sm px-6 py-3">
-            Verified Opportunities
+          <button
+            onClick={() => navigate('/roadmap')}
+            className="btn-green text-sm px-6 py-3"
+          >
+            View Adaptive Roadmap
           </button>
           <button className="btn-chakra text-sm px-6 py-3">
             Institution Portal
           </button>
+        </div>
+
+        {/* Assessment Platform Feature Callout */}
+        <div className="w-full gov-card p-6 border-saffron/30 bg-gradient-to-r from-[#111D32] via-[#0E1726] to-[#111D32] mb-12 text-left">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-saffron" />
+                <h2 className="font-heading font-bold text-white text-base">
+                  Calibrated Diagnostic Engine Ready
+                </h2>
+              </div>
+              <p className="text-xs text-slate-400">
+                Supports synchronized countdown, question palettes, live autosave, integrity proctoring, and growth calibration analytics.
+              </p>
+            </div>
+            <Link
+              to="/assessment/quiz/session-sih-demo"
+              className="btn-saffron text-xs font-bold py-2 px-4 shadow-sm whitespace-nowrap"
+            >
+              Take Exam Now →
+            </Link>
+          </div>
         </div>
 
         {/* Design System / Theme Tokens Reference Cards */}
@@ -116,5 +154,58 @@ export default function App() {
         <p>Vidyut — Smart India Hackathon 2026 · Ministry of Education & AICTE Initiative</p>
       </footer>
     </div>
+  );
+}
+
+function RoadmapPreviewPage() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-[#0A111F] text-slate-100 flex flex-col">
+      <div className="gov-tricolor-banner" />
+      <header className="border-b border-[#1F3152] bg-[#111D32] px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="font-heading font-bold text-lg text-white">VIDYUT</span>
+          <span className="gov-badge text-[10px]">Adaptive Roadmap</span>
+        </div>
+        <button onClick={() => navigate('/')} className="text-xs text-slate-400 hover:text-white">
+          ← Back to Portal
+        </button>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-6 py-12 text-center space-y-6">
+        <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+          <CheckCircle2 className="w-8 h-8" />
+        </div>
+        <h1 className="text-3xl font-extrabold font-heading text-white">
+          Prerequisite-Ordered DAG Roadmap
+        </h1>
+        <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
+          Your roadmap has been updated with calibrated milestones based on your empirical diagnostic assessment results. Foundational remedial nodes have been prioritized for failed topics.
+        </p>
+
+        <div className="pt-4 flex justify-center gap-4">
+          <button
+            onClick={() => navigate('/assessment/quiz/session-sih-demo')}
+            className="btn-saffron text-xs font-bold py-2.5 px-6 shadow-sm"
+          >
+            Retake Diagnostic Calibration
+          </button>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/assessment/quiz/:id" element={<ExamPlatformPage />} />
+        <Route path="/assessment/quiz" element={<ExamPlatformPage />} />
+        <Route path="/roadmap" element={<RoadmapPreviewPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
