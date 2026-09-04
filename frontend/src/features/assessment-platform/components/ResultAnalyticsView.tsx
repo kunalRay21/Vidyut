@@ -268,6 +268,15 @@ export const ResultAnalyticsView: React.FC<ResultAnalyticsViewProps> = ({
                       <span className="font-mono font-bold text-xs text-slate-500 mr-2">
                         Q{idx + 1}.
                       </span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 mr-2 rounded border uppercase font-mono ${
+                          q.section === 'CODING'
+                            ? 'bg-blue-50 text-blue-800 border-blue-200'
+                            : 'bg-slate-100 text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        {q.section === 'CODING' ? 'Coding' : 'MCQ'}
+                      </span>
                       <span className="text-sm font-medium text-slate-800 truncate">
                         {q.question_text}
                       </span>
@@ -282,7 +291,13 @@ export const ResultAnalyticsView: React.FC<ResultAnalyticsViewProps> = ({
                           : 'bg-red-50 text-red-700 border-red-200'
                       }`}
                     >
-                      {q.is_correct ? 'Correct' : 'Incorrect'}
+                      {q.section === 'CODING'
+                        ? q.is_correct
+                          ? 'Completed'
+                          : 'Incomplete'
+                        : q.is_correct
+                        ? 'Correct'
+                        : 'Incorrect'}
                     </span>
                     {isExpanded ? (
                       <ChevronUp className="w-4 h-4 text-slate-400" />
@@ -306,40 +321,64 @@ export const ResultAnalyticsView: React.FC<ResultAnalyticsViewProps> = ({
                       />
                     )}
 
-                    {/* Options List */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                      {q.options.map(opt => {
-                        const isChosen = q.selected_option === opt.key;
-                        const isKeyCorrect = q.correct_option === opt.key;
-
-                        let optClass = 'bg-white border-slate-200 text-slate-600';
-                        if (isKeyCorrect) {
-                          optClass = 'bg-emerald-50 border-emerald-300 text-emerald-800 font-semibold';
-                        } else if (isChosen && !q.is_correct) {
-                          optClass = 'bg-red-50 border-red-300 text-red-800 line-through';
-                        }
-
-                        return (
-                          <div
-                            key={opt.key}
-                            className={`p-3 rounded-lg border text-xs flex items-start gap-2 ${optClass}`}
-                          >
-                            <span className="font-mono font-bold">{opt.key}.</span>
-                            <span className="flex-1">{opt.text}</span>
-                            {isChosen && (
-                              <span className="text-[10px] font-mono uppercase bg-slate-200 px-1.5 py-0.5 rounded font-medium text-slate-700">
-                                Your Choice
-                              </span>
-                            )}
-                            {isKeyCorrect && (
-                              <span className="text-[10px] font-mono uppercase bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-medium">
-                                Answer Key
-                              </span>
-                            )}
+                    {/* Coding Solution Review vs MCQ Options List */}
+                    {q.section === 'CODING' ? (
+                      <div className="space-y-2 pt-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-slate-700">Submitted Code Solution:</span>
+                          <span className="font-mono text-[11px] bg-blue-100 text-blue-900 px-2 py-0.5 rounded font-bold uppercase">
+                            {q.coding_language || 'python'}
+                          </span>
+                        </div>
+                        {q.code_solution && q.code_solution.trim().length > 0 ? (
+                          <CodeViewer
+                            code={q.code_solution}
+                            language={q.coding_language || 'python'}
+                            allowCopy={true}
+                          />
+                        ) : (
+                          <div className="p-3 bg-white border border-slate-200 rounded-lg text-slate-400 text-xs italic">
+                            No code solution submitted for this challenge.
                           </div>
-                        );
-                      })}
-                    </div>
+                        )}
+                      </div>
+                    ) : (
+                      q.options && q.options.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                          {q.options.map(opt => {
+                            const isChosen = q.selected_option === opt.key;
+                            const isKeyCorrect = q.correct_option === opt.key;
+
+                            let optClass = 'bg-white border-slate-200 text-slate-600';
+                            if (isKeyCorrect) {
+                              optClass = 'bg-emerald-50 border-emerald-300 text-emerald-800 font-semibold';
+                            } else if (isChosen && !q.is_correct) {
+                              optClass = 'bg-red-50 border-red-300 text-red-800 line-through';
+                            }
+
+                            return (
+                              <div
+                                key={opt.key}
+                                className={`p-3 rounded-lg border text-xs flex items-start gap-2 ${optClass}`}
+                              >
+                                <span className="font-mono font-bold">{opt.key}.</span>
+                                <span className="flex-1">{opt.text}</span>
+                                {isChosen && (
+                                  <span className="text-[10px] font-mono uppercase bg-slate-200 px-1.5 py-0.5 rounded font-medium text-slate-700">
+                                    Your Choice
+                                  </span>
+                                )}
+                                {isKeyCorrect && (
+                                  <span className="text-[10px] font-mono uppercase bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-medium">
+                                    Answer Key
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )
+                    )}
 
                     {/* Explanation */}
                     {q.explanation && (

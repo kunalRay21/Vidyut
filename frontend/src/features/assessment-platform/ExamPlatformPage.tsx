@@ -15,6 +15,7 @@ import { SubmitConfirmation } from './components/SubmitConfirmation';
 import { ResultAnalyticsView } from './components/ResultAnalyticsView';
 import { MobileRestrictedGate } from './components/MobileRestrictedGate';
 import { FullscreenGateModal } from './components/FullscreenGateModal';
+import { CodingWorkspace } from './components/CodingWorkspace';
 import { AlertCircle, RefreshCw, ShieldAlert } from 'lucide-react';
 
 export const ExamPlatformPage: React.FC = () => {
@@ -41,6 +42,8 @@ export const ExamPlatformPage: React.FC = () => {
     errorMessage,
     summaryCounts,
     selectOption,
+    updateCodeSolution,
+    updateCodingLanguage,
     clearOption,
     toggleMarkForReview,
     goToQuestion,
@@ -215,17 +218,30 @@ export const ExamPlatformPage: React.FC = () => {
                     totalQuestions={questions.length}
                   />
 
-                  <OptionSelector
-                    question={currentQuestion}
-                    selectedOption={currentResponse?.selected_option || null}
-                    onSelectOption={selectOption}
-                  />
+                  {currentQuestion.section === 'CODING' ? (
+                    <CodingWorkspace
+                      question={currentQuestion}
+                      currentLanguage={currentResponse?.coding_language || 'python'}
+                      currentCode={currentResponse?.code_solution ?? ''}
+                      onLanguageChange={updateCodingLanguage}
+                      onCodeChange={updateCodeSolution}
+                    />
+                  ) : (
+                    <OptionSelector
+                      question={currentQuestion}
+                      selectedOption={currentResponse?.selected_option || null}
+                      onSelectOption={selectOption}
+                    />
+                  )}
                 </div>
               </div>
 
               {/* Fixed Bottom Action Toolbar */}
               <ActionToolbar
-                hasSelectedOption={Boolean(currentResponse?.selected_option)}
+                hasSelectedOption={Boolean(
+                  currentResponse?.selected_option ||
+                  (currentQuestion.section === 'CODING' && currentResponse?.code_solution && currentResponse.code_solution.trim().length > 0)
+                )}
                 isMarkedForReview={Boolean(currentResponse?.is_marked_for_review)}
                 isFirstQuestion={currentIndex === 0}
                 isLastQuestion={currentIndex === questions.length - 1}
@@ -253,11 +269,12 @@ export const ExamPlatformPage: React.FC = () => {
         />
       </div>
 
-      {/* Gate 2: Fullscreen Mode Enforcement Modal (Blocks interaction when not in fullscreen) */}
+      {/* Gate 2: Fullscreen Mode Enforcement Modal (3-min countdown with forceful auto-submit) */}
       <FullscreenGateModal
         isOpen={!isFullscreen && examStatus === 'READY'}
         onEnterFullscreen={requestFullscreen}
         hasStarted={hasEnteredFullscreenOnce}
+        onTimeoutAutoSubmit={submitExam}
       />
 
       {/* Proctoring Tab-Switch Alert Modal (Strict 4-strike limit) */}

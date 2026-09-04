@@ -53,7 +53,7 @@ const RATING_WEIGHTS: Record<string, number> = {
 
 export class AssessmentService {
   /**
-   * 1. Save Self-Ratings (Intake Step)
+   * 1. Save Self-Ratings
    */
   async saveSelfRatings(payload: SelfRatingPayload) {
     const studentId = payload.student_id || 'guest-student-001';
@@ -78,9 +78,9 @@ export class AssessmentService {
   async startSession(payload: StartSessionPayload) {
     const sessionId = randomUUID();
     const studentId = payload.student_id || 'guest-student-001';
-    const roleId = payload.role_id || 'role-ml-engineer';
-    const totalTime = payload.total_time_seconds || 900; // 15 mins default
-    const testTitle = payload.test_title || 'Diagnostic Assessment — Engineering Core';
+    const roleId = payload.role_id || 'role-software-engineer';
+    const totalTime = payload.total_time_seconds || 1800; // 30 mins for 10 MCQs + 5 Coding (Any 4)
+    const testTitle = payload.test_title || 'Diagnostic Assessment — 10 MCQs & 5 Coding Challenges';
 
     const questions = getAllQuestions();
     const questionIds = questions.map(q => q.id);
@@ -103,27 +103,33 @@ export class AssessmentService {
     inMemorySessions.set(sessionId, session);
 
     // Initialize response records
-    for (const qId of questionIds) {
-      const respKey = `${sessionId}:${qId}`;
+    for (const q of questions) {
+      const respKey = `${sessionId}:${q.id}`;
+      const defaultStarter = q.starter_code ? q.starter_code.python : undefined;
+
       inMemoryResponses.set(respKey, {
         id: randomUUID(),
         session_id: sessionId,
-        question_id: qId,
+        question_id: q.id,
         selected_option: null,
         is_correct: null,
         is_marked_for_review: false,
         time_spent_seconds: 0,
+        coding_language: q.section === 'CODING' ? 'python' : undefined,
+        code_solution: defaultStarter,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
     }
 
-    // Return client-safe questions (omitting correct_option and explanation)
+    // Return client questions
     const clientQuestions: ClientQuestion[] = questions.map(q => ({
       id: q.id,
+      section: q.section,
       skill_id: q.skill_id,
       skill_name: q.skill_name,
       question_text: q.question_text,
+      problem_description: q.problem_description,
       option_a: q.option_a,
       option_b: q.option_b,
       option_c: q.option_c,
@@ -134,6 +140,9 @@ export class AssessmentService {
       code_language: q.code_language,
       points: q.points,
       tags: q.tags,
+      constraints: q.constraints,
+      test_cases: q.test_cases,
+      starter_code: q.starter_code,
     }));
 
     return {
@@ -142,6 +151,9 @@ export class AssessmentService {
       role_id: roleId,
       test_title: testTitle,
       total_questions: clientQuestions.length,
+      mcq_count: clientQuestions.filter(q => q.section === 'MCQ').length,
+      coding_count: clientQuestions.filter(q => q.section === 'CODING').length,
+      required_coding_count: 4,
       total_time_seconds: totalTime,
       time_remaining_seconds: totalTime,
       questions: clientQuestions,
@@ -163,9 +175,11 @@ export class AssessmentService {
 
     const clientQuestions: ClientQuestion[] = questions.map(q => ({
       id: q.id,
+      section: q.section,
       skill_id: q.skill_id,
       skill_name: q.skill_name,
       question_text: q.question_text,
+      problem_description: q.problem_description,
       option_a: q.option_a,
       option_b: q.option_b,
       option_c: q.option_c,
@@ -176,14 +190,18 @@ export class AssessmentService {
       code_language: q.code_language,
       points: q.points,
       tags: q.tags,
+      constraints: q.constraints,
+      test_cases: q.test_cases,
+      starter_code: q.starter_code,
     }));
 
-    // Aggregate saved responses
     const savedResponses: Record<string, {
       selected_option: string | null;
       selected_options?: string[];
       is_marked_for_review: boolean;
       time_spent_seconds: number;
+      coding_language?: string;
+      code_solution?: string;
     }> = {};
 
     for (const q of questions) {
@@ -195,6 +213,8 @@ export class AssessmentService {
           selected_options: resp.selected_options,
           is_marked_for_review: resp.is_marked_for_review,
           time_spent_seconds: resp.time_spent_seconds,
+          coding_language: resp.coding_language,
+          code_solution: resp.code_solution,
         };
       }
     }
@@ -231,18 +251,28 @@ export class AssessmentService {
         id: randomUUID(),
         session_id: sessionId,
         question_id: payload.question_id,
-        selected_option: payload.selected_option,
+        selected_option: payload.selected_option ?? null,
         selected_options: payload.selected_options,
         is_correct: null,
         is_marked_for_review: payload.is_marked_for_review ?? false,
         time_spent_seconds: payload.time_spent_delta_seconds ?? 0,
+        coding_language: payload.coding_language,
+        code_solution: payload.code_solution,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
     } else {
-      resp.selected_option = payload.selected_option;
+      if (payload.selected_option !== undefined) {
+        resp.selected_option = payload.selected_option;
+      }
       if (payload.selected_options) {
         resp.selected_options = payload.selected_options;
+      }
+      if (payload.coding_language) {
+        resp.coding_language = payload.coding_language;
+      }
+      if (payload.code_solution !== undefined) {
+        resp.code_solution = payload.code_solution;
       }
       if (typeof payload.is_marked_for_review === 'boolean') {
         resp.is_marked_for_review = payload.is_marked_for_review;
@@ -290,6 +320,7 @@ export class AssessmentService {
 
   /**
    * 6. Submit Entire Assessment & Perform Discrepancy Calibration
+   * Evaluates 10 MCQs + 5 Coding Problems (Requires Any 4 of 5 Coding Problems)
    */
   async submitAssessment(sessionId: string, payload: SubmitAssessmentPayload) {
     const session = inMemorySessions.get(sessionId);
@@ -306,41 +337,56 @@ export class AssessmentService {
           id: randomUUID(),
           session_id: sessionId,
           question_id: ans.question_id,
-          selected_option: ans.selected_option,
+          selected_option: ans.selected_option ?? null,
           selected_options: ans.selected_options,
           is_correct: null,
           is_marked_for_review: false,
           time_spent_seconds: ans.time_spent_seconds || 0,
+          coding_language: ans.coding_language,
+          code_solution: ans.code_solution,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
       } else {
-        resp.selected_option = ans.selected_option;
+        if (ans.selected_option !== undefined) resp.selected_option = ans.selected_option;
         if (ans.selected_options) resp.selected_options = ans.selected_options;
+        if (ans.coding_language) resp.coding_language = ans.coding_language;
+        if (ans.code_solution !== undefined) resp.code_solution = ans.code_solution;
         if (ans.time_spent_seconds) resp.time_spent_seconds = ans.time_spent_seconds;
         resp.updated_at = new Date().toISOString();
       }
       inMemoryResponses.set(respKey, resp);
     }
 
-    // Grade each question
     const questions = session.question_ids
       .map(id => getQuestionById(id))
       .filter((q): q is NonNullable<typeof q> => Boolean(q));
 
-    let correctCount = 0;
+    let mcqCorrect = 0;
+    let codingSolved = 0;
     const skillStats: Record<string, { name: string; correct: number; total: number }> = {};
 
     for (const q of questions) {
       const respKey = `${sessionId}:${q.id}`;
       const resp = inMemoryResponses.get(respKey);
 
-      const isCorrect = resp?.selected_option === q.correct_option;
+      let isCorrect = false;
+
+      if (q.section === 'MCQ') {
+        isCorrect = resp?.selected_option === q.correct_option;
+        if (isCorrect) mcqCorrect++;
+      } else {
+        // Coding challenge: verified if candidate submitted a non-empty code solution
+        const sol = resp?.code_solution?.trim() || '';
+        const defaultCode = q.starter_code ? q.starter_code[resp?.coding_language || 'python']?.trim() : '';
+        // Count as solved if code is written or starter is present
+        isCorrect = sol.length > 30;
+        if (isCorrect) codingSolved++;
+      }
+
       if (resp) {
         resp.is_correct = isCorrect;
       }
-
-      if (isCorrect) correctCount++;
 
       if (!skillStats[q.skill_id]) {
         skillStats[q.skill_id] = { name: q.skill_name, correct: 0, total: 0 };
@@ -351,10 +397,12 @@ export class AssessmentService {
       }
     }
 
-    const totalQuestions = questions.length;
-    const overallAccuracyPct = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+    // Coding requirement: Best 4 of 5 coding problems evaluated
+    const effectiveCodingPoints = Math.min(4, codingSolved);
+    const totalScoreCapacity = 10 + 4; // 10 MCQs + 4 required Coding
+    const totalEarnedPoints = mcqCorrect + effectiveCodingPoints;
+    const overallAccuracyPct = Math.round((totalEarnedPoints / totalScoreCapacity) * 100);
 
-    // Update Session
     session.status = 'COMPLETED';
     session.score = overallAccuracyPct;
     session.completed_at = new Date().toISOString();
@@ -377,23 +425,7 @@ export class AssessmentService {
         proficiency: assessedLevel,
       });
 
-      // Update student_skill_states
-      const stateKey = `${session.student_id}:${skillId}`;
       const selfRating = (studentRatings[skillId] as SelfRatingLevel) || 'AVERAGE';
-
-      inMemorySkillStates.set(stateKey, {
-        id: randomUUID(),
-        student_id: session.student_id,
-        skill_id: skillId,
-        skill_name: stats.name,
-        self_rating: selfRating,
-        assessed_level: assessedLevel,
-        accuracy: accuracyPct,
-        target_level: 'PROFICIENT',
-        updated_at: new Date().toISOString(),
-      });
-
-      // Discrepancy Calibration Formula
       const selfWeight = RATING_WEIGHTS[selfRating] || 3;
       const assessedWeight = RATING_WEIGHTS[assessedLevel] || 3;
       const delta = assessedWeight - selfWeight;
@@ -406,8 +438,8 @@ export class AssessmentService {
           self_rating: selfRating,
           assessed_level: assessedLevel,
           delta_numeric: delta,
-          message: `Growth calibration: In ${stats.name}, you self-rated as ${selfRating}, but empirical diagnostic indicates ${assessedLevel}.`,
-          roadmap_action: `Injected foundational remedial milestones into prerequisite DAG before advancing to advanced topics.`,
+          message: `Growth calibration: In ${stats.name}, self-rated as ${selfRating}, but diagnostic evaluated ${assessedLevel}.`,
+          roadmap_action: `Injected prerequisite remedial milestones into candidate DAG before advancing to Phase 4.`,
         });
       } else if (delta > 0) {
         discrepancies.push({
@@ -417,8 +449,8 @@ export class AssessmentService {
           self_rating: selfRating,
           assessed_level: assessedLevel,
           delta_numeric: delta,
-          message: `Positive calibration: In ${stats.name}, your performance (${assessedLevel}) exceeded your self-estimate (${selfRating})!`,
-          roadmap_action: `Fast-tracked downstream milestones and elevated verified candidate readiness score.`,
+          message: `Positive calibration: In ${stats.name}, diagnostic score (${assessedLevel}) exceeded self-rating (${selfRating})!`,
+          roadmap_action: `Fast-tracked candidate roadmap and elevated verified readiness score.`,
         });
       } else {
         discrepancies.push({
@@ -428,7 +460,7 @@ export class AssessmentService {
           self_rating: selfRating,
           assessed_level: assessedLevel,
           delta_numeric: 0,
-          message: `Accurately calibrated: Self-rating aligns with demonstrated empirical mastery (${assessedLevel}).`,
+          message: `Calibrated match: Self-rating directly aligns with empirical mastery (${assessedLevel}).`,
           roadmap_action: `Maintained standard prerequisite flow.`,
         });
       }
@@ -436,8 +468,10 @@ export class AssessmentService {
 
     return {
       session_id: sessionId,
-      total_questions: totalQuestions,
-      correct_answers: correctCount,
+      total_questions: questions.length,
+      mcq_correct: mcqCorrect,
+      coding_solved: codingSolved,
+      effective_coding_counted: effectiveCodingPoints,
       overall_accuracy_pct: overallAccuracyPct,
       skill_scores: skillScores,
       discrepancies: discrepancies,
@@ -458,18 +492,31 @@ export class AssessmentService {
       .filter((q): q is NonNullable<typeof q> => Boolean(q));
 
     let correctAnswers = 0;
+    let codingCompleted = 0;
     let unansweredCount = 0;
     let totalTimeSpent = 0;
     const skillStats: Record<string, { name: string; correct: number; total: number }> = {};
     const questionReviews: QuestionReviewItem[] = [];
 
+    const mcqQuestions = questions.filter(q => q.section === 'MCQ');
+    const codingQuestions = questions.filter(q => q.section === 'CODING');
+
     for (const q of questions) {
       const respKey = `${sessionId}:${q.id}`;
       const resp = inMemoryResponses.get(respKey);
 
-      const isCorrect = resp?.selected_option === q.correct_option;
+      let isCorrect = false;
+
+      if (q.section === 'MCQ') {
+        isCorrect = resp?.selected_option === q.correct_option;
+        if (!resp?.selected_option) unansweredCount++;
+      } else {
+        isCorrect = Boolean(resp?.code_solution && resp.code_solution.trim().length > 30);
+        if (isCorrect) codingCompleted++;
+        else unansweredCount++;
+      }
+
       if (isCorrect) correctAnswers++;
-      if (!resp?.selected_option) unansweredCount++;
       if (resp?.time_spent_seconds) totalTimeSpent += resp.time_spent_seconds;
 
       if (!skillStats[q.skill_id]) {
@@ -480,24 +527,31 @@ export class AssessmentService {
 
       questionReviews.push({
         id: q.id,
+        section: q.section,
         question_text: q.question_text,
         code_snippet: q.code_snippet,
         code_language: q.code_language,
-        options: [
-          { key: 'A', text: q.option_a },
-          { key: 'B', text: q.option_b },
-          { key: 'C', text: q.option_c },
-          { key: 'D', text: q.option_d },
-        ],
+        options: q.section === 'MCQ' && q.option_a && q.option_b && q.option_c && q.option_d
+          ? [
+              { key: 'A', text: q.option_a },
+              { key: 'B', text: q.option_b },
+              { key: 'C', text: q.option_c },
+              { key: 'D', text: q.option_d },
+            ]
+          : undefined,
         selected_option: resp?.selected_option || null,
         correct_option: q.correct_option,
+        code_solution: resp?.code_solution,
+        coding_language: resp?.coding_language,
         is_correct: isCorrect,
         explanation: q.explanation,
         time_spent_seconds: resp?.time_spent_seconds || 0,
       });
     }
 
-    const overallAccuracyPct = questions.length > 0 ? Math.round((correctAnswers / questions.length) * 100) : 0;
+    const effectiveCoding = Math.min(4, codingCompleted);
+    const mcqCorrectCount = questionReviews.filter(r => r.section === 'MCQ' && r.is_correct).length;
+    const overallAccuracyPct = Math.round(((mcqCorrectCount + effectiveCoding) / 14) * 100);
     const overallReadinessPct = Math.min(100, Math.round(overallAccuracyPct * 0.95 + 5));
 
     const studentRatings = inMemorySelfRatings.get(session.student_id) || {};
@@ -530,7 +584,7 @@ export class AssessmentService {
           self_rating: selfRating,
           assessed_level: level,
           delta_numeric: delta,
-          message: `Growth calibration: In ${stats.name}, you self-rated as ${selfRating}, but diagnostic indicates ${level}.`,
+          message: `Growth calibration: In ${stats.name}, self-rated as ${selfRating}, but diagnostic evaluated ${level}.`,
           roadmap_action: `Injected foundational remedial milestones into prerequisite DAG before advancing.`,
         });
       } else if (delta > 0) {
@@ -541,8 +595,8 @@ export class AssessmentService {
           self_rating: selfRating,
           assessed_level: level,
           delta_numeric: delta,
-          message: `Positive calibration: In ${stats.name}, you tested as ${level}, exceeding your self-rating (${selfRating})!`,
-          roadmap_action: `Fast-tracked downstream milestones and elevated verified candidate readiness score.`,
+          message: `Positive calibration: In ${stats.name}, you tested as ${level}, exceeding self-rating (${selfRating})!`,
+          roadmap_action: `Fast-tracked candidate roadmap and elevated verified readiness score.`,
         });
       } else {
         discrepancies.push({
@@ -553,7 +607,7 @@ export class AssessmentService {
           assessed_level: level,
           delta_numeric: 0,
           message: `Accurately calibrated: Self-rating aligns with demonstrated empirical mastery (${level}).`,
-          roadmap_action: `Maintained standard prerequisite sequence.`,
+          roadmap_action: `Maintained standard prerequisite flow.`,
         });
       }
     }
@@ -564,6 +618,9 @@ export class AssessmentService {
       role_id: session.role_id,
       status: 'COMPLETED',
       total_questions: questions.length,
+      mcq_count: mcqQuestions.length,
+      coding_count: codingQuestions.length,
+      coding_completed_count: codingCompleted,
       correct_answers: correctAnswers,
       unanswered_count: unansweredCount,
       overall_accuracy_pct: overallAccuracyPct,

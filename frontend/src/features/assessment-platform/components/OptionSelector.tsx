@@ -14,10 +14,10 @@ export const OptionSelector: React.FC<OptionSelectorProps> = ({
   onSelectOption,
 }) => {
   const options: { key: OptionKey; text: string; shortcutKey: string }[] = [
-    { key: 'A', text: question.option_a, shortcutKey: '1' },
-    { key: 'B', text: question.option_b, shortcutKey: '2' },
-    { key: 'C', text: question.option_c, shortcutKey: '3' },
-    { key: 'D', text: question.option_d, shortcutKey: '4' },
+    { key: 'A', text: question.option_a || '', shortcutKey: '1' },
+    { key: 'B', text: question.option_b || '', shortcutKey: '2' },
+    { key: 'C', text: question.option_c || '', shortcutKey: '3' },
+    { key: 'D', text: question.option_d || '', shortcutKey: '4' },
   ];
 
   // Keyboard shortcut listener (1-4 or A-D)

@@ -27,6 +27,8 @@ export interface AnswerAutoSaveRequest {
   selected_options?: ('A' | 'B' | 'C' | 'D')[];
   is_marked_for_review?: boolean;
   time_spent_delta_seconds?: number;
+  coding_language?: string;
+  code_solution?: string;
 }
 
 export interface HeartbeatRequest {
@@ -41,6 +43,8 @@ export interface SubmitAssessmentRequest {
     selected_option: 'A' | 'B' | 'C' | 'D' | null;
     selected_options?: ('A' | 'B' | 'C' | 'D')[];
     time_spent_seconds?: number;
+    coding_language?: string;
+    code_solution?: string;
   }[];
 }
 

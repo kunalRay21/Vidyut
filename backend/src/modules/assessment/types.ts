@@ -5,24 +5,44 @@
 export type ProficiencyLevel = 'AWARENESS' | 'BEGINNER' | 'INTERMEDIATE' | 'PROFICIENT' | 'EXPERT';
 export type SelfRatingLevel = 'NOT_FAMILIAR' | 'BEGINNER' | 'AVERAGE' | 'GOOD' | 'EXPERT';
 export type QuestionDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
-export type QuestionType = 'MCQ_SINGLE' | 'MCQ_MULTI' | 'CODE_SNIPPET';
+export type QuestionType = 'MCQ_SINGLE' | 'MCQ_MULTI' | 'CODE_SNIPPET' | 'CODING_PROBLEM';
 export type OptionChoice = 'A' | 'B' | 'C' | 'D';
+export type CodingLanguage = 'python' | 'java' | 'cpp' | 'c';
+
+export interface TestCase {
+  input: string;
+  output: string;
+  explanation?: string;
+  is_hidden?: boolean;
+}
+
+export interface StarterCodeMap {
+  python: string;
+  java: string;
+  cpp: string;
+  c: string;
+}
 
 export interface ClientQuestion {
   id: string;
+  section: 'MCQ' | 'CODING';
   skill_id: string;
   skill_name?: string;
   question_text: string;
-  option_a: string;
-  option_b: string;
-  option_c: string;
-  option_d: string;
+  problem_description?: string;
+  option_a?: string;
+  option_b?: string;
+  option_c?: string;
+  option_d?: string;
   difficulty: QuestionDifficulty;
   question_type: QuestionType;
   code_snippet?: string;
   code_language?: string;
   points: number;
   tags?: string[];
+  constraints?: string[];
+  test_cases?: TestCase[];
+  starter_code?: StarterCodeMap;
 }
 
 export interface SelfRatingInput {
@@ -45,10 +65,12 @@ export interface StartSessionPayload {
 
 export interface AnswerAutoSavePayload {
   question_id: string;
-  selected_option: OptionChoice | null;
+  selected_option?: OptionChoice | null;
   selected_options?: OptionChoice[];
   is_marked_for_review?: boolean;
   time_spent_delta_seconds?: number;
+  coding_language?: CodingLanguage;
+  code_solution?: string;
 }
 
 export interface HeartbeatPayload {
@@ -59,9 +81,11 @@ export interface HeartbeatPayload {
 
 export interface SubmissionAnswer {
   question_id: string;
-  selected_option: OptionChoice | null;
+  selected_option?: OptionChoice | null;
   selected_options?: OptionChoice[];
   time_spent_seconds?: number;
+  coding_language?: CodingLanguage;
+  code_solution?: string;
 }
 
 export interface SubmitAssessmentPayload {
@@ -90,15 +114,18 @@ export interface DiscrepancyReport {
 
 export interface QuestionReviewItem {
   id: string;
+  section: 'MCQ' | 'CODING';
   question_text: string;
   code_snippet?: string;
   code_language?: string;
-  options: {
+  options?: {
     key: OptionChoice;
     text: string;
   }[];
-  selected_option: OptionChoice | null;
-  correct_option: OptionChoice;
+  selected_option?: OptionChoice | null;
+  correct_option?: OptionChoice;
+  code_solution?: string;
+  coding_language?: CodingLanguage;
   is_correct: boolean;
   explanation: string;
   time_spent_seconds: number;
@@ -110,6 +137,9 @@ export interface FullExamReport {
   role_id: string;
   status: 'COMPLETED';
   total_questions: number;
+  mcq_count: number;
+  coding_count: number;
+  coding_completed_count: number;
   correct_answers: number;
   unanswered_count: number;
   overall_accuracy_pct: number;

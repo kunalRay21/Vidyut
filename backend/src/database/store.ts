@@ -1,25 +1,45 @@
 // ==============================================================================
 // In-Memory Storage & Seed Engine (Dual-Persistence Architecture)
-// Enables zero-dependency local development and offline test execution.
+// Pre-seeded with 10 Industry MCQs + 5 Algorithmic Coding Challenges (Any 4 Required)
+// Multi-language support: Python, Java, C++, C
 // ==============================================================================
+
+export interface TestCase {
+  input: string;
+  output: string;
+  explanation?: string;
+  is_hidden?: boolean;
+}
+
+export interface StarterCodeMap {
+  python: string;
+  java: string;
+  cpp: string;
+  c: string;
+}
 
 export interface QuestionSeed {
   id: string;
+  section: 'MCQ' | 'CODING';
   skill_id: string;
   skill_name: string;
   question_text: string;
-  option_a: string;
-  option_b: string;
-  option_c: string;
-  option_d: string;
-  correct_option: 'A' | 'B' | 'C' | 'D';
+  problem_description?: string;
+  option_a?: string;
+  option_b?: string;
+  option_c?: string;
+  option_d?: string;
+  correct_option?: 'A' | 'B' | 'C' | 'D';
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   explanation: string;
-  question_type: 'MCQ_SINGLE' | 'MCQ_MULTI' | 'CODE_SNIPPET';
+  question_type: 'MCQ_SINGLE' | 'MCQ_MULTI' | 'CODE_SNIPPET' | 'CODING_PROBLEM';
   code_snippet?: string;
   code_language?: string;
   points: number;
   tags: string[];
+  constraints?: string[];
+  test_cases?: TestCase[];
+  starter_code?: StarterCodeMap;
 }
 
 export interface StoredSession {
@@ -47,6 +67,8 @@ export interface StoredResponse {
   is_correct: boolean | null;
   is_marked_for_review: boolean;
   time_spent_seconds: number;
+  coding_language?: 'python' | 'java' | 'cpp' | 'c';
+  code_solution?: string;
   created_at: string;
   updated_at: string;
 }
@@ -64,11 +86,13 @@ export interface StoredSkillState {
 }
 
 // ------------------------------------------------------------------------------
-// Canonical Question Bank with Rich Code Snippets & Explanations
+// Canonical Question Bank (10 MCQs + 5 Coding Problems with Python, Java, C++, C)
 // ------------------------------------------------------------------------------
 export const QUESTIONS_STORE: QuestionSeed[] = [
+  // ========================== SECTION 1: 10 MCQs ==========================
   {
-    id: 'q-py-01',
+    id: 'q-mcq-01',
+    section: 'MCQ',
     skill_id: 'skill-python',
     skill_name: 'Python Programming',
     question_text: 'What will be the output of executing this list comprehension with variable mutation in Python 3?',
@@ -86,7 +110,8 @@ export const QUESTIONS_STORE: QuestionSeed[] = [
     tags: ['python', 'data-structures', 'comprehensions']
   },
   {
-    id: 'q-py-02',
+    id: 'q-mcq-02',
+    section: 'MCQ',
     skill_id: 'skill-python',
     skill_name: 'Python Programming',
     question_text: 'Examine this decorator implementation. When `greet("Vidyut")` is called, in what order are messages printed?',
@@ -104,10 +129,11 @@ export const QUESTIONS_STORE: QuestionSeed[] = [
     tags: ['python', 'decorators', 'closures']
   },
   {
-    id: 'q-sql-01',
+    id: 'q-mcq-03',
+    section: 'MCQ',
     skill_id: 'skill-sql',
     skill_name: 'SQL & Relational Databases',
-    question_text: 'Consider the query below calculating student test percentiles. Which window function clause correctly partitions by domain without collapsing rows?',
+    question_text: 'Which window function clause correctly calculates student test percentiles partitioned by domain without collapsing rows?',
     code_language: 'sql',
     question_type: 'CODE_SNIPPET',
     code_snippet: `SELECT student_id, score,\n       DENSE_RANK() OVER (/* Clause here */) as rank_pos\nFROM assessment_sessions\nWHERE status = 'COMPLETED';`,
@@ -122,10 +148,11 @@ export const QUESTIONS_STORE: QuestionSeed[] = [
     tags: ['sql', 'window-functions', 'analytics']
   },
   {
-    id: 'q-sql-02',
+    id: 'q-mcq-04',
+    section: 'MCQ',
     skill_id: 'skill-sql',
     skill_name: 'SQL & Relational Databases',
-    question_text: 'What will happen when attempting to execute this transactional update under PostgreSQL standard READ COMMITTED isolation?',
+    question_text: 'What happens when attempting to execute this transactional update under PostgreSQL standard READ COMMITTED isolation?',
     code_language: 'sql',
     question_type: 'CODE_SNIPPET',
     code_snippet: `BEGIN;\nUPDATE student_profiles \nSET readiness_pct = readiness_pct + 5 \nWHERE id = 'a7d18e21-0000-4000-8000-000000000001';\n-- A concurrent transaction commits an update on the same row here\nCOMMIT;`,
@@ -140,14 +167,15 @@ export const QUESTIONS_STORE: QuestionSeed[] = [
     tags: ['sql', 'transactions', 'concurrency', 'acid']
   },
   {
-    id: 'q-sys-01',
+    id: 'q-mcq-05',
+    section: 'MCQ',
     skill_id: 'skill-system-design',
     skill_name: 'System Architecture',
-    question_text: 'In high-throughput examination systems, which cache invalidation strategy is most optimal for real-time timer sync and session recovery?',
+    question_text: 'In high-throughput examination systems, which caching strategy is most optimal for real-time timer sync and autosave under burst traffic?',
     code_language: 'text',
     question_type: 'MCQ_SINGLE',
     option_a: 'Write-Through caching with synchronous database persistence',
-    option_b: 'Write-Behind (Write-Back) with Redis as the hot cache buffer flushed periodically',
+    option_b: 'Write-Behind (Write-Back) with Redis as the hot cache buffer flushed periodically to disk',
     option_c: 'Cache-Aside with random cache eviction TTL of 1 second',
     option_d: 'Full database bypass without persistent replication',
     correct_option: 'B',
@@ -157,10 +185,11 @@ export const QUESTIONS_STORE: QuestionSeed[] = [
     tags: ['system-design', 'caching', 'redis', 'scalability']
   },
   {
-    id: 'q-git-01',
+    id: 'q-mcq-06',
+    section: 'MCQ',
     skill_id: 'skill-git',
     skill_name: 'Git & Version Control',
-    question_text: 'You have unstaged changes in your working tree and need to switch branches urgently without losing work. Which command sequence safely stashes and restores them?',
+    question_text: 'You have unstaged changes in your working tree and need to switch branches urgently without losing work. Which command safely stashes and restores them?',
     code_language: 'bash',
     question_type: 'CODE_SNIPPET',
     code_snippet: `git stash push -u -m "wip-exam-module"\ngit checkout develop\n# Return to work:\ngit checkout feat/assessment-platform\n/* Restore command */`,
@@ -173,6 +202,273 @@ export const QUESTIONS_STORE: QuestionSeed[] = [
     explanation: '`git stash pop` applies the top stashed modifications and removes them from the stash stack.',
     points: 1,
     tags: ['git', 'cli', 'version-control']
+  },
+  {
+    id: 'q-mcq-07',
+    section: 'MCQ',
+    skill_id: 'skill-dsa',
+    skill_name: 'Data Structures & Algorithms',
+    question_text: 'What is the worst-case time complexity of searching for an element in an unbalanced Binary Search Tree (BST) containing N elements?',
+    code_language: 'text',
+    question_type: 'MCQ_SINGLE',
+    option_a: 'O(log N)',
+    option_b: 'O(1)',
+    option_c: 'O(N)',
+    option_d: 'O(N log N)',
+    correct_option: 'C',
+    difficulty: 'EASY',
+    explanation: 'In the worst case (e.g. inserting elements in strictly sorted order), an unbalanced BST degenerates into a linked list structure, resulting in O(N) search time.',
+    points: 1,
+    tags: ['dsa', 'trees', 'complexity']
+  },
+  {
+    id: 'q-mcq-08',
+    section: 'MCQ',
+    skill_id: 'skill-security',
+    skill_name: 'Network & API Security',
+    question_text: 'Which header and cookie configuration provides the strongest defense against Cross-Site Scripting (XSS) token theft for JWT authentication?',
+    code_language: 'text',
+    question_type: 'MCQ_SINGLE',
+    option_a: 'Storing tokens in window.localStorage with Authorization Bearer header',
+    option_b: 'HttpOnly; Secure; SameSite=Strict cookies',
+    option_c: 'Base64 cookie without Secure flag',
+    option_d: 'Storing tokens in IndexedDB accessible via document.cookie',
+    correct_option: 'B',
+    difficulty: 'MEDIUM',
+    explanation: '`HttpOnly` cookies cannot be accessed by client-side JavaScript, effectively neutralizing token exfiltration via XSS attacks, while `SameSite=Strict` mitigates CSRF.',
+    points: 2,
+    tags: ['security', 'jwt', 'authentication', 'web']
+  },
+  {
+    id: 'q-mcq-09',
+    section: 'MCQ',
+    skill_id: 'skill-os',
+    skill_name: 'Operating Systems & Concurrency',
+    question_text: 'Which of the following conditions is NOT one of Coffman’s four necessary conditions required for a deadlock to occur?',
+    code_language: 'text',
+    question_type: 'MCQ_SINGLE',
+    option_a: 'Mutual Exclusion',
+    option_b: 'Hold and Wait',
+    option_c: 'Preemption of Resources',
+    option_d: 'Circular Wait',
+    correct_option: 'C',
+    difficulty: 'MEDIUM',
+    explanation: 'The condition is **No Preemption** (resources cannot be forcibly confiscated). Allowing preemption actively prevents deadlock from happening.',
+    points: 2,
+    tags: ['os', 'concurrency', 'deadlocks']
+  },
+  {
+    id: 'q-mcq-10',
+    section: 'MCQ',
+    skill_id: 'skill-devops',
+    skill_name: 'DevOps & Containerization',
+    question_text: 'In Docker multi-stage builds, what is the primary architectural advantage of copying artifacts from a builder stage into an alpine runtime image?',
+    code_language: 'dockerfile',
+    question_type: 'CODE_SNIPPET',
+    code_snippet: `FROM golang:1.22 AS builder\nWORKDIR /app\nCOPY . .\nRUN go build -o server .\n\nFROM alpine:3.19\nCOPY --from=builder /app/server /usr/local/bin/\nENTRYPOINT ["server"]`,
+    option_a: 'Ensures the container automatically runs with root privileges.',
+    option_b: 'Minimizes final image attack surface and deployment size by excluding SDKs and compiler build tools.',
+    option_c: 'Allows hot-reloading in production clusters without rebuilding.',
+    option_d: 'Bypasses container network virtualization overhead.',
+    correct_option: 'B',
+    difficulty: 'MEDIUM',
+    explanation: 'Multi-stage builds leave the heavy Go/Node compiler, build caches, and system libraries behind, creating a minimal, production-hardened binary image.',
+    points: 2,
+    tags: ['docker', 'devops', 'containers', 'security']
+  },
+
+  // ========================== SECTION 2: 5 CODING PROBLEMS ==========================
+  {
+    id: 'q-code-01',
+    section: 'CODING',
+    skill_id: 'skill-dsa',
+    skill_name: 'Data Structures & Algorithms',
+    question_text: 'Two Sum: Find Indices of Target Pair',
+    problem_description: `Given an array of integers \`nums\` and an integer \`target\`, return the indices of the two numbers such that they add up to \`target\`.
+
+You may assume that each input would have exactly one solution, and you may not use the same element twice. You can return the answer in any order.`,
+    question_type: 'CODING_PROBLEM',
+    difficulty: 'EASY',
+    points: 5,
+    tags: ['arrays', 'hash-map', 'two-sum'],
+    constraints: [
+      '2 <= nums.length <= 10^4',
+      '-10^9 <= nums[i] <= 10^9',
+      '-10^9 <= target <= 10^9',
+      'Only one valid answer exists.'
+    ],
+    test_cases: [
+      {
+        input: 'nums = [2, 7, 11, 15], target = 9',
+        output: '[0, 1]',
+        explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
+      },
+      {
+        input: 'nums = [3, 2, 4], target = 6',
+        output: '[1, 2]',
+        explanation: 'Because nums[1] + nums[2] == 6, we return [1, 2].'
+      }
+    ],
+    starter_code: {
+      python: `def twoSum(nums: list[int], target: int) -> list[int]:\n    # Implement your optimal O(N) solution here\n    seen = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            return [seen[complement], i]\n        seen[num] = i\n    return []\n`,
+      java: `import java.util.*;\n\nclass Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // Implement your solution\n        Map<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int diff = target - nums[i];\n            if (map.containsKey(diff)) {\n                return new int[] { map.get(diff), i };\n            }\n            map.put(nums[i], i);\n        }\n        return new int[] {};\n    }\n}\n`,
+      cpp: `#include <vector>\n#include <unordered_map>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        unordered_map<int, int> seen;\n        for (int i = 0; i < nums.size(); i++) {\n            int complement = target - nums[i];\n            if (seen.find(complement) != seen.end()) {\n                return {seen[complement], i};\n            }\n            seen[nums[i]] = i;\n        }\n        return {};\n    }\n};\n`,
+      c: `#include <stdlib.h>\n\nint* twoSum(int* nums, int numsSize, int target, int* returnSize) {\n    *returnSize = 2;\n    int* result = (int*)malloc(2 * sizeof(int));\n    for (int i = 0; i < numsSize; i++) {\n        for (int j = i + 1; j < numsSize; j++) {\n            if (nums[i] + nums[j] == target) {\n                result[0] = i;\n                result[1] = j;\n                return result;\n            }\n        }\n    }\n    return NULL;\n}\n`
+    },
+    explanation: 'Using an auxiliary hash map stores elements as keys and their indices as values, allowing complement lookups in O(1) time and O(N) overall complexity.'
+  },
+  {
+    id: 'q-code-02',
+    section: 'CODING',
+    skill_id: 'skill-dsa',
+    skill_name: 'Data Structures & Algorithms',
+    question_text: 'Valid Parentheses: Balanced Bracket Verification',
+    problem_description: `Given a string \`s\` containing just the characters \`'('\`, \`')'\`, \`'{'\`, \`'}'\`, \`'['\` and \`']'\`, determine if the input string is valid.
+
+An input string is valid if:
+1. Open brackets must be closed by the same type of brackets.
+2. Open brackets must be closed in the correct order.
+3. Every close bracket has a corresponding open bracket of the same type.`,
+    question_type: 'CODING_PROBLEM',
+    difficulty: 'EASY',
+    points: 5,
+    tags: ['stack', 'strings', 'validation'],
+    constraints: [
+      '1 <= s.length <= 10^4',
+      's consists of parentheses only \'()[]{}\'.'
+    ],
+    test_cases: [
+      {
+        input: 's = "()[]{}"',
+        output: 'true',
+        explanation: 'All brackets match correctly in nested FIFO order.'
+      },
+      {
+        input: 's = "(]"',
+        output: 'false',
+        explanation: 'Parenthesis type mismatch.'
+      }
+    ],
+    starter_code: {
+      python: `def isValid(s: str) -> bool:\n    # Implement stack solution\n    stack = []\n    mapping = {')': '(', '}': '{', ']': '['}\n    for char in s:\n        if char in mapping:\n            top = stack.pop() if stack else '#'\n            if mapping[char] != top:\n                return False\n        else:\n            stack.append(char)\n    return not stack\n`,
+      java: `import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        Stack<Character> stack = new Stack<>();\n        for (char c : s.toCharArray()) {\n            if (c == '(') stack.push(')');\n            else if (c == '{') stack.push('}');\n            else if (c == '[') stack.push(']');\n            else if (stack.isEmpty() || stack.pop() != c) return false;\n        }\n        return stack.isEmpty();\n    }\n}\n`,
+      cpp: `#include <string>\n#include <stack>\nusing namespace std;\n\nclass Solution {\npublic:\n    bool isValid(string s) {\n        stack<char> st;\n        for (char c : s) {\n            if (c == '(' || c == '{' || c == '[') st.push(c);\n            else {\n                if (st.empty()) return false;\n                if (c == ')' && st.top() != '(') return false;\n                if (c == '}' && st.top() != '{') return false;\n                if (c == ']' && st.top() != '[') return false;\n                st.pop();\n            }\n        }\n        return st.empty();\n    }\n};\n`,
+      c: `#include <stdbool.h>\n#include <string.h>\n\nbool isValid(char* s) {\n    int len = strlen(s);\n    char stack[len + 1];\n    int top = -1;\n    for (int i = 0; i < len; i++) {\n        char c = s[i];\n        if (c == '(' || c == '{' || c == '[') {\n            stack[++top] = c;\n        } else {\n            if (top == -1) return false;\n            char open = stack[top--];\n            if (c == ')' && open != '(') return false;\n            if (c == '}' && open != '{') return false;\n            if (c == ']' && open != '[') return false;\n        }\n    }\n    return top == -1;\n}\n`
+    },
+    explanation: 'A Last-In First-Out (LIFO) stack ensures every closing symbol immediately pairs with the most recently encountered open symbol.'
+  },
+  {
+    id: 'q-code-03',
+    section: 'CODING',
+    skill_id: 'skill-dsa',
+    skill_name: 'Data Structures & Algorithms',
+    question_text: 'Maximum Subarray: Kadane’s Dynamic Algorithm',
+    problem_description: `Given an integer array \`nums\`, find the subarray with the largest sum, and return its sum.
+
+A subarray is a contiguous non-empty sequence of elements within an array.`,
+    question_type: 'CODING_PROBLEM',
+    difficulty: 'MEDIUM',
+    points: 6,
+    tags: ['dynamic-programming', 'arrays', 'kadane'],
+    constraints: [
+      '1 <= nums.length <= 10^5',
+      '-10^4 <= nums[i] <= 10^4'
+    ],
+    test_cases: [
+      {
+        input: 'nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]',
+        output: '6',
+        explanation: 'The subarray [4, -1, 2, 1] has the largest sum 6.'
+      },
+      {
+        input: 'nums = [5, 4, -1, 7, 8]',
+        output: '23',
+        explanation: 'The subarray [5, 4, -1, 7, 8] has the largest sum 23.'
+      }
+    ],
+    starter_code: {
+      python: `def maxSubArray(nums: list[int]) -> int:\n    # Implement Kadane's algorithm\n    max_so_far = nums[0]\n    current_sum = nums[0]\n    for x in nums[1:]:\n        current_sum = max(x, current_sum + x)\n        max_so_far = max(max_so_far, current_sum)\n    return max_so_far\n`,
+      java: `class Solution {\n    public int maxSubArray(int[] nums) {\n        int maxSoFar = nums[0];\n        int currentSum = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            currentSum = Math.max(nums[i], currentSum + nums[i]);\n            maxSoFar = Math.max(maxSoFar, currentSum);\n        }\n        return maxSoFar;\n    }\n}\n`,
+      cpp: `#include <vector>\n#include <algorithm>\nusing namespace std;\n\nclass Solution {\npublic:\n    int maxSubArray(vector<int>& nums) {\n        int maxSoFar = nums[0];\n        int current = nums[0];\n        for (size_t i = 1; i < nums.size(); i++) {\n            current = max(nums[i], current + nums[i]);\n            maxSoFar = max(maxSoFar, current);\n        }\n        return maxSoFar;\n    }\n};\n`,
+      c: `#include <limits.h>\n\nint maxSubArray(int* nums, int numsSize) {\n    int maxSoFar = nums[0];\n    int current = nums[0];\n    for (int i = 1; i < numsSize; i++) {\n        current = (nums[i] > current + nums[i]) ? nums[i] : current + nums[i];\n        if (current > maxSoFar) maxSoFar = current;\n    }\n    return maxSoFar;\n}\n`
+    },
+    explanation: 'Kadane’s algorithm scans the array in linear O(N) time by deciding at each index whether to extend the previous contiguous sum or start fresh.'
+  },
+  {
+    id: 'q-code-04',
+    section: 'CODING',
+    skill_id: 'skill-dsa',
+    skill_name: 'Data Structures & Algorithms',
+    question_text: 'Reverse a Singly Linked List: In-Place Pointer Manipulation',
+    problem_description: `Given the \`head\` of a singly linked list, reverse the list, and return the reversed list head.
+
+Ensure your algorithm operates in-place using O(1) additional memory.`,
+    question_type: 'CODING_PROBLEM',
+    difficulty: 'MEDIUM',
+    points: 6,
+    tags: ['linked-list', 'pointers'],
+    constraints: [
+      'The number of nodes in the list is in the range [0, 5000].',
+      '-5000 <= Node.val <= 5000'
+    ],
+    test_cases: [
+      {
+        input: 'head = [1, 2, 3, 4, 5]',
+        output: '[5, 4, 3, 2, 1]',
+        explanation: 'All pointer links are reversed.'
+      },
+      {
+        input: 'head = [1, 2]',
+        output: '[2, 1]',
+        explanation: '2 points to 1.'
+      }
+    ],
+    starter_code: {
+      python: `# Definition for singly-linked list.\nclass ListNode:\n    def __init__(self, val=0, next=None):\n        self.val = val\n        self.next = next\n\ndef reverseList(head: ListNode) -> ListNode:\n    prev = None\n    curr = head\n    while curr:\n        next_temp = curr.next\n        curr.next = prev\n        prev = curr\n        curr = next_temp\n    return prev\n`,
+      java: `class ListNode {\n    int val;\n    ListNode next;\n    ListNode(int x) { val = x; }\n}\n\nclass Solution {\n    public ListNode reverseList(ListNode head) {\n        ListNode prev = null;\n        ListNode curr = head;\n        while (curr != null) {\n            ListNode nextTemp = curr.next;\n            curr.next = prev;\n            prev = curr;\n            curr = nextTemp;\n        }\n        return prev;\n    }\n}\n`,
+      cpp: `struct ListNode {\n    int val;\n    ListNode *next;\n    ListNode(int x) : val(x), next(nullptr) {}\n};\n\nclass Solution {\npublic:\n    ListNode* reverseList(ListNode* head) {\n        ListNode* prev = nullptr;\n        ListNode* curr = head;\n        while (curr != nullptr) {\n            ListNode* nextTemp = curr->next;\n            curr->next = prev;\n            prev = curr;\n            curr = nextTemp;\n        }\n        return prev;\n    }\n};\n`,
+      c: `struct ListNode {\n    int val;\n    struct ListNode *next;\n};\n\nstruct ListNode* reverseList(struct ListNode* head) {\n    struct ListNode* prev = NULL;\n    struct ListNode* curr = head;\n    while (curr != NULL) {\n        struct ListNode* nextTemp = curr->next;\n        curr->next = prev;\n        prev = curr;\n        curr = nextTemp;\n    }\n    return prev;\n}\n`
+    },
+    explanation: 'Iterative three-pointer approach (prev, curr, nextTemp) flips pointers in linear time and strictly constant space.'
+  },
+  {
+    id: 'q-code-05',
+    section: 'CODING',
+    skill_id: 'skill-system-design',
+    skill_name: 'System Architecture & Algorithms',
+    question_text: 'LRU Cache Design: Eviction Policy Implementation',
+    problem_description: `Design a data structure that follows the constraints of a Least Recently Used (LRU) cache.
+
+Implement the \`LRUCache\` class:
+- \`LRUCache(int capacity)\`: Initialize the LRU cache with positive size \`capacity\`.
+- \`int get(int key)\`: Return the value of the \`key\` if the key exists, otherwise return \`-1\`.
+- \`void put(int key, int value)\`: Update the value of the \`key\` if the \`key\` exists. Otherwise, add the key-value pair to the cache. If the number of keys exceeds the \`capacity\` from this operation, evict the least recently used key.
+
+The functions \`get\` and \`put\` must each run in O(1) average time complexity.`,
+    question_type: 'CODING_PROBLEM',
+    difficulty: 'HARD',
+    points: 8,
+    tags: ['hash-map', 'doubly-linked-list', 'lru-cache', 'system-design'],
+    constraints: [
+      '1 <= capacity <= 3000',
+      '0 <= key <= 10^4',
+      '0 <= value <= 10^5',
+      'At most 2 * 10^5 calls will be made to get and put.'
+    ],
+    test_cases: [
+      {
+        input: '["LRUCache", "put", "put", "get", "put", "get", "put", "get", "get", "get"]\n[[2], [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]',
+        output: '[null, null, null, 1, null, -1, null, -1, 3, 4]',
+        explanation: 'Cache evicts key 2, then key 1 when capacity of 2 is exceeded.'
+      }
+    ],
+    starter_code: {
+      python: `class LRUCache:\n    def __init__(self, capacity: int):\n        self.capacity = capacity\n        self.cache = {}  # In Python 3.7+, dict preserves insertion order\n\n    def get(self, key: int) -> int:\n        if key not in self.cache:\n            return -1\n        val = self.cache.pop(key)\n        self.cache[key] = val\n        return val\n\n    def put(self, key: int, value: int) -> None:\n        if key in self.cache:\n            self.cache.pop(key)\n        elif len(self.cache) >= self.capacity:\n            oldest_key = next(iter(self.cache))\n            self.cache.pop(oldest_key)\n        self.cache[key] = value\n`,
+      java: `import java.util.*;\n\nclass LRUCache {\n    private final int capacity;\n    private final LinkedHashMap<Integer, Integer> map;\n\n    public LRUCache(int capacity) {\n        this.capacity = capacity;\n        this.map = new LinkedHashMap<>(capacity, 0.75f, true) {\n            @Override\n            protected boolean removeEldestEntry(Map.Entry<Integer, Integer> eldest) {\n                return size() > capacity;\n            }\n        };\n    }\n\n    public int get(int key) {\n        return map.getOrDefault(key, -1);\n    }\n\n    public void put(int key, int value) {\n        map.put(key, value);\n    }\n}\n`,
+      cpp: `#include <unordered_map>\n#include <list>\nusing namespace std;\n\nclass LRUCache {\n    int cap;\n    list<pair<int, int>> dll;\n    unordered_map<int, list<pair<int, int>>::iterator> map;\npublic:\n    LRUCache(int capacity) : cap(capacity) {}\n\n    int get(int key) {\n        if (map.find(key) == map.end()) return -1;\n        dll.splice(dll.begin(), dll, map[key]);\n        return map[key]->second;\n    }\n\n    void put(int key, int value) {\n        if (map.find(key) != map.end()) {\n            dll.splice(dll.begin(), dll, map[key]);\n            map[key]->second = value;\n            return;\n        }\n        if (dll.size() == cap) {\n            int delKey = dll.back().first;\n            dll.pop_back();\n            map.erase(delKey);\n        }\n        dll.emplace_front(key, value);\n        map[key] = dll.begin();\n    }\n};\n`,
+      c: `#include <stdlib.h>\n\ntypedef struct {\n    int capacity;\n    int size;\n} LRUCache;\n\nLRUCache* lRUCacheCreate(int capacity) {\n    LRUCache* cache = (LRUCache*)malloc(sizeof(LRUCache));\n    cache->capacity = capacity;\n    cache->size = 0;\n    return cache;\n}\n\nint lRUCacheGet(LRUCache* obj, int key) {\n    // O(1) hash map + doubly linked list lookup\n    return -1;\n}\n\nvoid lRUCachePut(LRUCache* obj, int key, int value) {\n    // O(1) insertion and eviction\n}\n\nvoid lRUCacheFree(LRUCache* obj) {\n    free(obj);\n}\n`
+    },
+    explanation: 'Combining a Hash Map with a Doubly Linked List achieves O(1) get and put operations while maintaining accurate access order.'
   }
 ];
 

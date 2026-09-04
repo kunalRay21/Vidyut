@@ -16,4 +16,5 @@ export * from './components/SubmitConfirmation';
 export * from './components/ResultAnalyticsView';
 export * from './components/MobileRestrictedGate';
 export * from './components/FullscreenGateModal';
+export * from './components/CodingWorkspace';
 export * from './ExamPlatformPage';

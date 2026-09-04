@@ -3,6 +3,7 @@ import {
   ExamQuestion,
   QuestionUserResponse,
   OptionKey,
+  CodingLanguage,
   QuestionStatus,
   ExamReport,
 } from '../types/exam';
@@ -20,7 +21,7 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [responses, setResponses] = useState<Record<string, QuestionUserResponse>>({});
   const [visitedQuestionIds, setVisitedQuestionIds] = useState<Set<string>>(new Set());
-  const [initialTimeSeconds, setInitialTimeSeconds] = useState<number>(900);
+  const [initialTimeSeconds, setInitialTimeSeconds] = useState<number>(1800);
   const [examStatus, setExamStatus] = useState<'LOADING' | 'READY' | 'SUBMITTING' | 'COMPLETED' | 'ERROR'>('LOADING');
   const [report, setReport] = useState<ExamReport | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -35,18 +36,16 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
     try {
       let data: any;
       if (sid) {
-        // Try to resume existing session; if not found, create a new one gracefully
         try {
           data = await assessmentApi.getSession(sid);
         } catch {
           data = await assessmentApi.startSession({
-            test_title: 'Diagnostic Assessment — Full Skill Calibration',
+            test_title: 'Diagnostic Assessment — 10 MCQs & 5 Coding Challenges',
           });
         }
       } else {
-        // Start new session
         data = await assessmentApi.startSession({
-          test_title: 'Diagnostic Assessment — Full Skill Calibration',
+          test_title: 'Diagnostic Assessment — 10 MCQs & 5 Coding Challenges',
         });
       }
 
@@ -54,7 +53,7 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
       setTestTitle(data.test_title || 'Diagnostic Assessment');
       setCandidateAlias(data.student_id ? `Candidate #${data.student_id.slice(-6)}` : 'Candidate #SIH26');
       setQuestions(data.questions || []);
-      setInitialTimeSeconds(data.time_remaining_seconds || data.total_time_seconds || 900);
+      setInitialTimeSeconds(data.time_remaining_seconds || data.total_time_seconds || 1800);
 
       // Restore saved responses if any
       const initialResponses: Record<string, QuestionUserResponse> = {};
@@ -67,24 +66,31 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
             selected_options: val.selected_options || [],
             is_marked_for_review: Boolean(val.is_marked_for_review),
             time_spent_seconds: val.time_spent_seconds || 0,
+            coding_language: val.coding_language || 'python',
+            code_solution: val.code_solution || '',
           };
-          if (val.selected_option || val.is_marked_for_review) {
+          if (val.selected_option || val.is_marked_for_review || (val.code_solution && val.code_solution.length > 20)) {
             initialVisited.add(qId);
           }
         });
       }
 
-      // Mark first question as visited
+      // Initialize default boilerplate for questions
       if (data.questions && data.questions.length > 0) {
+        data.questions.forEach((q: ExamQuestion) => {
+          if (!initialResponses[q.id]) {
+            const defaultCode = q.starter_code ? q.starter_code.python : '';
+            initialResponses[q.id] = {
+              selected_option: null,
+              is_marked_for_review: false,
+              time_spent_seconds: 0,
+              coding_language: 'python',
+              code_solution: defaultCode,
+            };
+          }
+        });
         const firstId = data.questions[0].id;
         initialVisited.add(firstId);
-        if (!initialResponses[firstId]) {
-          initialResponses[firstId] = {
-            selected_option: null,
-            is_marked_for_review: false,
-            time_spent_seconds: 0,
-          };
-        }
       }
 
       setResponses(initialResponses);
@@ -119,6 +125,8 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
       selected_option: null,
       is_marked_for_review: false,
       time_spent_seconds: 0,
+      coding_language: 'python',
+      code_solution: currentQuestion.starter_code ? currentQuestion.starter_code.python : '',
     };
   }, [currentQuestion, responses]);
 
@@ -135,6 +143,8 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
         question_id: qId,
         selected_option: updated.selected_option,
         is_marked_for_review: updated.is_marked_for_review,
+        coding_language: updated.coding_language,
+        code_solution: updated.code_solution,
         time_spent_delta_seconds: 1,
       }).catch(err => {
         console.warn(`[Autosave] Failed for question ${qId}:`, err.message);
@@ -142,7 +152,7 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
     }, 250);
   }, [sessionId]);
 
-  // Option selection
+  // Option selection for MCQs
   const selectOption = useCallback((opt: OptionKey) => {
     if (!currentQuestion) return;
     const qId = currentQuestion.id;
@@ -162,6 +172,56 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
     });
 
     setVisitedQuestionIds(prev => new Set(prev).add(qId));
+  }, [currentQuestion, dispatchAutoSave]);
+
+  // Code solution update for Coding challenges
+  const updateCodeSolution = useCallback((code: string) => {
+    if (!currentQuestion) return;
+    const qId = currentQuestion.id;
+
+    setResponses(prev => {
+      const existing = prev[qId] || {
+        selected_option: null,
+        is_marked_for_review: false,
+        time_spent_seconds: 0,
+        coding_language: 'python',
+        code_solution: '',
+      };
+      const nextVal: QuestionUserResponse = {
+        ...existing,
+        code_solution: code,
+      };
+      dispatchAutoSave(qId, nextVal);
+      return { ...prev, [qId]: nextVal };
+    });
+
+    setVisitedQuestionIds(prev => new Set(prev).add(qId));
+  }, [currentQuestion, dispatchAutoSave]);
+
+  // Coding language change
+  const updateCodingLanguage = useCallback((lang: CodingLanguage) => {
+    if (!currentQuestion) return;
+    const qId = currentQuestion.id;
+
+    setResponses(prev => {
+      const existing = prev[qId] || {
+        selected_option: null,
+        is_marked_for_review: false,
+        time_spent_seconds: 0,
+        coding_language: lang,
+        code_solution: '',
+      };
+      const starter = currentQuestion.starter_code ? currentQuestion.starter_code[lang] : '';
+      const nextVal: QuestionUserResponse = {
+        ...existing,
+        coding_language: lang,
+        code_solution: existing.code_solution && existing.code_solution !== currentQuestion.starter_code?.[existing.coding_language || 'python']
+          ? existing.code_solution
+          : starter,
+      };
+      dispatchAutoSave(qId, nextVal);
+      return { ...prev, [qId]: nextVal };
+    });
   }, [currentQuestion, dispatchAutoSave]);
 
   // Clear current response
@@ -232,12 +292,21 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
   const getQuestionStatus = useCallback((qId: string): QuestionStatus => {
     const resp = responses[qId];
     const isVisited = visitedQuestionIds.has(qId);
+    const targetQ = questions.find(q => q.id === qId);
 
     if (resp?.is_marked_for_review) return 'MARKED_FOR_REVIEW';
-    if (resp?.selected_option) return 'ANSWERED';
+
+    if (targetQ?.section === 'CODING') {
+      if (resp?.code_solution && resp.code_solution.trim().length > 30) {
+        return 'ANSWERED';
+      }
+    } else {
+      if (resp?.selected_option) return 'ANSWERED';
+    }
+
     if (isVisited) return 'VISITED';
     return 'NOT_VISITED';
-  }, [responses, visitedQuestionIds]);
+  }, [responses, visitedQuestionIds, questions]);
 
   // Palette counts
   const summaryCounts = useMemo(() => {
@@ -245,16 +314,27 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
     let marked = 0;
     let visited = 0;
     let notVisited = 0;
+    let codingCompleted = 0;
 
     questions.forEach(q => {
       const st = getQuestionStatus(q.id);
-      if (st === 'ANSWERED') answered++;
-      else if (st === 'MARKED_FOR_REVIEW') marked++;
+      if (st === 'ANSWERED') {
+        answered++;
+        if (q.section === 'CODING') codingCompleted++;
+      } else if (st === 'MARKED_FOR_REVIEW') marked++;
       else if (st === 'VISITED') visited++;
       else notVisited++;
     });
 
-    return { answered, marked, visited, notVisited, total: questions.length };
+    return {
+      answered,
+      marked,
+      visited,
+      notVisited,
+      total: questions.length,
+      codingCompleted,
+      codingRequired: 4,
+    };
   }, [questions, getQuestionStatus]);
 
   // Submission
@@ -268,7 +348,9 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
         return {
           question_id: q.id,
           selected_option: resp?.selected_option || null,
-          time_spent_seconds: resp?.time_spent_seconds || 10,
+          time_spent_seconds: resp?.time_spent_seconds || 15,
+          coding_language: resp?.coding_language,
+          code_solution: resp?.code_solution,
         };
       });
 
@@ -282,7 +364,7 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
     } catch (err) {
       console.error('Failed to submit exam:', err);
       setErrorMessage((err as Error).message);
-      setExamStatus('READY'); // Revert so user can retry
+      setExamStatus('READY');
     }
   }, [sessionId, questions, responses]);
 
@@ -300,6 +382,8 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
     errorMessage,
     summaryCounts,
     selectOption,
+    updateCodeSolution,
+    updateCodingLanguage,
     clearOption,
     toggleMarkForReview,
     goToQuestion,
