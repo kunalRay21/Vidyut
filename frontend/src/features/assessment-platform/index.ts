@@ -4,6 +4,7 @@ export * from './hooks/useExamTimer';
 export * from './hooks/useProctoring';
 export * from './hooks/useDeviceCheck';
 export * from './hooks/useClipboardProtection';
+export * from './hooks/useSingleTabLock';
 export * from './components/ExamNavbar';
 export * from './components/ExamTimer';
 export * from './components/QuestionPalette';

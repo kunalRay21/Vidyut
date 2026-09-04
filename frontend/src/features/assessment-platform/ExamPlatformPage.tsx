@@ -5,6 +5,7 @@ import { useExamTimer } from './hooks/useExamTimer';
 import { useProctoring } from './hooks/useProctoring';
 import { useDeviceCheck } from './hooks/useDeviceCheck';
 import { useClipboardProtection } from './hooks/useClipboardProtection';
+import { useSingleTabLock } from './hooks/useSingleTabLock';
 import { ExamNavbar } from './components/ExamNavbar';
 import { QuestionPalette } from './components/QuestionPalette';
 import { QuestionViewer } from './components/QuestionViewer';
@@ -100,16 +101,56 @@ export const ExamPlatformPage: React.FC = () => {
     isActive: examStatus === 'READY',
   });
 
+  // 7. Single Tab Exclusive Lock & Auto-Close Hook
+  const {
+    isLockedByAnotherTab,
+    otherTabsDetected,
+    enforceSingleTab,
+  } = useSingleTabLock({
+    isActive: examStatus === 'READY',
+  });
+
   // Handle final submission confirm
   const handleConfirmSubmit = async () => {
     setIsSubmitModalOpen(false);
     await submitExam();
   };
 
+  // Handle entering fullscreen and locking other tabs
+  const handleEnterFullscreen = () => {
+    enforceSingleTab();
+    requestFullscreen();
+  };
+
   // Navigate to roadmap
   const handleNavigateRoadmap = () => {
     navigate('/roadmap');
   };
+
+  // ----------------------------------------------------------------------------
+  // Gate 0: Duplicate Tab Lock Gate (Blocks exam if open in another tab)
+  // ----------------------------------------------------------------------------
+  if (isLockedByAnotherTab) {
+    return (
+      <div className="h-screen w-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-white select-none">
+        <div className="w-16 h-16 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center mb-4 text-rose-400">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-bold font-heading mb-2">
+          Assessment Active in Another Tab
+        </h2>
+        <p className="text-xs text-slate-300 max-w-md mb-5 leading-relaxed">
+          Multiple tabs are strictly prohibited during the assessment. Only a single examination tab is allowed. Please close this tab and return to your active assessment window.
+        </p>
+        <button
+          onClick={() => window.close()}
+          className="btn-saffron text-xs py-2.5 px-5"
+        >
+          Close This Duplicate Tab
+        </button>
+      </div>
+    );
+  }
 
   // ----------------------------------------------------------------------------
   // Gate 1: Block mobile devices from starting/taking assessment
@@ -280,12 +321,13 @@ export const ExamPlatformPage: React.FC = () => {
         />
       </div>
 
-      {/* Gate 2: Fullscreen Mode Enforcement Modal (3-min countdown with forceful auto-submit) */}
+      {/* Gate 2: Fullscreen Mode Enforcement Modal (3-min countdown with forceful auto-submit & close-all-tabs requirement) */}
       <FullscreenGateModal
         isOpen={!isFullscreen && examStatus === 'READY'}
-        onEnterFullscreen={requestFullscreen}
+        onEnterFullscreen={handleEnterFullscreen}
         hasStarted={hasEnteredFullscreenOnce}
         onTimeoutAutoSubmit={submitExam}
+        otherTabsDetected={otherTabsDetected}
       />
 
       {/* Gate 3: Anti-Inspect / DevTools Detected Security Shield */}
