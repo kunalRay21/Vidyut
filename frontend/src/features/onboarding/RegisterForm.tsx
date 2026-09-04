@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { UserPlus } from 'lucide-react';
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -44,7 +45,6 @@ export default function RegisterForm() {
     setError('');
     setLoading(true);
 
-    // Temporary demo registration
     const demoUser = {
       full_name: form.full_name,
       email: form.email,
@@ -57,153 +57,139 @@ export default function RegisterForm() {
         .filter(Boolean),
     };
 
-    localStorage.setItem(
-      'demo_user',
-      JSON.stringify(demoUser)
-    );
-
-    localStorage.setItem(
-      'access_token',
-      'demo-token'
-    );
+    localStorage.setItem('demo_user', JSON.stringify(demoUser));
+    localStorage.setItem('access_token', 'demo-token');
 
     setTimeout(() => {
       setLoading(false);
       navigate('/explore');
-    }, 500);
+    }, 400);
   };
 
   return (
-    <div className="min-h-screen bg-[#0A111F] text-white flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-lg bg-[#111D32] border border-[#1F3152] rounded-2xl p-8 shadow-xl">
-
+    <div className="py-12 px-4 flex items-center justify-center">
+      <div className="w-full max-w-lg bg-[#FFFEF2] border border-[#EAE3B3] rounded-2xl p-8 shadow-sm">
         <div className="text-center mb-8">
-          <div className="text-3xl mb-2">⚡</div>
+          <div className="w-12 h-12 rounded-xl bg-saffron/10 text-saffron flex items-center justify-center mx-auto mb-3">
+            <UserPlus className="w-6 h-6" />
+          </div>
 
-          <h1 className="text-3xl font-bold">
-            Create Account
+          <h1 className="text-2xl font-bold font-heading text-gray-900">
+            Create Student Account
           </h1>
 
-          <p className="text-slate-400 mt-2">
-            Join Vidyut and discover your career path
+          <p className="text-gray-600 text-sm mt-1">
+            Join Vidyut and discover your personalized career readiness path
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Full Name *
             </label>
-
             <input
               type="text"
               name="full_name"
               value={form.full_name}
               onChange={handleChange}
-              placeholder="Priya Sharma"
-              className="w-full px-4 py-3 rounded-lg bg-[#0A111F] border border-[#334155] text-white outline-none focus:border-[#FF9933]"
+              placeholder="e.g. Priya Sharma"
+              className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
-              Email *
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address *
             </label>
-
             <input
               type="email"
               name="email"
               value={form.email}
               onChange={handleChange}
               placeholder="student@example.com"
-              className="w-full px-4 py-3 rounded-lg bg-[#0A111F] border border-[#334155] text-white outline-none focus:border-[#FF9933]"
+              className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Password *
             </label>
-
             <input
               type="password"
               name="password"
               value={form.password}
               onChange={handleChange}
               placeholder="Create a password"
-              className="w-full px-4 py-3 rounded-lg bg-[#0A111F] border border-[#334155] text-white outline-none focus:border-[#FF9933]"
+              className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Institution *
-            </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Institution *
+              </label>
+              <input
+                type="text"
+                name="institution"
+                value={form.institution}
+                onChange={handleChange}
+                placeholder="e.g. VIT Chennai"
+                className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
+              />
+            </div>
 
-            <input
-              type="text"
-              name="institution"
-              value={form.institution}
-              onChange={handleChange}
-              placeholder="VIT Chennai"
-              className="w-full px-4 py-3 rounded-lg bg-[#0A111F] border border-[#334155] text-white outline-none focus:border-[#FF9933]"
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Degree & Major *
+              </label>
+              <input
+                type="text"
+                name="degree"
+                value={form.degree}
+                onChange={handleChange}
+                placeholder="e.g. B.Tech CSE"
+                className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Degree *
-            </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Year of Study *
+              </label>
+              <input
+                type="number"
+                name="year_of_study"
+                value={form.year_of_study}
+                onChange={handleChange}
+                placeholder="2"
+                min="1"
+                max="6"
+                className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
+              />
+            </div>
 
-            <input
-              type="text"
-              name="degree"
-              value={form.degree}
-              onChange={handleChange}
-              placeholder="B.Tech CSE"
-              className="w-full px-4 py-3 rounded-lg bg-[#0A111F] border border-[#334155] text-white outline-none focus:border-[#FF9933]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Year of Study *
-            </label>
-
-            <input
-              type="number"
-              name="year_of_study"
-              value={form.year_of_study}
-              onChange={handleChange}
-              placeholder="2"
-              min="1"
-              max="6"
-              className="w-full px-4 py-3 rounded-lg bg-[#0A111F] border border-[#334155] text-white outline-none focus:border-[#FF9933]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Interests
-            </label>
-
-            <input
-              type="text"
-              name="interests"
-              value={form.interests}
-              onChange={handleChange}
-              placeholder="AI/ML, Backend, Cloud"
-              className="w-full px-4 py-3 rounded-lg bg-[#0A111F] border border-[#334155] text-white outline-none focus:border-[#FF9933]"
-            />
-
-            <p className="text-xs text-slate-500 mt-1">
-              Separate multiple interests with commas.
-            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Interests
+              </label>
+              <input
+                type="text"
+                name="interests"
+                value={form.interests}
+                onChange={handleChange}
+                placeholder="AI/ML, Backend, Cloud"
+                className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
+              />
+            </div>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-lg p-3 text-sm">
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
               {error}
             </div>
           )}
@@ -211,25 +197,21 @@ export default function RegisterForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#FF9933] hover:bg-[#e88722] text-white font-semibold py-3 rounded-lg transition disabled:opacity-50"
+            className="w-full btn-saffron py-3 rounded-lg font-semibold disabled:opacity-50 mt-2"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
-
         </form>
 
-        <div className="text-center mt-6 text-sm text-slate-400">
+        <div className="text-center mt-6 text-sm text-gray-600">
           Already have an account?{' '}
-
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="text-[#FF9933] hover:underline font-medium"
+          <Link
+            to="/login"
+            className="text-saffron hover:underline font-semibold"
           >
             Sign In
-          </button>
+          </Link>
         </div>
-
       </div>
     </div>
   );

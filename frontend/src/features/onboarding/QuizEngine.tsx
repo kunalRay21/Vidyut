@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FadeIn } from '../../components/animations/FadeIn';
 
 interface Question {
   id: string;
@@ -16,50 +17,50 @@ const demoQuestions: Question[] = [
   {
     id: 'q1',
     skill_id: 'skill-python',
-    text: 'Which Python data type is used to store a collection of unique values?',
+    text: 'Which Python data type is used to store an unordered collection of unique values?',
     options: [
       { label: 'A', text: 'List' },
       { label: 'B', text: 'Tuple' },
       { label: 'C', text: 'Set' },
-      { label: 'D', text: 'String' },
+      { label: 'D', text: 'Dictionary' },
     ],
     correct_answer: 'C',
   },
   {
     id: 'q2',
     skill_id: 'skill-git',
-    text: 'Which Git command is commonly used to create a new branch?',
+    text: 'Which Git command is commonly used to create and switch to a new branch in one step?',
     options: [
-      { label: 'A', text: 'git branch' },
-      { label: 'B', text: 'git merge' },
-      { label: 'C', text: 'git push' },
-      { label: 'D', text: 'git clone' },
+      { label: 'A', text: 'git checkout -b <branch>' },
+      { label: 'B', text: 'git branch --new <branch>' },
+      { label: 'C', text: 'git push --set-upstream' },
+      { label: 'D', text: 'git merge <branch>' },
     ],
     correct_answer: 'A',
   },
   {
     id: 'q3',
     skill_id: 'skill-machine-learning',
-    text: 'Which type of machine learning uses labelled training data?',
+    text: 'Which type of machine learning uses labeled historical training data?',
     options: [
       { label: 'A', text: 'Unsupervised learning' },
       { label: 'B', text: 'Supervised learning' },
       { label: 'C', text: 'Reinforcement learning' },
-      { label: 'D', text: 'Random learning' },
+      { label: 'D', text: 'Self-organizing maps' },
     ],
     correct_answer: 'B',
   },
   {
     id: 'q4',
     skill_id: 'skill-sql',
-    text: 'Which SQL command is used to retrieve data from a database?',
+    text: 'Which SQL clause is used to filter aggregated group records?',
     options: [
-      { label: 'A', text: 'INSERT' },
-      { label: 'B', text: 'UPDATE' },
-      { label: 'C', text: 'SELECT' },
-      { label: 'D', text: 'DELETE' },
+      { label: 'A', text: 'WHERE' },
+      { label: 'B', text: 'HAVING' },
+      { label: 'C', text: 'GROUP BY' },
+      { label: 'D', text: 'ORDER BY' },
     ],
-    correct_answer: 'C',
+    correct_answer: 'B',
   },
   {
     id: 'q5',
@@ -69,7 +70,7 @@ const demoQuestions: Question[] = [
       { label: 'A', text: 'Mean' },
       { label: 'B', text: 'Median' },
       { label: 'C', text: 'Variance' },
-      { label: 'D', text: 'Range' },
+      { label: 'D', text: 'Standard Deviation' },
     ],
     correct_answer: 'B',
   },
@@ -77,7 +78,7 @@ const demoQuestions: Question[] = [
 
 export default function QuizEngine() {
   const navigate = useNavigate();
-  const { sessionId } = useParams();
+  const { id } = useParams();
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -85,9 +86,7 @@ export default function QuizEngine() {
   const [showDiscrepancy, setShowDiscrepancy] = useState(false);
 
   const question = demoQuestions[currentQuestion];
-
-  const progress =
-    ((currentQuestion + 1) / demoQuestions.length) * 100;
+  const progress = ((currentQuestion + 1) / demoQuestions.length) * 100;
 
   const handleAnswer = (answer: string) => {
     setAnswers((previous) => ({
@@ -97,10 +96,7 @@ export default function QuizEngine() {
   };
 
   const handleNext = () => {
-    if (!answers[question.id]) {
-      return;
-    }
-
+    if (!answers[question.id]) return;
     if (currentQuestion < demoQuestions.length - 1) {
       setCurrentQuestion((previous) => previous + 1);
     }
@@ -113,9 +109,7 @@ export default function QuizEngine() {
   };
 
   const handleSubmit = () => {
-    if (!answers[question.id]) {
-      return;
-    }
+    if (!answers[question.id]) return;
 
     setLoading(true);
 
@@ -130,14 +124,13 @@ export default function QuizEngine() {
     ).length;
 
     const discrepancyData = {
-      session_id: sessionId,
+      session_id: id,
       total_questions: demoQuestions.length,
       correct_answers: correctCount,
       discrepancies: demoQuestions
         .filter(
           (item) =>
-            answers[item.id] &&
-            answers[item.id] !== item.correct_answer
+            answers[item.id] && answers[item.id] !== item.correct_answer
         )
         .map((item) => ({
           question_id: item.id,
@@ -147,274 +140,166 @@ export default function QuizEngine() {
       submitted_answers: submittedAnswers,
     };
 
-    localStorage.setItem(
-      'assessment_result',
-      JSON.stringify(discrepancyData)
-    );
+    localStorage.setItem('assessment_result', JSON.stringify(discrepancyData));
 
     setTimeout(() => {
       setLoading(false);
       setShowDiscrepancy(true);
-    }, 700);
+    }, 500);
   };
 
   return (
-    <div className="min-h-screen bg-[#0A111F] text-white">
-
-      {/* Header */}
-      <header className="border-b border-[#1F3152] bg-[#0D1728]">
-        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
-
-          <button
-            onClick={() => navigate('/assessment/self')}
-            className="flex items-center gap-3"
-          >
-            <span className="text-2xl">⚡</span>
-
-            <span className="text-xl font-bold">
-              VIDYUT
+    <div className="max-w-3xl mx-auto px-6 py-10">
+      {/* Progress */}
+      <FadeIn delay={100}>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Question {currentQuestion + 1} of {demoQuestions.length}
             </span>
-          </button>
-
-          <span className="text-sm text-slate-400">
-            Career Assessment
-          </span>
-
-        </div>
-      </header>
-
-      {/* Main */}
-      <main className="max-w-4xl mx-auto px-6 py-10">
-
-        {/* Progress */}
-        <div className="mb-8">
-
-          <div className="flex items-center justify-between mb-3">
-
-            <span className="text-sm text-slate-400">
-              Question {currentQuestion + 1} of{' '}
-              {demoQuestions.length}
+            <span className="text-xs font-bold text-saffron">
+              {Math.round(progress)}% Completed
             </span>
-
-            <span className="text-sm text-[#FF9933] font-semibold">
-              {Math.round(progress)}%
-            </span>
-
           </div>
 
-          <div className="w-full h-2 bg-[#1F3152] rounded-full overflow-hidden">
-
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#FF9933] transition-all duration-300"
+              className="h-full bg-saffron transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
-
           </div>
-
         </div>
+      </FadeIn>
 
-        {/* Question Card */}
-        <div className="bg-[#111D32] border border-[#1F3152] rounded-2xl p-7 md:p-9">
+      {/* Question Card */}
+      <FadeIn delay={150}>
+        <div className="bg-[#FFFEF2] border border-[#EAE3B3] rounded-2xl p-8 shadow-sm">
+          <span className="inline-block px-3 py-1 mb-3 text-xs font-bold tracking-widest text-[#000080] bg-blue-50 rounded-full uppercase">
+            Diagnostic Verification
+          </span>
 
-          <p className="text-sm text-[#FF9933] font-semibold mb-4">
-            Skill Assessment
-          </p>
-
-          <h1 className="text-2xl md:text-3xl font-bold leading-relaxed">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-snug">
             {question.text}
-          </h1>
+          </h2>
 
           {/* Options */}
-          <div className="mt-8 space-y-4">
-
+          <div className="mt-6 space-y-3">
             {question.options.map((option) => {
-
-              const selected =
-                answers[question.id] === option.label;
+              const selected = answers[question.id] === option.label;
 
               return (
                 <button
                   key={option.label}
                   type="button"
                   onClick={() => handleAnswer(option.label)}
-                  className={`w-full text-left p-4 rounded-xl border transition ${
+                  className={`w-full text-left p-4 rounded-xl border transition flex items-center gap-3.5 ${
                     selected
-                      ? 'border-[#FF9933] bg-[#FF9933]/10'
-                      : 'border-[#334155] bg-[#0A111F] hover:border-[#FF9933]'
+                      ? 'border-saffron bg-saffron/10 text-gray-900 shadow-xs'
+                      : 'border-gray-200 bg-white hover:border-saffron text-gray-700'
                   }`}
                 >
-
-                  <div className="flex items-center gap-4">
-
-                    <span
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold ${
-                        selected
-                          ? 'bg-[#FF9933] text-white'
-                          : 'bg-[#1F3152] text-slate-300'
-                      }`}
-                    >
-                      {option.label}
-                    </span>
-
-                    <span className="text-slate-200">
-                      {option.text}
-                    </span>
-
-                  </div>
-
+                  <span
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                      selected
+                        ? 'bg-saffron text-white'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {option.label}
+                  </span>
+                  <span className="text-sm font-medium">{option.text}</span>
                 </button>
               );
             })}
-
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between mt-10">
-
+          {/* Navigation Controls */}
+          <div className="flex items-center justify-between mt-8 pt-4 border-t border-gray-100">
             <button
               type="button"
               onClick={handlePrevious}
               disabled={currentQuestion === 0}
-              className="px-5 py-3 rounded-lg border border-[#334155] text-slate-300 hover:border-[#FF9933] disabled:opacity-30 disabled:cursor-not-allowed transition"
+              className="px-4 py-2 rounded-lg border border-gray-300 text-xs font-semibold text-gray-600 hover:border-saffron disabled:opacity-30 disabled:cursor-not-allowed transition"
             >
               ← Previous
             </button>
 
             {currentQuestion < demoQuestions.length - 1 ? (
-
               <button
                 type="button"
                 onClick={handleNext}
                 disabled={!answers[question.id]}
-                className="px-6 py-3 rounded-lg bg-[#FF9933] hover:bg-[#e88722] font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="px-6 py-2.5 rounded-lg btn-saffron text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
-                Next →
+                Next Question →
               </button>
-
             ) : (
-
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={!answers[question.id] || loading}
-                className="px-6 py-3 rounded-lg bg-[#FF9933] hover:bg-[#e88722] font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="px-6 py-2.5 rounded-lg btn-saffron text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
-                {loading
-                  ? 'Submitting...'
-                  : 'Submit Assessment'}
+                {loading ? 'Submitting...' : 'Submit Evaluation'}
               </button>
-
             )}
-
           </div>
-
         </div>
+      </FadeIn>
 
-        {/* Information */}
-        <p className="text-center text-xs text-slate-500 mt-6">
-          Answer each question based on your current
-          knowledge. There is no negative marking.
-        </p>
-
-      </main>
-
-      {/* Discrepancy Modal */}
+      {/* Discrepancy Evaluation Modal */}
       {showDiscrepancy && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-
-          <div className="w-full max-w-lg rounded-2xl border border-[#1F3152] bg-[#111D32] p-7 shadow-2xl">
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs px-4">
+          <div className="w-full max-w-md rounded-2xl border border-[#EAE3B3] bg-[#FFFEF2] p-7 shadow-xl animate-fade-in-up">
             <div className="text-center">
-
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 text-3xl">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-700 text-2xl font-bold">
                 ✓
               </div>
 
-              <h2 className="text-2xl font-bold">
-                Assessment Complete
+              <h2 className="text-2xl font-bold text-gray-900 font-heading">
+                Assessment Evaluated
               </h2>
 
-              <p className="mt-2 text-slate-400">
-                Your assessment has been submitted successfully.
+              <p className="mt-1 text-xs text-gray-600">
+                Your diagnostic results have been calibrated against your baseline.
               </p>
-
             </div>
 
-            {/* Result Summary */}
-            <div className="mt-6 rounded-xl border border-[#334155] bg-[#0A111F] p-5">
-
-              <h3 className="font-semibold text-white">
-                Assessment Summary
-              </h3>
-
-              <div className="mt-4 space-y-3">
-
-                <div className="flex justify-between">
-                  <span className="text-slate-400">
-                    Questions
-                  </span>
-
-                  <span className="font-semibold">
-                    {demoQuestions.length}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-slate-400">
-                    Correct Answers
-                  </span>
-
-                  <span className="font-semibold text-green-400">
-                    {demoQuestions.filter(
-                      (item) =>
-                        answers[item.id] === item.correct_answer
-                    ).length}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-slate-400">
-                    Incorrect Answers
-                  </span>
-
-                  <span className="font-semibold text-red-400">
-                    {demoQuestions.filter(
-                      (item) =>
-                        answers[item.id] &&
-                        answers[item.id] !== item.correct_answer
-                    ).length}
-                  </span>
-                </div>
-
+            <div className="mt-5 rounded-xl border border-gray-200 bg-white p-4 space-y-2.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Total Questions:</span>
+                <span className="font-bold text-gray-900">{demoQuestions.length}</span>
               </div>
-
+              <div className="flex justify-between">
+                <span className="text-gray-500">Correct Answers:</span>
+                <span className="font-bold text-green-600">
+                  {demoQuestions.filter((item) => answers[item.id] === item.correct_answer).length}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Identified Gaps:</span>
+                <span className="font-bold text-saffron">
+                  {demoQuestions.filter((item) => answers[item.id] && answers[item.id] !== item.correct_answer).length}
+                </span>
+              </div>
             </div>
 
-            {/* Discrepancy Explanation */}
-            <div className="mt-6 rounded-xl border border-[#FF9933]/30 bg-[#FF9933]/10 p-4">
-
-              <p className="text-sm text-slate-300">
-                Your quiz performance will be compared with
-                your self-assessment to identify skill
-                discrepancies and improve your career roadmap.
+            <div className="mt-4 rounded-xl border border-saffron/30 bg-saffron/10 p-3">
+              <p className="text-xs text-gray-700 leading-relaxed">
+                ⚡ Your personalized prerequisite roadmap has been dynamically calculated to prioritize your skill gaps.
               </p>
-
             </div>
 
-            {/* Continue */}
             <button
               type="button"
               onClick={() => navigate('/dashboard')}
-              className="mt-6 w-full rounded-xl bg-[#FF9933] py-3 font-semibold text-white transition hover:bg-[#e88722]"
+              className="mt-6 w-full btn-saffron py-3 font-bold text-sm rounded-xl"
             >
               Continue to Dashboard →
             </button>
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }

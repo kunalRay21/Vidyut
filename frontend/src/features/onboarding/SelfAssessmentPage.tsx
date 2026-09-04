@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FadeIn } from '../../components/animations/FadeIn';
 
 type Rating = 'BEGINNER' | 'AVERAGE' | 'GOOD' | 'EXPERT';
 
@@ -80,7 +81,7 @@ const ratingLabels: Record<Rating, string> = {
 export default function SelfAssessmentPage() {
   const navigate = useNavigate();
 
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedRole, setSelectedRole] = useState('role-ml-engineer');
   const [ratings, setRatings] = useState<Record<string, Rating>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -93,7 +94,6 @@ export default function SelfAssessmentPage() {
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const roleId = e.target.value;
-
     setSelectedRole(roleId);
     setRatings({});
     setError('');
@@ -117,18 +117,14 @@ export default function SelfAssessmentPage() {
       return;
     }
 
-    if (!currentRole) {
-      return;
-    }
+    if (!currentRole) return;
 
     const missingSkills = currentRole.skills.filter(
       (skill) => !ratings[skill.id]
     );
 
     if (missingSkills.length > 0) {
-      setError(
-        'Please rate all skills before continuing.'
-      );
+      setError('Please rate all skills before continuing to the quiz.');
       return;
     }
 
@@ -143,216 +139,137 @@ export default function SelfAssessmentPage() {
       })),
     };
 
-    // Save assessment temporarily
-    localStorage.setItem(
-      'self_assessment',
-      JSON.stringify(assessmentData)
-    );
+    localStorage.setItem('self_assessment', JSON.stringify(assessmentData));
 
-    // Temporary session ID until backend assessment API is connected
     const sessionId = `demo-session-${Date.now()}`;
 
     setTimeout(() => {
       setLoading(false);
       navigate(`/assessment/quiz/${sessionId}`);
-    }, 500);
+    }, 400);
   };
 
   return (
-    <div className="min-h-screen bg-[#0A111F] text-white">
-
+    <div className="max-w-4xl mx-auto px-6 py-10">
       {/* Header */}
-      <header className="border-b border-[#1F3152] bg-[#0D1728]">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
-
-          <button
-            onClick={() => navigate('/explore')}
-            className="flex items-center gap-3"
-          >
-            <span className="text-2xl">⚡</span>
-
-            <span className="text-xl font-bold">
-              VIDYUT
-            </span>
-          </button>
-
-          <button
-            onClick={() => navigate('/explore')}
-            className="text-sm text-slate-400 hover:text-white transition"
-          >
-            ← Back to Explore
-          </button>
-
-        </div>
-      </header>
-
-      {/* Main */}
-      <main className="max-w-4xl mx-auto px-6 py-12">
-
-        {/* Heading */}
+      <FadeIn delay={100}>
         <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-saffron/10 text-saffron-600 text-xs font-bold uppercase tracking-wider mb-3 border border-saffron/30">
+            Step 1 · Self Assessment
+          </div>
 
-          <p className="text-[#FF9933] font-semibold text-sm mb-3">
-            SELF ASSESSMENT
-          </p>
-
-          <h1 className="text-4xl font-bold">
-            Discover Your Skill Level
+          <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-[#000080]">
+            Evaluate Your Baseline Competencies
           </h1>
 
-          <p className="text-slate-400 mt-4 max-w-2xl mx-auto">
-            Select a career role and honestly rate your current
-            skills. Your answers will help Vidyut understand your
-            strengths and identify areas for improvement.
+          <p className="text-gray-600 text-sm md:text-base mt-2 max-w-2xl mx-auto leading-relaxed">
+            Select your target career role and honestly rate your familiarity with each core skill. This baseline will be calibrated against an adaptive diagnostic quiz.
           </p>
-
         </div>
+      </FadeIn>
 
-        <form onSubmit={handleSubmit}>
-
-          {/* Role Selection */}
-          <div className="bg-[#111D32] border border-[#1F3152] rounded-2xl p-6 mb-6">
-
-            <label className="block text-sm font-semibold mb-3">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Role Selection */}
+        <FadeIn delay={150}>
+          <div className="bg-[#FFFEF2] border border-[#EAE3B3] rounded-2xl p-6 shadow-sm">
+            <label className="block text-sm font-bold text-gray-900 mb-2">
               Select Your Target Career Role
             </label>
 
             <select
               value={selectedRole}
               onChange={handleRoleChange}
-              className="w-full bg-[#0A111F] border border-[#334155] rounded-lg px-4 py-3 text-white outline-none focus:border-[#FF9933]"
+              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
             >
-              <option value="">
-                Select a career role...
-              </option>
-
+              <option value="">Select a career role...</option>
               {roles.map((role) => (
-                <option
-                  key={role.id}
-                  value={role.id}
-                >
+                <option key={role.id} value={role.id}>
                   {role.name}
                 </option>
               ))}
             </select>
 
             {currentRole && (
-              <div className="mt-4 bg-[#0A111F] rounded-lg p-4 border border-[#263A5A]">
-                <h2 className="font-semibold text-lg">
+              <div className="mt-4 bg-white rounded-xl p-4 border border-[#EAE3B3]">
+                <h2 className="font-bold text-gray-900 text-base">
                   {currentRole.name}
                 </h2>
-
-                <p className="text-slate-400 text-sm mt-1">
+                <p className="text-gray-600 text-xs mt-1">
                   {currentRole.description}
                 </p>
               </div>
             )}
-
           </div>
+        </FadeIn>
 
-          {/* Skills */}
-          {currentRole && (
-            <div className="bg-[#111D32] border border-[#1F3152] rounded-2xl p-6">
-
+        {/* Skills Rating Grid */}
+        {currentRole && (
+          <FadeIn delay={200}>
+            <div className="bg-[#FFFEF2] border border-[#EAE3B3] rounded-2xl p-6 shadow-sm">
               <div className="mb-6">
-                <h2 className="text-xl font-bold">
-                  Rate Your Skills
+                <h2 className="text-lg font-bold text-gray-900 font-heading">
+                  Rate Your Proficiency
                 </h2>
-
-                <p className="text-slate-400 text-sm mt-1">
-                  Choose the level that best describes your
-                  current ability.
+                <p className="text-gray-500 text-xs mt-0.5">
+                  Select the level that best reflects your real-world capability today.
                 </p>
               </div>
 
-              <div className="space-y-6">
-
-                {currentRole.skills.map(
-                  (skill: Skill) => (
-                    <div
-                      key={skill.id}
-                      className="border-b border-[#1F3152] pb-6 last:border-b-0"
-                    >
-
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="font-medium">
-                          {skill.name}
-                        </span>
-
-                        <span className="text-[#FF9933] text-sm font-semibold">
-                          {ratings[skill.id]
-                            ? ratingLabels[
-                                ratings[skill.id]
-                              ]
-                            : 'Not Rated'}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-
-                        {ratingValues.map(
-                          (rating) => (
-                            <button
-                              key={rating}
-                              type="button"
-                              onClick={() =>
-                                handleRatingChange(
-                                  skill.id,
-                                  rating
-                                )
-                              }
-                              className={`py-2.5 rounded-lg border text-sm font-medium transition ${
-                                ratings[skill.id] ===
-                                rating
-                                  ? 'bg-[#FF9933] border-[#FF9933] text-white'
-                                  : 'bg-[#0A111F] border-[#334155] text-slate-300 hover:border-[#FF9933]'
-                              }`}
-                            >
-                              {ratingLabels[rating]}
-                            </button>
-                          )
-                        )}
-
-                      </div>
-
+              <div className="space-y-5">
+                {currentRole.skills.map((skill: Skill) => (
+                  <div
+                    key={skill.id}
+                    className="border-b border-gray-200/70 pb-5 last:border-b-0"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-semibold text-sm text-gray-800">
+                        {skill.name}
+                      </span>
+                      <span className="text-xs font-bold text-saffron bg-saffron/10 px-2.5 py-0.5 rounded-full">
+                        {ratings[skill.id] ? ratingLabels[ratings[skill.id]] : 'Pending'}
+                      </span>
                     </div>
-                  )
-                )}
 
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                      {ratingValues.map((rating) => {
+                        const isSelected = ratings[skill.id] === rating;
+                        return (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => handleRatingChange(skill.id, rating)}
+                            className={`py-2 rounded-lg text-xs font-semibold transition ${
+                              isSelected
+                                ? 'bg-saffron text-white shadow-sm border border-saffron'
+                                : 'bg-white border border-gray-300 text-gray-700 hover:border-saffron'
+                            }`}
+                          >
+                            {ratingLabels[rating]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {/* Error */}
               {error && (
-                <div className="mt-6 bg-red-500/10 border border-red-500/30 text-red-300 rounded-lg p-3 text-sm">
+                <div className="mt-5 bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-xs">
                   {error}
                 </div>
               )}
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-8 bg-[#FF9933] hover:bg-[#e88722] text-white font-semibold py-3.5 rounded-lg transition disabled:opacity-50"
+                className="w-full mt-8 btn-saffron py-3.5 rounded-xl font-bold text-sm shadow-sm disabled:opacity-50"
               >
-                {loading
-                  ? 'Preparing Assessment...'
-                  : 'Continue to Quiz →'}
+                {loading ? 'Generating Calibrated Quiz...' : 'Continue to Diagnostic Quiz →'}
               </button>
-
             </div>
-          )}
-
-        </form>
-
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-[#1F3152] bg-[#0D1728]">
-        <div className="max-w-6xl mx-auto px-6 py-6 text-center text-sm text-slate-500">
-          Vidyut — Smart India Hackathon 2026 · Ministry of Education & AICTE Initiative
-        </div>
-      </footer>
-
+          </FadeIn>
+        )}
+      </form>
     </div>
   );
 }
