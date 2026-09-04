@@ -287,6 +287,18 @@ export async function generatePersonalizedRoadmap(
     readiness = Math.round((total / skills.length) * 100);
   }
 
+  try {
+    await query(
+      `INSERT INTO roadmap_states (student_id, role_id, readiness_pct)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (student_id, role_id)
+       DO UPDATE SET readiness_pct = EXCLUDED.readiness_pct, updated_at = NOW()`,
+      [studentId, roleId, readiness]
+    );
+  } catch (err: any) {
+    // Non-blocking for offline development
+  }
+
   return {
     role_id: roleId,
     role_name: roleName,

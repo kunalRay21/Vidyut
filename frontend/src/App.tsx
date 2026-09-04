@@ -24,7 +24,7 @@ import { Navbar } from './components/layout/Navbar';
 
 function QuizDispatcher() {
   const { id } = useParams<{ id: string }>();
-  if (id && (id.startsWith('demo-') || id.startsWith('session') || id.startsWith('sess-') || /^\d+$/.test(id))) {
+  if (id && (id.startsWith('demo-') || id.startsWith('session') || id.startsWith('sess-') || /^[0-9a-fA-F-]{10,}$/.test(id) || /^\d+$/.test(id))) {
     return <QuizEngine />;
   }
   return <AssessmentQuizPage />;
