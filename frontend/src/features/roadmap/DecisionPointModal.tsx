@@ -1,9 +1,11 @@
 import React from 'react';
 import { GitBranch, X } from 'lucide-react';
 
-interface DecisionOption {
+export interface DecisionOption {
   branch_id: string;
+  option_id?: string;
   name: string;
+  description?: string;
 }
 
 interface DecisionPointModalProps {
@@ -11,7 +13,7 @@ interface DecisionPointModalProps {
   phaseTitle: string;
   options: DecisionOption[];
   onClose: () => void;
-  onSelect: (branchId: string) => void;
+  onSelect: (branchId: string, optionId?: string) => void;
 }
 
 export const DecisionPointModal: React.FC<DecisionPointModalProps> = ({ 
@@ -31,20 +33,22 @@ export const DecisionPointModal: React.FC<DecisionPointModalProps> = ({
           </div>
           <h2 className="text-2xl font-extrabold text-gray-900 font-heading">Branch Decision Required</h2>
           <p className="text-gray-600 text-sm mt-2">
-            You've reached <strong className="text-gray-900">{phaseTitle}</strong>. Select your specialized path to dynamically update your curriculum.
+            You've reached <strong className="text-gray-900">{phaseTitle}</strong>. Select your specialized path to dynamically calibrate your upcoming milestones.
           </p>
         </div>
         
         <div className="p-6 bg-[#FFFEF2] flex flex-col gap-3">
-          {options.map((opt) => (
+          {options.map((opt, i) => (
             <button
-              key={opt.branch_id}
-              onClick={() => onSelect(opt.branch_id)}
-              className="group flex items-center justify-between p-4 bg-white border border-[#EAE3B3] rounded-xl hover:border-saffron hover:shadow-md transition-all text-left"
+              key={opt.option_id || opt.branch_id || i}
+              onClick={() => onSelect(opt.branch_id, opt.option_id)}
+              className="group flex items-center justify-between p-4 bg-white border border-[#EAE3B3] rounded-xl hover:border-saffron hover:shadow-md transition-all text-left cursor-pointer"
             >
               <div>
                 <h3 className="text-base font-bold text-gray-900 group-hover:text-saffron transition-colors">{opt.name}</h3>
-                <p className="text-xs text-gray-500 mt-1">Select this path to dynamically adjust your upcoming learning milestones for {opt.name}.</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {opt.description || `Select this path to dynamically adjust your learning milestones for ${opt.name}.`}
+                </p>
               </div>
               <div className="w-8 h-8 rounded-full bg-saffron/10 flex items-center justify-center text-saffron group-hover:bg-saffron group-hover:text-white transition-all shrink-0 ml-3 font-bold">
                 →

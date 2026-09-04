@@ -15,7 +15,7 @@ export function setStoredToken(token: string) {
 }
 
 export function getStoredUser(): any | null {
-  const raw = localStorage.getItem('demo_user');
+  const raw = localStorage.getItem('vidyut_user') || localStorage.getItem('demo_user');
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -25,15 +25,19 @@ export function getStoredUser(): any | null {
 }
 
 export function setStoredUser(user: any) {
+  localStorage.setItem('vidyut_user', JSON.stringify(user));
   localStorage.setItem('demo_user', JSON.stringify(user));
 }
 
 export function clearStoredAuth() {
   localStorage.removeItem('access_token');
+  localStorage.removeItem('vidyut_user');
   localStorage.removeItem('demo_user');
   localStorage.removeItem('institution_token');
   localStorage.removeItem('industry_token');
   localStorage.removeItem('industry_company');
+  localStorage.removeItem('assessment_result');
+  localStorage.removeItem('self_assessment');
 }
 
 async function request<T = any>(
@@ -51,8 +55,9 @@ async function request<T = any>(
   }
 
   const user = getStoredUser();
-  if (user?.student_profile_id && !headers['x-student-id']) {
-    headers['x-student-id'] = user.student_profile_id;
+  const studentId = user?.student_profile_id || user?.student_id || user?.id;
+  if (studentId && !headers['x-student-id']) {
+    headers['x-student-id'] = studentId;
   }
 
   const url = `${API_BASE}${endpoint}`;
@@ -218,14 +223,16 @@ export const assessmentApi = {
     let body: any = {};
     if (typeof roleOrPayload === 'string') {
       const user = getStoredUser();
+      const resolvedStudentId = studentId || user?.student_profile_id || user?.student_id || user?.id;
       body = {
         role_id: roleOrPayload,
-        student_id: studentId || user?.id || user?.student_id || 'student-demo',
+        student_id: resolvedStudentId,
       };
     } else if (typeof roleOrPayload === 'object' && roleOrPayload !== null) {
       const user = getStoredUser();
+      const resolvedStudentId = user?.student_profile_id || user?.student_id || user?.id;
       body = {
-        student_id: user?.id || user?.student_id || 'student-demo',
+        student_id: resolvedStudentId,
         ...roleOrPayload,
       };
     }
@@ -354,14 +361,18 @@ export const profileApi = {
 export const roadmapApi = {
   getRoadmap: async (studentId?: string, roleId?: string) => {
     const user = getStoredUser();
-    const sid = studentId || user?.id || user?.student_id || 'student-demo';
-    const rid = roleId || user?.selected_role_id || 'role-ml';
-    return await request(`/api/v1/roadmap?student_id=${encodeURIComponent(sid)}&role_id=${encodeURIComponent(rid)}`);
+    const sid = studentId || user?.student_profile_id || user?.id || user?.student_id;
+    const rid = roleId || user?.selected_role_id;
+    const params = new URLSearchParams();
+    if (sid) params.append('student_id', sid);
+    if (rid) params.append('role_id', rid);
+    const qs = params.toString();
+    return await request(`/api/v1/roadmap${qs ? `?${qs}` : ''}`);
   },
 
   selectBranch: async (branchId: string, optionId?: string, studentId?: string) => {
     const user = getStoredUser();
-    const sid = studentId || user?.id || user?.student_id || 'student-demo';
+    const sid = studentId || user?.student_profile_id || user?.id || user?.student_id;
     return await request('/api/v1/roadmap/branch', {
       method: 'POST',
       body: JSON.stringify({
@@ -386,7 +397,7 @@ export const portfolioApi = {
     student_id?: string;
   }) => {
     const user = getStoredUser();
-    const sid = data.student_id || user?.id || user?.student_id || 'student-demo';
+    const sid = data.student_id || user?.student_profile_id || user?.id || user?.student_id;
     return await request('/api/v1/portfolio/evidence', {
       method: 'POST',
       body: JSON.stringify({

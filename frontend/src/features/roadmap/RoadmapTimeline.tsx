@@ -9,6 +9,19 @@ export interface Milestone {
   status: MilestoneStatus;
 }
 
+export interface PhaseMilestone {
+  id: string;
+  skill_id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  status: MilestoneStatus;
+  assessed_level?: string;
+  target_level?: string;
+  accuracy?: number;
+  milestone_order?: number;
+}
+
 export interface Phase {
   id: string;
   phase_number: number;
@@ -17,8 +30,11 @@ export interface Phase {
   learning_outcome?: string;
   status: MilestoneStatus;
   topics?: string[];
+  milestones?: PhaseMilestone[];
   has_decision_point?: boolean;
-  decision_options?: { branch_id: string; name: string }[];
+  selected_branch_id?: string | null;
+  selected_option_name?: string | null;
+  decision_options?: { branch_id: string; option_id?: string; name: string; description?: string }[];
 }
 
 interface RoadmapTimelineProps {
@@ -109,28 +125,33 @@ const PhaseCard: React.FC<{
           <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[#000080]/10 text-[#000080] shrink-0">
             {getPhaseIcon(phase.phase_number)}
           </div>
-          <div>
-            <div className="flex items-center gap-3 mb-2">
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-2.5 mb-2">
               <span className="inline-block px-3 py-1 text-xs font-bold tracking-widest text-white bg-[#000080] rounded-full uppercase shadow-sm">
-                Step {phase.phase_number}
+                Phase {phase.phase_number}
               </span>
               {phase.status === 'FAST_TRACKED' && (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-0.5 rounded-full">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Fast-tracked
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> Fast-tracked via Diagnostic
                 </span>
               )}
               {phase.status === 'COMPLETED' && (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-0.5 rounded-full">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> {t('roadmap.milestoneStatus.completed', 'Completed')}
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> {t('roadmap.milestoneStatus.completed', 'Completed')}
                 </span>
               )}
               {phase.status === 'IN_PROGRESS' && (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full">
-                  <Clock className="w-3.5 h-3.5" /> {t('roadmap.milestoneStatus.inProgress', 'In Progress')}
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-800 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-300">
+                  <Clock className="w-3.5 h-3.5 text-blue-700" /> {t('roadmap.milestoneStatus.inProgress', 'In Progress')}
+                </span>
+              )}
+              {phase.status === 'LOCKED' && (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-300">
+                  <Lock className="w-3.5 h-3.5 text-gray-500" /> Prerequisite Pending
                 </span>
               )}
             </div>
-            <h4 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <h4 className="text-2xl font-bold text-gray-900">
               {phase.title}
             </h4>
           </div>
@@ -143,46 +164,87 @@ const PhaseCard: React.FC<{
           </p>
         )}
 
-        {/* Topics */}
-        {phase.topics && phase.topics.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-3">
-              <h5 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Topics</h5>
-              {phase.status === 'IN_PROGRESS' && (
-                <span className="text-xs text-blue-600 font-medium opacity-80 italic animate-pulse">
-                  ({t('roadmap.submitEvidence', 'Submit Evidence')})
-                </span>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {phase.topics.map((topic, i) => {
-                const isCompleted = phase.status === 'COMPLETED' || phase.status === 'FAST_TRACKED';
-                const isInProgress = phase.status === 'IN_PROGRESS';
-                const isLocked = phase.status === 'LOCKED';
+        {/* Milestones / Topics List */}
+        <div className="mb-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <h5 className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+              Curriculum Milestones ({phase.milestones?.length || phase.topics?.length || 0})
+            </h5>
+            {phase.status === 'IN_PROGRESS' && (
+              <span className="text-xs text-blue-700 font-semibold bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                Active Focus Area
+              </span>
+            )}
+          </div>
 
-                let chipBg = 'bg-gray-50 border-gray-200 text-gray-500';
-                if (isCompleted) chipBg = 'bg-green-50 border-green-200 text-green-700';
-                else if (isInProgress) chipBg = 'bg-blue-50 border-blue-300 text-blue-800 shadow-sm cursor-pointer hover:bg-blue-100';
+          {phase.milestones && phase.milestones.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {phase.milestones.map((m) => {
+                const isDone = m.status === 'COMPLETED' || m.status === 'FAST_TRACKED';
+                const isActive = m.status === 'IN_PROGRESS';
+                const isLocked = m.status === 'LOCKED';
 
                 return (
-                  <div 
-                    key={i}
-                    onClick={() => isInProgress ? onEvidenceClick(phase.id) : undefined}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-all duration-500 ease-out transform ${
-                      isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                    } ${chipBg}`}
-                    style={{ transitionDelay: `${300 + (i * 50)}ms` }}
+                  <div
+                    key={m.id}
+                    className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                      isDone
+                        ? 'bg-emerald-50/60 border-emerald-200/80 text-emerald-950'
+                        : isActive
+                        ? 'bg-blue-50/70 border-blue-300 text-blue-950 shadow-xs'
+                        : 'bg-white/60 border-[#EAE3B3] text-gray-500'
+                    }`}
                   >
-                    {isCompleted && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                    {isInProgress && <Clock className="w-4 h-4 text-blue-500" />}
-                    {isLocked && <Lock className="w-3.5 h-3.5 text-gray-400" />}
-                    {topic}
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        {isDone && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />}
+                        {isActive && <Clock className="w-4 h-4 text-blue-600 shrink-0 animate-pulse" />}
+                        {isLocked && <Lock className="w-4 h-4 text-gray-400 shrink-0" />}
+                        <span className={`text-sm font-bold ${isDone ? 'text-emerald-900' : isActive ? 'text-blue-900' : 'text-gray-700'}`}>
+                          {m.title}
+                        </span>
+                      </div>
+                      {m.category && (
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/5 text-gray-600 shrink-0">
+                          {m.category}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs mt-1 pt-2 border-t border-black/5">
+                      <span className="text-[11px] font-medium opacity-80">
+                        {m.status === 'FAST_TRACKED'
+                          ? '⭐ Mastered (Fast-Tracked)'
+                          : isDone
+                          ? '✓ Mastered'
+                          : isActive
+                          ? '⚡ Unlocked for Learning'
+                          : '🔒 Prerequisite Required'}
+                      </span>
+
+                      {isActive && (
+                        <button
+                          onClick={() => onEvidenceClick(m.skill_id)}
+                          className="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white border border-blue-300 text-blue-700 text-xs font-semibold rounded-lg shadow-2xs transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          Submit Evidence
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {phase.topics?.map((topic, i) => (
+                <div key={i} className="px-3 py-1.5 rounded-full border text-sm font-medium bg-gray-50 border-gray-200 text-gray-700">
+                  {topic}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Learning Outcome */}
         {phase.learning_outcome && (
@@ -190,28 +252,42 @@ const PhaseCard: React.FC<{
             className={`bg-[#000080]/5 rounded-xl p-5 border border-[#000080]/10 transition-all duration-700 ease-out transform ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
-            style={{ transitionDelay: `${300 + ((phase.topics?.length || 0) * 50)}ms` }}
+            style={{ transitionDelay: '300ms' }}
           >
             <h5 className="text-xs font-bold text-[#000080] uppercase tracking-widest mb-2">{t('roadmap.viewOutcome', 'What you will learn')}</h5>
             <p className="text-sm text-gray-700 leading-relaxed">{phase.learning_outcome}</p>
           </div>
         )}
 
+        {/* Selected Specialization Notice */}
+        {phase.selected_option_name && (
+          <div className="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center justify-between">
+            <div className="flex items-center gap-2.5 text-emerald-900 font-bold text-sm">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>Specialization Selected: {phase.selected_option_name}</span>
+            </div>
+            <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full border border-emerald-300">
+              Active Track
+            </span>
+          </div>
+        )}
+
         {/* Branch Decision */}
-        {phase.has_decision_point && (
+        {phase.has_decision_point && !phase.selected_option_name && (
           <div 
             className={`mt-6 bg-[#000080]/5 border border-[#000080]/20 p-6 rounded-xl text-center border-dashed transition-all duration-700 ease-out transform ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
-            style={{ transitionDelay: `${300 + ((phase.topics?.length || 0) * 50)}ms` }}
+            style={{ transitionDelay: '350ms' }}
           >
             <GitBranch className="w-8 h-8 text-[#000080]/60 mx-auto mb-3" />
             <h5 className="font-bold text-[#000080] mb-2 text-lg">{t('roadmap.chooseTrack', 'Branch Decision Required')}</h5>
-            <p className="text-sm text-gray-600 mb-5">Choose your specialization to unlock the next milestones in your journey.</p>
+            <p className="text-sm text-gray-600 mb-5">Choose your specialization to calibrate the advanced milestones in your learning trajectory.</p>
             <button 
               onClick={() => onDecisionClick(phase)}
-              className="bg-[#FF9933] hover:bg-[#e68a2e] text-white px-6 py-2 rounded-full font-bold transition-all shadow-md hover:shadow-lg text-sm cursor-pointer"
+              className="bg-[#FF9933] hover:bg-[#e68a2e] text-white px-6 py-2.5 rounded-full font-bold transition-all shadow-md hover:shadow-lg text-sm cursor-pointer inline-flex items-center gap-2"
             >
+              <GitBranch className="w-4 h-4" />
               {t('roadmap.chooseTrack', 'Choose Track')}
             </button>
           </div>

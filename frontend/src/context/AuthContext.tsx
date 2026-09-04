@@ -12,6 +12,7 @@ export type UserRole = 'STUDENT' | 'INDUSTRY' | 'INSTITUTION' | 'ADMIN';
 
 export interface UserProfile {
   id: string;
+  student_profile_id?: string;
   email: string;
   role: UserRole;
   full_name?: string;
@@ -68,33 +69,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ...storedUser,
           role: (storedUser.role as UserRole) || 'STUDENT',
         });
-      } else if (localStorage.getItem('institution_token')) {
-        // Fallback restoration for institution sessions
-        const instToken = localStorage.getItem('institution_token')!;
-        setToken(instToken);
-        setUser({
-          id: 'inst-vit-chennai',
-          email: 'officer@vitchennai.edu.in',
-          role: 'INSTITUTION',
-          full_name: 'Dr. Ramesh Rao',
-          college_name: 'VIT Chennai',
-          aishe_code: 'C-36944',
-        });
-      } else if (localStorage.getItem('industry_token')) {
-        // Fallback restoration for industry sessions
-        const indToken = localStorage.getItem('industry_token')!;
-        const compRaw = localStorage.getItem('industry_company');
-        const comp = compRaw ? JSON.parse(compRaw) : {};
-        setToken(indToken);
-        setUser({
-          id: 'ind-bangalore-analytics',
-          email: 'careers@bangaloreanalytics.io',
-          role: 'INDUSTRY',
-          full_name: 'Aditi Nair (Talent Lead)',
-          company_name: comp.companyName || 'Bangalore Analytics Co.',
-          sector: comp.sector || 'Artificial Intelligence & Analytics',
-          website: comp.website || 'https://bangaloreanalytics.io',
-        });
       }
     } catch (e) {
       console.warn('Error reading stored auth credentials:', e);
@@ -112,12 +86,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const receivedToken = res.data.access_token || 'bearer-token';
         const receivedUser: UserProfile = {
           id: res.data.user?.id || 'usr-1',
+          student_profile_id: res.data.user?.student_profile_id,
           email: res.data.user?.email || email,
           role: (res.data.user?.role as UserRole) || 'STUDENT',
           full_name: res.data.user?.full_name || 'Vidyut Scholar',
-          institution: res.data.user?.institution || 'IIT Madras',
-          degree: res.data.user?.degree || 'B.Tech Computer Science',
-          year_of_study: res.data.user?.year_of_study || 3,
+          institution: res.data.user?.institution || '',
+          degree: res.data.user?.degree || '',
+          year_of_study: res.data.user?.year_of_study || 1,
+          selected_role_id: res.data.user?.selected_role_id,
+          readiness_pct: res.data.user?.readiness_pct,
         };
 
         setStoredToken(receivedToken);
@@ -126,22 +103,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(receivedUser);
         return { success: true };
       } else {
-        // Resilient fallback for offline development
-        const fallbackUser: UserProfile = {
-          id: 'student-demo',
-          email,
-          role: 'STUDENT',
-          full_name: 'Priya Sharma',
-          institution: 'VIT Chennai',
-          degree: 'B.Tech CSE',
-          year_of_study: 2,
-        };
-        const fallbackToken = 'demo-student-token';
-        setStoredToken(fallbackToken);
-        setStoredUser(fallbackUser);
-        setToken(fallbackToken);
-        setUser(fallbackUser);
-        return { success: true };
+        const errorMessage =
+          res.error?.message ||
+          (typeof res.error === 'string' ? res.error : 'Invalid email or password.');
+        return { success: false, error: errorMessage };
       }
     } catch (err: any) {
       return { success: false, error: err.message || 'Login failed' };
@@ -213,23 +178,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       const res = await authApi.register(data);
 
-      const receivedToken = res.success && res.data?.access_token ? res.data.access_token : 'demo-student-token';
-      const receivedUser: UserProfile = {
-        id: res.data?.user?.id || 'usr-reg-1',
-        email: data.email,
-        role: 'STUDENT',
-        full_name: data.full_name,
-        institution: data.institution,
-        degree: data.degree,
-        year_of_study: data.year_of_study,
-      };
+      if (res.success && res.data?.access_token) {
+        const receivedToken = res.data.access_token;
+        const receivedUser: UserProfile = {
+          id: res.data?.user?.id || 'usr-reg-1',
+          student_profile_id: res.data?.user?.student_profile_id,
+          email: data.email,
+          role: 'STUDENT',
+          full_name: data.full_name,
+          institution: data.institution,
+          degree: data.degree,
+          year_of_study: data.year_of_study,
+        };
 
-      setStoredToken(receivedToken);
-      setStoredUser(receivedUser);
-      setToken(receivedToken);
-      setUser(receivedUser);
+        setStoredToken(receivedToken);
+        setStoredUser(receivedUser);
+        setToken(receivedToken);
+        setUser(receivedUser);
 
-      return { success: true };
+        return { success: true };
+      } else {
+        const errorMessage =
+          res.error?.message ||
+          (typeof res.error === 'string' ? res.error : 'Registration failed.');
+        return { success: false, error: errorMessage };
+      }
     } catch (err: any) {
       return { success: false, error: err.message || 'Registration failed' };
     } finally {

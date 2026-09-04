@@ -10,11 +10,17 @@ export const SkillStateList: React.FC<SkillStateListProps> = ({ skills }) => {
   return (
     <div className="w-full">
       <h3 className="text-xl font-bold text-gray-800 mb-6">Skill Matrix</h3>
-      <div className="flex flex-col gap-6">
-        {skills.map((skill) => (
-          <SkillProgressCard key={skill.name} skill={skill} />
-        ))}
-      </div>
+      {skills.length === 0 ? (
+        <div className="bg-[#FFFEF2] rounded-2xl p-6 border border-[#EAE3B3] text-center text-sm text-gray-500">
+          No evaluated skills yet. Complete your diagnostic calibration to view your skill matrix.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-6">
+          {skills.map((skill) => (
+            <SkillProgressCard key={skill.name} skill={skill} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

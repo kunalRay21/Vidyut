@@ -23,14 +23,34 @@ import type { ResourceRepository, RoadmapRepository } from './resource-recommend
  */
 export class PrismaProfileService implements ProfileService {
   async getProfile(studentId: string): Promise<StudentProfile> {
-    const profile = await prisma.studentProfile.findUnique({
-      where: { id: studentId },
-      include: {
-        selectedRole: {
-          include: { domain: true }
+    let profile = null;
+    try {
+      profile = await prisma.studentProfile.findUnique({
+        where: { id: studentId },
+        include: {
+          selectedRole: {
+            include: { domain: true }
+          }
         }
+      });
+    } catch {
+      // ignore if studentId is not a valid uuid format for unique lookup
+    }
+
+    if (!profile) {
+      try {
+        profile = await prisma.studentProfile.findFirst({
+          where: { userId: studentId },
+          include: {
+            selectedRole: {
+              include: { domain: true }
+            }
+          }
+        });
+      } catch {
+        // ignore
       }
-    });
+    }
 
     if (!profile) {
       throw new Error(`Student profile not found: ${studentId}`);
@@ -46,9 +66,24 @@ export class PrismaProfileService implements ProfileService {
   }
 
   async getSkillStates(studentId: string): Promise<StudentSkillState[]> {
-    const states = await prisma.studentSkillState.findMany({
-      where: { studentId }
-    });
+    let states: any[] = [];
+    try {
+      states = await prisma.studentSkillState.findMany({
+        where: { studentId }
+      });
+      if (states.length === 0) {
+        const prof = await prisma.studentProfile.findFirst({
+          where: { userId: studentId }
+        });
+        if (prof) {
+          states = await prisma.studentSkillState.findMany({
+            where: { studentId: prof.id }
+          });
+        }
+      }
+    } catch {
+      // ignore
+    }
 
     return states.map(state => ({
       skillId: state.skillId,

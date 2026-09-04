@@ -1,4 +1,5 @@
 import { query } from '../../database/db';
+import { inMemorySkillStates } from '../../database/store';
 
 const levelValue: Record<string, number> = {
   AWARENESS: 1,
@@ -7,6 +8,80 @@ const levelValue: Record<string, number> = {
   PROFICIENT: 4,
   EXPERT: 5,
 };
+
+function getRolePhaseMeta(roleName: string, phaseNum: number) {
+  const isML = roleName.toLowerCase().includes('machine') || roleName.toLowerCase().includes('ml') || roleName.toLowerCase().includes('ai');
+  if (isML) {
+    switch (phaseNum) {
+      case 1:
+        return {
+          title: 'Phase 1: Mathematical Foundations & Programming',
+          description: 'Establish core mathematical rigor across linear algebra, probability, statistics, and scientific Python programming.',
+          learning_outcome: 'Manipulate high-dimensional tensors, formulate statistical models, and collaborate with Git version control.'
+        };
+      case 2:
+        return {
+          title: 'Phase 2: Data Engineering & Exploratory Analysis',
+          description: 'Perform tabular data engineering with Pandas/NumPy, relational data queries with SQL, and diagnostic visualization.',
+          learning_outcome: 'Clean, preprocess, and extract high-signal predictive features from production datasets.'
+        };
+      case 3:
+        return {
+          title: 'Phase 3: Classical Machine Learning & Validation',
+          description: 'Train supervised and unsupervised learning algorithms with rigorous cross-validation and hyperparameter optimization.',
+          learning_outcome: 'Train calibrated Scikit-Learn models, prevent data leakage, and establish robust baseline metrics.'
+        };
+      case 4:
+        return {
+          title: 'Phase 4: Deep Learning Framework Specialization',
+          description: 'Specialize in your selected deep learning framework to construct neural architectures, loss functions, and embeddings.',
+          learning_outcome: 'Implement deep neural networks and custom training loops in production.'
+        };
+      case 5:
+      default:
+        return {
+          title: 'Phase 5: MLOps, Model Serving & Applied AI',
+          description: 'Package models into inference microservices, track experiments, and implement computer vision/NLP pipelines.',
+          learning_outcome: 'Deploy, monitor, and scale high-throughput AI services in cloud production environments.'
+        };
+    }
+  }
+
+  // Backend Developer & General Software Engineering
+  switch (phaseNum) {
+    case 1:
+      return {
+        title: 'Phase 1: Foundations & Core Logic',
+        description: 'Master programming fundamentals, language syntax, and distributed version control workflows.',
+        learning_outcome: 'Write modular code, implement structured algorithms, and collaborate with Git repositories.'
+      };
+    case 2:
+      return {
+        title: 'Phase 2: Data Persistence & Web Architecture',
+        description: 'Construct relational schemas, write optimal SQL queries, and implement HTTP/REST communication protocols.',
+        learning_outcome: 'Design normalized database schemas, query tables, and consume robust web endpoints.'
+      };
+    case 3:
+      return {
+        title: 'Phase 3: APIs, Authentication & Testing',
+        description: 'Implement enterprise authentication mechanisms, API security controls, and automated test suites.',
+        learning_outcome: 'Build hardened server-side endpoints with high automated test coverage.'
+      };
+    case 4:
+      return {
+        title: 'Phase 4: Framework Specialization & Distributed Systems',
+        description: 'Select your core web framework track and master caching and messaging patterns.',
+        learning_outcome: 'Architect production-ready microservices using modern backend frameworks.'
+      };
+    case 5:
+    default:
+      return {
+        title: 'Phase 5: DevOps, Containerization & Cloud Deployment',
+        description: 'Automate delivery pipelines, containerize microservices, and ensure resilient cloud deployment.',
+        learning_outcome: 'Deploy scalable, monitored cloud architectures with continuous delivery pipelines.'
+      };
+  }
+}
 
 const FALLBACK_ROADMAPS: Record<string, any> = {
   'role-backend': {
@@ -88,22 +163,41 @@ export async function generatePersonalizedRoadmap(
   let prerequisiteRows: { skill_id: string; prerequisite_skill_id: string }[] = [];
   let branchOptions: any[] = [];
   let branchesCount = 0;
+  let selectedBranchId: string | null = null;
+  let validRoleId = roleId;
+
+  const isUUID = (s: string) =>
+    typeof s === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s.trim());
 
   try {
+    // 1. Resolve role ID to database UUID if necessary
+    if (!isUUID(validRoleId)) {
+      const isML = validRoleId.toLowerCase().includes('ml') || validRoleId.toLowerCase().includes('machine');
+      const found = await query<{ id: string }>(
+        `SELECT id FROM roles WHERE LOWER(name) LIKE $1 LIMIT 1`,
+        [isML ? '%machine%' : '%backend%']
+      );
+      if (found.rows.length > 0) validRoleId = found.rows[0].id;
+    }
+
+    // 2. Fetch role metadata
     const roleResult = await query<{ name: string }>(
       `SELECT name FROM roles WHERE id = $1`,
-      [roleId]
+      [validRoleId]
     );
 
     if (roleResult.rows.length > 0) {
       roleName = roleResult.rows[0].name;
 
+      // 3. Fetch all skills for the role merged with student's current skill states
       const skillsResult = await query<{
         id: string;
         name: string;
         category: string | null;
         assessed_level: string | null;
         target_level: string | null;
+        accuracy: number | null;
       }>(
         `
         SELECT
@@ -111,7 +205,8 @@ export async function generatePersonalizedRoadmap(
           s.name,
           s.category,
           COALESCE(ss.assessed_level, 'AWARENESS') AS assessed_level,
-          COALESCE(ss.target_level, 'PROFICIENT') AS target_level
+          COALESCE(ss.target_level, 'PROFICIENT') AS target_level,
+          ss.accuracy
         FROM skills s
         LEFT JOIN student_skill_states ss
           ON ss.skill_id = s.id
@@ -119,11 +214,26 @@ export async function generatePersonalizedRoadmap(
         WHERE s.role_id = $2
         ORDER BY s.name
         `,
-        [studentId, roleId]
+        [studentId, validRoleId]
       );
 
       skills = skillsResult.rows;
 
+      // Merge in-memory test states if student recently completed diagnostic
+      for (const skill of skills) {
+        const memKey = `${studentId}:${skill.id}`;
+        const mem = inMemorySkillStates.get(memKey);
+        if (mem && mem.assessed_level) {
+          const memVal = levelValue[mem.assessed_level] || 1;
+          const curVal = levelValue[skill.assessed_level || 'AWARENESS'] || 1;
+          if (memVal > curVal) {
+            skill.assessed_level = mem.assessed_level;
+            if (mem.accuracy !== undefined) skill.accuracy = mem.accuracy;
+          }
+        }
+      }
+
+      // 4. Fetch prerequisite edges
       const edgesResult = await query<{
         skill_id: string;
         prerequisite_skill_id: string;
@@ -134,46 +244,60 @@ export async function generatePersonalizedRoadmap(
         JOIN skills s ON s.id = sp.skill_id
         WHERE s.role_id = $1
         `,
-        [roleId]
+        [validRoleId]
       );
       prerequisiteRows = edgesResult.rows;
 
-      const branchesResult = await query<{ id: string }>(
-        `SELECT id FROM technology_branches WHERE role_id = $1`,
-        [roleId]
+      // 5. Fetch technology branches and options
+      const branchesResult = await query<{
+        branch_id: string;
+        branch_name: string;
+        branch_description: string;
+        option_id: string;
+        skill_id: string;
+        skill_name: string;
+      }>(
+        `
+        SELECT
+          tb.id AS branch_id,
+          tb.name AS branch_name,
+          tb.description AS branch_description,
+          tbo.id AS option_id,
+          tbo.skill_id,
+          s.name AS skill_name
+        FROM technology_branches tb
+        JOIN technology_branch_options tbo ON tbo.branch_id = tb.id
+        JOIN skills s ON s.id = tbo.skill_id
+        WHERE tb.role_id = $1
+        `,
+        [validRoleId]
       );
-      branchesCount = branchesResult.rows.length;
 
+      branchesCount = branchesResult.rows.length;
       if (branchesCount > 0) {
-        const branchIds = branchesResult.rows.map(b => b.id);
-        const optionsResult = await query<{
-          branch_id: string;
-          skill_id: string;
-          skill_name: string;
-        }>(
-          `
-          SELECT tbo.branch_id, tbo.skill_id, s.name AS skill_name
-          FROM technology_branch_options tbo
-          JOIN skills s ON s.id = tbo.skill_id
-          WHERE tbo.branch_id = ANY($1::uuid[])
-          `,
-          [branchIds]
-        );
-        branchOptions = optionsResult.rows.map(opt => ({
-          branch_id: opt.branch_id,
-          option_id: opt.branch_id,
-          name: opt.skill_name,
-          skill_id: opt.skill_id
+        branchOptions = branchesResult.rows.map(row => ({
+          branch_id: row.branch_id,
+          option_id: row.option_id,
+          name: row.skill_name,
+          description: row.branch_description || `Specialize in ${row.skill_name}`,
+          skill_id: row.skill_id
         }));
       }
+
+      // Check if student has already chosen a branch
+      const savedState = await query<{ selected_branch_id: string }>(
+        `SELECT selected_branch_id FROM roadmap_states WHERE student_id = $1 AND role_id = $2 LIMIT 1`,
+        [studentId, validRoleId]
+      ).catch(() => ({ rows: [] as any[] }));
+      selectedBranchId = savedState.rows[0]?.selected_branch_id || null;
     }
-  } catch {
-    // Database offline fallback
+  } catch (err) {
+    console.warn('[Roadmap Service] Database query fallback:', err);
   }
 
   // Fallback data if skills empty
   if (skills.length === 0) {
-    const fallbackKey = roleId.includes('ml') ? 'role-ml' : 'role-backend';
+    const fallbackKey = validRoleId.includes('ml') ? 'role-ml' : 'role-backend';
     const fallback = FALLBACK_ROADMAPS[fallbackKey];
     roleName = fallback.role_name;
     skills = fallback.skills;
@@ -182,109 +306,219 @@ export async function generatePersonalizedRoadmap(
     branchOptions = fallback.branches[0].options;
   }
 
-  // Find remaining skills
-  const remainingSkills = skills.filter((skill) => {
-    const current = levelValue[skill.assessed_level || 'AWARENESS'] || 1;
-    const target = levelValue[skill.target_level || 'PROFICIENT'] || 4;
-    return current < target;
-  });
+  // Build DAG for full topological ordering across all skills
+  const prereqsOf = new Map<string, Set<string>>();
+  const dependentsOf = new Map<string, string[]>();
+  const inDegree = new Map<string, number>();
 
-  const remainingIds = new Set(remainingSkills.map((skill) => skill.id));
-
-  // Build DAG for topological sort
-  const graph = new Map<string, string[]>();
-  const indegree = new Map<string, number>();
-
-  for (const skill of remainingSkills) {
-    graph.set(skill.id, []);
-    indegree.set(skill.id, 0);
+  for (const skill of skills) {
+    prereqsOf.set(skill.id, new Set());
+    dependentsOf.set(skill.id, []);
+    inDegree.set(skill.id, 0);
   }
+
+  const allSkillIds = new Set(skills.map(s => s.id));
 
   for (const edge of prerequisiteRows) {
-    if (remainingIds.has(edge.skill_id) && remainingIds.has(edge.prerequisite_skill_id)) {
-      const nextSkills = graph.get(edge.prerequisite_skill_id);
-      if (nextSkills) {
-        nextSkills.push(edge.skill_id);
-        indegree.set(edge.skill_id, (indegree.get(edge.skill_id) || 0) + 1);
-      }
+    if (allSkillIds.has(edge.skill_id) && allSkillIds.has(edge.prerequisite_skill_id)) {
+      prereqsOf.get(edge.skill_id)!.add(edge.prerequisite_skill_id);
+      dependentsOf.get(edge.prerequisite_skill_id)!.push(edge.skill_id);
+      inDegree.set(edge.skill_id, (inDegree.get(edge.skill_id) || 0) + 1);
     }
   }
 
-  // Topological Sort (Kahn's algorithm)
-  const queue: string[] = [];
-  for (const [skillId, degree] of indegree.entries()) {
-    if (degree === 0) {
-      queue.push(skillId);
-    }
-  }
+const categoryWeight: Record<string, number> = {
+  FOUNDATION: 10,
+  MATHEMATICS: 10,
+  TOOLS: 15,
+  PROGRAMMING: 20,
+  DATA: 25,
+  WEB: 30,
+  DATABASE: 35,
+  FRAMEWORK: 40,
+  MACHINE_LEARNING: 45,
+  QUALITY: 50,
+  SECURITY: 60,
+  DEVOPS: 70,
+  DEPLOYMENT: 80,
+  ARCHITECTURE: 90,
+  MLOPS: 90
+};
 
-  const sortedIds: string[] = [];
+  // Kahn's algorithm: topological sort prioritized by category progression
+  const skillMap = new Map(skills.map(s => [s.id, s]));
+
+  const getWeight = (id: string) => {
+    const s = skillMap.get(id);
+    const cat = s?.category ? s.category.toUpperCase() : 'GENERAL';
+    return categoryWeight[cat] || 50;
+  };
+
+  let queue: string[] = [];
+  for (const [skillId, deg] of inDegree.entries()) {
+    if (deg === 0) queue.push(skillId);
+  }
+  queue.sort((a, b) => getWeight(a) - getWeight(b));
+
+  const sortedSkillIds: string[] = [];
   while (queue.length > 0) {
-    const current = queue.shift()!;
-    sortedIds.push(current);
-
-    for (const next of graph.get(current) || []) {
-      const newDegree = (indegree.get(next) || 0) - 1;
-      indegree.set(next, newDegree);
-      if (newDegree === 0) {
-        queue.push(next);
-      }
+    const curr = queue.shift()!;
+    sortedSkillIds.push(curr);
+    const ready: string[] = [];
+    for (const dep of dependentsOf.get(curr) || []) {
+      const newDeg = (inDegree.get(dep) || 0) - 1;
+      inDegree.set(dep, newDeg);
+      if (newDeg === 0) ready.push(dep);
+    }
+    if (ready.length > 0) {
+      queue.push(...ready);
+      queue.sort((a, b) => getWeight(a) - getWeight(b));
     }
   }
 
-  // Create milestones
-  const skillMap = new Map(remainingSkills.map((skill) => [skill.id, skill]));
-  const milestones = sortedIds.map((skillId, index) => {
+  // Append any disconnected skills
+  for (const skill of skills) {
+    if (!sortedSkillIds.includes(skill.id)) {
+      sortedSkillIds.push(skill.id);
+    }
+  }
+
+  // Evaluate mastered skills
+  const masteredSkillIds = new Set<string>();
+
+  for (const skill of skills) {
+    const cur = levelValue[skill.assessed_level || 'AWARENESS'] || 1;
+    const tgt = levelValue[skill.target_level || 'PROFICIENT'] || 4;
+    if (cur >= tgt) {
+      masteredSkillIds.add(skill.id);
+    }
+  }
+
+  const totalSkillsCount = sortedSkillIds.length;
+  let completedCount = 0;
+  let inProgressCount = 0;
+  let lockedCount = 0;
+
+  // Create milestones with dependency-aware status
+  const milestones = sortedSkillIds.map((skillId, index) => {
     const skill = skillMap.get(skillId)!;
-    const phaseNum = Math.min(Math.floor(index / 2) + 1, 5);
+    const cur = levelValue[skill.assessed_level || 'AWARENESS'] || 1;
+    const tgt = levelValue[skill.target_level || 'PROFICIENT'] || 4;
+    const isMastered = cur >= tgt;
+
+    let status: 'COMPLETED' | 'IN_PROGRESS' | 'LOCKED' | 'FAST_TRACKED' = 'LOCKED';
+
+    if (isMastered) {
+      const isExpertOrAccurate = skill.assessed_level === 'EXPERT' || (skill.accuracy && Number(skill.accuracy) >= 80);
+      status = isExpertOrAccurate ? 'FAST_TRACKED' : 'COMPLETED';
+      completedCount++;
+    } else {
+      const prereqs = prereqsOf.get(skill.id) || new Set();
+      const allPrereqsMet = Array.from(prereqs).every(pid => masteredSkillIds.has(pid));
+      if (allPrereqsMet) {
+        status = 'IN_PROGRESS';
+        inProgressCount++;
+      } else {
+        status = 'LOCKED';
+        lockedCount++;
+      }
+    }
+
+    const phaseNum = Math.min(5, Math.floor((index * 5) / Math.max(1, totalSkillsCount)) + 1);
 
     return {
       id: `milestone-${index + 1}`,
       skill_id: skill.id,
-      title: `Learn ${skill.name}`,
-      description: `Build proficiency in ${skill.name} according to the prerequisite order.`,
+      title: skill.name,
+      description: `Build proficiency in ${skill.name} (${skill.category || 'Core'}) according to industry benchmark.`,
+      category: skill.category || 'GENERAL',
       phase: phaseNum,
       phase_number: phaseNum,
       milestone_order: index + 1,
-      status: index === 0 ? 'IN_PROGRESS' : 'LOCKED',
+      status,
+      assessed_level: skill.assessed_level || 'AWARENESS',
+      target_level: skill.target_level || 'PROFICIENT',
+      accuracy: skill.accuracy ?? 0
     };
   });
 
-  // Group into phases for Frontend Developer 2
+  // Ensure student has at least one active learning focus if not 100% completed
+  if (inProgressCount === 0 && completedCount < totalSkillsCount) {
+    const firstUnfinished = milestones.find(m => m.status === 'LOCKED');
+    if (firstUnfinished) {
+      firstUnfinished.status = 'IN_PROGRESS';
+      inProgressCount++;
+      lockedCount--;
+    }
+  }
+
+  // Group milestones into 5 Phases
   const phasesMap = new Map<number, any>();
+  for (let p = 1; p <= 5; p++) {
+    const meta = getRolePhaseMeta(roleName, p);
+    phasesMap.set(p, {
+      id: `phase-${p}`,
+      phase_number: p,
+      title: meta.title,
+      description: meta.description,
+      learning_outcome: meta.learning_outcome,
+      milestones: [],
+      topics: [],
+      status: 'LOCKED' as 'COMPLETED' | 'IN_PROGRESS' | 'LOCKED',
+      has_decision_point: false,
+      decision_options: []
+    });
+  }
+
   for (const m of milestones) {
-    if (!phasesMap.has(m.phase)) {
-      phasesMap.set(m.phase, {
-        phase_number: m.phase,
-        title: `Phase ${m.phase}: Competency Stage`,
-        milestones: []
-      });
-    }
-    phasesMap.get(m.phase).milestones.push(m);
+    const phase = phasesMap.get(m.phase_number) || phasesMap.get(5);
+    phase.milestones.push(m);
+    phase.topics.push(m.title);
   }
 
-  // Attach decision point to Phase 4 or highest phase if branches exist
-  if (branchesCount > 0 && branchOptions.length > 0) {
-    const targetPhaseNum = Math.max(1, Math.min(4, phasesMap.size));
-    if (phasesMap.has(targetPhaseNum)) {
-      const phase = phasesMap.get(targetPhaseNum);
-      phase.has_decision_point = true;
-      phase.decision_options = branchOptions;
+  // Determine each phase status from its milestones
+  for (const [_, phase] of phasesMap.entries()) {
+    if (phase.milestones.length === 0) continue;
+    const allDone = phase.milestones.every((m: any) => m.status === 'COMPLETED' || m.status === 'FAST_TRACKED');
+    const anyActive = phase.milestones.some((m: any) => m.status === 'IN_PROGRESS' || m.status === 'COMPLETED' || m.status === 'FAST_TRACKED');
+
+    if (allDone) {
+      phase.status = 'COMPLETED';
+    } else if (anyActive) {
+      phase.status = 'IN_PROGRESS';
+    } else {
+      phase.status = 'LOCKED';
     }
   }
 
-  const phases = Array.from(phasesMap.values());
+  // Attach technology branching decision point to Phase 4
+  if (branchOptions.length > 0) {
+    const phase4 = phasesMap.get(4);
+    if (phase4) {
+      phase4.has_decision_point = !selectedBranchId;
+      phase4.decision_options = branchOptions;
+      phase4.selected_branch_id = selectedBranchId;
+      if (selectedBranchId) {
+        const chosen = branchOptions.find(opt => opt.branch_id === selectedBranchId);
+        if (chosen) {
+          phase4.selected_option_name = chosen.name;
+        }
+      }
+    }
+  }
 
-  // Readiness calculation
+  const phases = Array.from(phasesMap.values()).filter(p => p.milestones.length > 0);
+
+  // Calculate live readiness percentage
   let readiness = 0;
   if (skills.length > 0) {
-    let total = 0;
+    let totalRatio = 0;
     for (const skill of skills) {
-      const current = levelValue[skill.assessed_level || 'AWARENESS'] || 1;
-      const target = levelValue[skill.target_level || 'PROFICIENT'] || 4;
-      total += Math.min(current / target, 1);
+      const cur = levelValue[skill.assessed_level || 'AWARENESS'] || 1;
+      const tgt = levelValue[skill.target_level || 'PROFICIENT'] || 4;
+      totalRatio += Math.min(cur / tgt, 1.0);
     }
-    readiness = Math.round((total / skills.length) * 100);
+    readiness = Math.round((totalRatio / skills.length) * 100);
   }
 
   try {
@@ -293,19 +527,21 @@ export async function generatePersonalizedRoadmap(
        VALUES ($1, $2, $3)
        ON CONFLICT (student_id, role_id)
        DO UPDATE SET readiness_pct = EXCLUDED.readiness_pct, updated_at = NOW()`,
-      [studentId, roleId, readiness]
+      [studentId, validRoleId, readiness]
     );
   } catch (err: any) {
-    // Non-blocking for offline development
+    // Non-blocking
   }
 
   return {
-    role_id: roleId,
+    role_id: validRoleId,
     role_name: roleName,
     readiness_pct: readiness,
     total_skills: skills.length,
-    completed_skills: skills.length - remainingSkills.length,
-    remaining_skills: remainingSkills.length,
+    completed_skills: completedCount,
+    in_progress_skills: inProgressCount,
+    locked_skills: lockedCount,
+    selected_branch_id: selectedBranchId,
     milestones,
     phases
   };
@@ -316,7 +552,7 @@ export async function recordBranchChoice(
   branchId: string,
   optionId?: string
 ) {
-  let roleId = 'role-backend';
+  let roleId = 'bf9c3a6c-f0ec-4301-9e6b-c46d9fd50208';
   let branchName = 'Technology Framework';
   let skillId: string | null = null;
   let roadmapId = `roadmap-${studentId}`;
@@ -344,7 +580,7 @@ export async function recordBranchChoice(
           `
           SELECT id, skill_id
           FROM technology_branch_options
-          WHERE (id = $1 OR branch_id = $1 OR skill_id = $1)
+          WHERE (id = $1 OR skill_id = $1)
             AND branch_id = $2
           LIMIT 1
           `,
@@ -353,30 +589,30 @@ export async function recordBranchChoice(
 
         if (optionResult.rows.length > 0) {
           skillId = optionResult.rows[0].skill_id;
+          await query(
+            `
+            INSERT INTO student_skill_states (student_id, skill_id, assessed_level, accuracy)
+            VALUES ($1, $2, 'BEGINNER', 40)
+            ON CONFLICT (student_id, skill_id)
+            DO UPDATE SET target_level = 'PROFICIENT', updated_at = NOW()
+            `,
+            [studentId, skillId]
+          ).catch(() => {});
         }
       }
 
-      const existing = await query<{ id: string }>(
-        `SELECT id FROM roadmap_states WHERE student_id = $1 AND role_id = $2 LIMIT 1`,
-        [studentId, roleId]
+      await query(
+        `
+        INSERT INTO roadmap_states (student_id, role_id, selected_branch_id)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (student_id, role_id)
+        DO UPDATE SET selected_branch_id = EXCLUDED.selected_branch_id, updated_at = NOW()
+        `,
+        [studentId, roleId, branchId]
       );
-
-      if (existing.rows.length === 0) {
-        const created = await query<{ id: string }>(
-          `INSERT INTO roadmap_states (student_id, role_id, selected_branch_id) VALUES ($1, $2, $3) RETURNING id`,
-          [studentId, roleId, branchId]
-        );
-        roadmapId = created.rows[0].id;
-      } else {
-        roadmapId = existing.rows[0].id;
-        await query(
-          `UPDATE roadmap_states SET selected_branch_id = $1, updated_at = NOW() WHERE id = $2`,
-          [branchId, roadmapId]
-        );
-      }
     }
-  } catch {
-    // In-memory fallback
+  } catch (err) {
+    console.error('[recordBranchChoice Error]', err);
   }
 
   const updatedRoadmap = await generatePersonalizedRoadmap(studentId, roleId);
@@ -390,4 +626,4 @@ export async function recordBranchChoice(
     message: 'Technology branch selected successfully',
     updated_roadmap: updatedRoadmap
   };
-}
+}

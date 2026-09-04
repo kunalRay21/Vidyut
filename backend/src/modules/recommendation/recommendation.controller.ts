@@ -46,7 +46,18 @@ async function resolveStudentId(req: Request): Promise<string | null> {
     (req.query['studentId'] as string | undefined);
 
   if (directId && directId.trim() !== '') {
-    return directId.trim();
+    const trimmed = directId.trim();
+    try {
+      const profile = await prisma.studentProfile.findFirst({
+        where: {
+          OR: [{ id: trimmed }, { userId: trimmed }],
+        },
+      });
+      if (profile) return profile.id;
+    } catch {
+      // ignore
+    }
+    return trimmed;
   }
 
   const authHeader = req.headers.authorization;

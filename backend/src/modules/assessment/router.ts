@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { assessmentService } from './service';
 import { query } from '../../database/db';
 import { apiSuccess, apiError } from '../../core/responses';
+import { verifyToken } from '../../auth/jwt';
 
 const router = Router();
 
@@ -16,10 +17,8 @@ async function resolveStudentId(req: Request): Promise<string | undefined> {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     try {
-      const jwt = require('jsonwebtoken');
       const token = authHeader.split(' ')[1];
-      const JWT_SECRET = process.env.JWT_SECRET || 'vidyut_jwt_super_secret_signing_key_2026';
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const decoded = verifyToken(token);
       if (decoded?.id) {
         const profileRes = await query<{ id: string }>(
           `SELECT id FROM student_profiles WHERE user_id = $1`,

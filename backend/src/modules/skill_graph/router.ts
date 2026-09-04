@@ -147,7 +147,7 @@ async function handleGetSkillGraph(roleId: string, res: Response) {
   }
 
   // If generic ID requested, provide the golden backend demo
-  if (roleId.includes('backend') || roleId === '00000000-0000-0000-0000-000000000000') {
+  if (roleId.includes('backend')) {
     return apiSuccess(res, FALLBACK_GRAPHS['role-backend']);
   }
   if (roleId.includes('ml')) {

@@ -11,7 +11,7 @@ function mapScoredOpportunity(item: any): Opportunity {
   const scores = item.scores || {};
   const scoreVal = typeof item.scores?.total === 'number'
     ? item.scores.total
-    : (typeof item.compatibilityScore === 'number' ? item.compatibilityScore : 0.72);
+    : (typeof item.compatibilityScore === 'number' ? item.compatibilityScore : 0);
 
   const rawExpl = item.explanation || {};
   return {
@@ -28,10 +28,10 @@ function mapScoredOpportunity(item: any): Opportunity {
     stipend: item.stipend,
     scores: {
       total: scoreVal,
-      skillMatch: scores.skillMatch ?? 0.75,
-      careerAlignment: scores.careerAlignment ?? 0.8,
-      eligibility: scores.eligibility ?? 0.8,
-      interest: scores.interest ?? 0.8,
+      skillMatch: scores.skillMatch ?? scoreVal,
+      careerAlignment: scores.careerAlignment ?? scoreVal,
+      eligibility: scores.eligibility ?? scoreVal,
+      interest: scores.interest ?? scoreVal,
     },
     explanation: {
       summary: rawExpl.summary || `Calculated match based on verified skill proficiencies and domain alignment.`,
@@ -44,37 +44,9 @@ function mapScoredOpportunity(item: any): Opportunity {
   };
 }
 
-const DEFAULT_MOCK_DATA = {
-  READY_NOW: [
-    {
-      id: 'opp-1',
-      title: 'AI for Good Hackathon',
-      organization: 'Unstop x NASSCOM',
-      compatibility_score: 0.78,
-      source: 'UNSTOP' as const,
-      original_url: 'https://unstop.com/',
-      explanation: {
-        summary: 'Strong match — your Python and ML fundamentals align well.',
-        matching_skills: ['Python', 'ML Fundamentals'],
-        gap_skills: [],
-      },
-    },
-  ] as Opportunity[],
-  ALMOST_READY: [
-    {
-      id: 'opp-2',
-      title: 'Junior ML Engineer Intern',
-      organization: 'Bangalore Analytics Co.',
-      compatibility_score: 0.61,
-      source: 'DIRECT' as const,
-      original_url: 'https://example.com/',
-      explanation: {
-        summary: 'Close match. Strengthen pandas and scikit-learn to qualify.',
-        matching_skills: ['Python'],
-        gap_skills: ['pandas', 'SQL'],
-      },
-    },
-  ] as Opportunity[],
+const EMPTY_CATEGORIZED_OPPS = {
+  READY_NOW: [] as Opportunity[],
+  ALMOST_READY: [] as Opportunity[],
   ASPIRATIONAL: [] as Opportunity[],
 };
 
@@ -82,7 +54,7 @@ export const OpportunitiesPage: React.FC = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<OpportunityCategory>('READY_NOW');
   const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
-  const [categorizedOpps, setCategorizedOpps] = useState(DEFAULT_MOCK_DATA);
+  const [categorizedOpps, setCategorizedOpps] = useState(EMPTY_CATEGORIZED_OPPS);
   const [loading, setLoading] = useState(false);
   const [isAiPowered, setIsAiPowered] = useState(false);
 
@@ -94,26 +66,26 @@ export const OpportunitiesPage: React.FC = () => {
       if (recRes.success && recRes.data) {
         const { readyNow = [], almostReady = [], aspirational = [] } = recRes.data;
 
-        if (readyNow.length > 0 || almostReady.length > 0 || aspirational.length > 0) {
-          const mappedReady = readyNow.map(mapScoredOpportunity);
-          const mappedAlmost = almostReady.map(mapScoredOpportunity);
-          const mappedAspirational = aspirational.map(mapScoredOpportunity);
+        const mappedReady = readyNow.map(mapScoredOpportunity);
+        const mappedAlmost = almostReady.map(mapScoredOpportunity);
+        const mappedAspirational = aspirational.map(mapScoredOpportunity);
 
-          setCategorizedOpps({
-            READY_NOW: mappedReady,
-            ALMOST_READY: mappedAlmost,
-            ASPIRATIONAL: mappedAspirational,
-          });
-          setIsAiPowered(true);
+        setCategorizedOpps({
+          READY_NOW: mappedReady,
+          ALMOST_READY: mappedAlmost,
+          ASPIRATIONAL: mappedAspirational,
+        });
+        setIsAiPowered(true);
 
-          // Auto-focus on best available segment
-          if (mappedReady.length > 0) {
-            setActiveTab('READY_NOW');
-          } else if (mappedAlmost.length > 0) {
-            setActiveTab('ALMOST_READY');
-          }
-          return;
+        // Auto-focus on best available segment
+        if (mappedReady.length > 0) {
+          setActiveTab('READY_NOW');
+        } else if (mappedAlmost.length > 0) {
+          setActiveTab('ALMOST_READY');
+        } else if (mappedAspirational.length > 0) {
+          setActiveTab('ASPIRATIONAL');
         }
+        return;
       }
 
       // 2. Fallback: Direct Opportunities endpoint
@@ -129,7 +101,7 @@ export const OpportunitiesPage: React.FC = () => {
             const oppObj = mapScoredOpportunity(item);
             if (oppObj.compatibility_score >= 0.75) {
               ready.push(oppObj);
-            } else if (oppObj.compatibility_score >= 0.55) {
+            } else if (oppObj.compatibility_score >= 0.50) {
               almost.push(oppObj);
             } else {
               aspirational.push(oppObj);
@@ -137,10 +109,13 @@ export const OpportunitiesPage: React.FC = () => {
           });
 
           setCategorizedOpps({
-            READY_NOW: ready.length > 0 ? ready : DEFAULT_MOCK_DATA.READY_NOW,
-            ALMOST_READY: almost.length > 0 ? almost : DEFAULT_MOCK_DATA.ALMOST_READY,
+            READY_NOW: ready,
+            ALMOST_READY: almost,
             ASPIRATIONAL: aspirational,
           });
+          if (ready.length > 0) setActiveTab('READY_NOW');
+          else if (almost.length > 0) setActiveTab('ALMOST_READY');
+          else if (aspirational.length > 0) setActiveTab('ASPIRATIONAL');
         }
       }
     } catch (err) {

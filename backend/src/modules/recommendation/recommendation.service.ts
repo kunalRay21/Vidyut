@@ -630,6 +630,10 @@ export async function generateRecommendations(
   await Promise.all(
     allIncluded.map((item) => {
       const segment = item.segment!; // guaranteed non-null (excluded items aren't here)
+      const persistedExplanation = {
+        ...item.explanation,
+        componentScores: item.scores,
+      };
       return db.recommendation.upsert({
         where: {
           studentId_opportunityId: { studentId, opportunityId: item.id },
@@ -639,12 +643,12 @@ export async function generateRecommendations(
           opportunityId: item.id,
           compatibilityScore: item.scores.total,
           segment,
-          explanationJson: item.explanation,
+          explanationJson: persistedExplanation,
         },
         update: {
           compatibilityScore: item.scores.total,
           segment,
-          explanationJson: item.explanation,
+          explanationJson: persistedExplanation,
           generatedAt: new Date(),
         },
       });
@@ -681,13 +685,15 @@ function buildResultFromCached(
 ): GenerateRecommendationsResult {
   const toScoredOpportunity = (rec: PersistedRecommendation): ScoredOpportunity => {
     const opp = rec.opportunity;
-    const explanation = (rec.explanationJson as MatchExplanation | null) ?? {
-      summary: '',
-      matchingSkills: [],
-      gapSkills: [],
-      gapSeverity: 'none',
-      careerAlignment: 'indirect',
-      eligibilityStatus: 'check_required',
+    const expObj = (rec.explanationJson as any) ?? {};
+    const compScores = expObj.componentScores;
+    const explanation: MatchExplanation = {
+      summary: expObj.summary ?? '',
+      matchingSkills: expObj.matchingSkills ?? [],
+      gapSkills: expObj.gapSkills ?? [],
+      gapSeverity: expObj.gapSeverity ?? 'none',
+      careerAlignment: expObj.careerAlignment ?? 'indirect',
+      eligibilityStatus: expObj.eligibilityStatus ?? 'check_required',
     };
 
     return {
@@ -703,12 +709,10 @@ function buildResultFromCached(
       location: opp?.location ?? null,
       scores: {
         total: rec.compatibilityScore,
-        // Component scores are not stored in schema — use total as proxy
-        // (Step 4 may extend schema to store them individually)
-        skillMatch: rec.compatibilityScore,
-        careerAlignment: rec.compatibilityScore,
-        eligibility: rec.compatibilityScore,
-        interest: rec.compatibilityScore,
+        skillMatch: typeof compScores?.skillMatch === 'number' ? compScores.skillMatch : rec.compatibilityScore,
+        careerAlignment: typeof compScores?.careerAlignment === 'number' ? compScores.careerAlignment : rec.compatibilityScore,
+        eligibility: typeof compScores?.eligibility === 'number' ? compScores.eligibility : rec.compatibilityScore,
+        interest: typeof compScores?.interest === 'number' ? compScores.interest : rec.compatibilityScore,
       },
       segment: rec.segment as RecommendationSegment,
       skillTags: [], // Cached items don't have skillTags unless we include them in the DB query

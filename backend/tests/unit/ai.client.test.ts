@@ -1,6 +1,5 @@
 import { GeminiClient } from '../../src/modules/ai/ai.client';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-
 // Mock the GoogleGenerativeAI library
 jest.mock('@google/generative-ai', () => {
   const mockGenerateContent = jest.fn();

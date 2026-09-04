@@ -8,24 +8,21 @@ import { FadeIn } from '../components/animations/FadeIn';
 import { useNavigate } from 'react-router-dom';
 import { profileApi, getStoredUser } from '../services/api';
 
-const DEFAULT_PROFILE = {
-  full_name: 'Priya Sharma',
-  institution: 'VIT Chennai',
-  degree: 'B.Tech CSE',
-  year_of_study: 2,
-  selected_role: 'Machine Learning Engineer',
-  readiness_pct: 14.0,
-  skills: [
-    { name: 'Programming Fundamentals', progress: 100, currentLevel: 4 },
-    { name: 'Python', progress: 70, currentLevel: 3 },
-    { name: 'SQL', progress: 20, currentLevel: 1 },
-  ],
-};
-
 export const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(DEFAULT_PROFILE);
+  const [profile, setProfile] = useState(() => {
+    const stored = getStoredUser();
+    return {
+      full_name: stored?.full_name || 'Student',
+      institution: stored?.institution || 'Institution',
+      degree: stored?.degree || '',
+      year_of_study: stored?.year_of_study || 1,
+      selected_role: stored?.selected_role || 'Target Role',
+      readiness_pct: typeof stored?.readiness_pct === 'number' ? stored.readiness_pct : 0,
+      skills: [] as Array<{ name: string; progress: number; currentLevel: number }>,
+    };
+  });
   const [discrepancyMsg, setDiscrepancyMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,6 +38,7 @@ export const DashboardPage: React.FC = () => {
           institution: stored.institution || prev.institution,
           degree: stored.degree || prev.degree,
           year_of_study: stored.year_of_study || prev.year_of_study,
+          selected_role: stored.selected_role || prev.selected_role,
           readiness_pct: stored.readiness_pct !== undefined ? stored.readiness_pct : prev.readiness_pct,
         }));
       }
@@ -50,11 +48,14 @@ export const DashboardPage: React.FC = () => {
       if (assessmentResultRaw) {
         try {
           const parsed = JSON.parse(assessmentResultRaw);
-          if (parsed.overall_accuracy_pct !== undefined) {
-            setProfile((prev) => ({ ...prev, readiness_pct: parsed.overall_accuracy_pct }));
-          }
-          if (parsed.discrepancies && parsed.discrepancies.length > 0) {
-            setDiscrepancyMsg(parsed.discrepancies[0].message);
+          const currentStudentId = stored?.student_profile_id || stored?.id;
+          if (!parsed.student_id || parsed.student_id === currentStudentId) {
+            if (parsed.overall_accuracy_pct !== undefined) {
+              setProfile((prev) => ({ ...prev, readiness_pct: parsed.overall_accuracy_pct }));
+            }
+            if (parsed.discrepancies && parsed.discrepancies.length > 0) {
+              setDiscrepancyMsg(parsed.discrepancies[0].message);
+            }
           }
         } catch {
           // ignore

@@ -92,6 +92,7 @@ router.post('/register', async (req: Request, res: Response) => {
       token_type: 'Bearer',
       user: {
         id: userId,
+        student_profile_id: profileId,
         email,
         role: userRole,
         full_name,
@@ -136,6 +137,24 @@ router.post('/login', async (req: Request, res: Response) => {
       return apiError(res, 'Invalid credentials', 401, 'INVALID_CREDENTIALS');
     }
 
+    let studentProfile: any = null;
+    if (user.role === 'STUDENT') {
+      try {
+        const profRes = await pool.query(
+          'SELECT id, full_name, institution, degree, year_of_study, selected_role_id, readiness_pct FROM student_profiles WHERE user_id = $1 LIMIT 1',
+          [user.id]
+        );
+        if (profRes.rows.length > 0) {
+          studentProfile = profRes.rows[0];
+        }
+      } catch {
+        studentProfile = memoryStore.profiles.get(user.id);
+      }
+      if (!studentProfile) {
+        studentProfile = memoryStore.profiles.get(user.id);
+      }
+    }
+
     const payload = { id: user.id, email: user.email, role: user.role };
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
@@ -146,8 +165,15 @@ router.post('/login', async (req: Request, res: Response) => {
       token_type: 'Bearer',
       user: {
         id: user.id,
+        student_profile_id: studentProfile?.id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        full_name: studentProfile?.full_name,
+        institution: studentProfile?.institution,
+        degree: studentProfile?.degree,
+        year_of_study: studentProfile?.year_of_study,
+        selected_role_id: studentProfile?.selected_role_id,
+        readiness_pct: studentProfile?.readiness_pct,
       }
     });
   } catch (err: any) {

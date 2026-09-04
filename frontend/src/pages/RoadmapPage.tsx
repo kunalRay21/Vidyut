@@ -1,63 +1,40 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RoadmapTimeline, Phase } from '../features/roadmap/RoadmapTimeline';
 import { DecisionPointModal } from '../features/roadmap/DecisionPointModal';
 import { EvidenceSubmitModal } from '../features/roadmap/EvidenceSubmitModal';
 import { FadeIn } from '../components/animations/FadeIn';
 import { roadmapApi, portfolioApi, recommendationsApi, getStoredUser } from '../services/api';
-import { BookOpen, ExternalLink, Sparkles } from 'lucide-react';
-
-const DEFAULT_PHASES: Phase[] = [
-  {
-    id: 'p1',
-    phase_number: 1,
-    title: 'Programming Fundamentals',
-    description: 'Build a strong foundation in programming by understanding the core concepts and logic required to write structured programs.',
-    learning_outcome: 'Understand how programs are structured and develop the logical thinking required to solve programming problems.',
-    status: 'COMPLETED',
-    topics: ['Programming Basics', 'Variables and Data Types', 'Control Flow', 'Functions'],
-  },
-  {
-    id: 'p2',
-    phase_number: 2,
-    title: 'Python Programming Core',
-    description: 'Learn Python syntax, built-in data structures, and core programming concepts.',
-    learning_outcome: 'Write complete Python programs and organize modular code.',
-    status: 'IN_PROGRESS',
-    topics: ['Python Syntax', 'Data Structures', 'Functions & Modules', 'Exception Handling'],
-  },
-  {
-    id: 'p3',
-    phase_number: 3,
-    title: 'Relational Databases & SQL',
-    description: 'Design database schemas, query tables, and maintain data consistency.',
-    learning_outcome: 'Extract and manipulate structured datasets.',
-    status: 'LOCKED',
-    topics: ['SQL Queries', 'Joins & Aggregations', 'Database Normalization'],
-  },
-  {
-    id: 'p4',
-    phase_number: 4,
-    title: 'Core Framework Specialization',
-    description: 'Select your technology specialization to unlock aligned framework milestones.',
-    learning_outcome: 'Develop complete server-side or deep learning applications.',
-    status: 'LOCKED',
-    topics: ['Framework Architecture', 'Routing & Data Models', 'Testing'],
-    has_decision_point: true,
-    decision_options: [
-      { branch_id: 'branch-pytorch', name: 'PyTorch' },
-      { branch_id: 'branch-tf', name: 'TensorFlow' },
-    ],
-  },
-];
+import { 
+  BookOpen, 
+  ExternalLink, 
+  Sparkles, 
+  CheckCircle2, 
+  Clock, 
+  Lock, 
+  Compass, 
+  RefreshCw, 
+  AlertCircle,
+  Award
+} from 'lucide-react';
 
 export const RoadmapPage: React.FC = () => {
   const { t } = useTranslation();
-  const [phases, setPhases] = useState<Phase[]>(DEFAULT_PHASES);
-  const [readinessScore, setReadinessScore] = useState(14);
-  const [displayedScore, setDisplayedScore] = useState(0);
-  const [isGaugeLoaded, setIsGaugeLoaded] = useState(false);
-  const [roleTitle, setRoleTitle] = useState('Machine Learning Engineer');
+  const navigate = useNavigate();
+
+  // Dynamic live state from backend
+  const [phases, setPhases] = useState<Phase[]>([]);
+  const [readinessScore, setReadinessScore] = useState<number>(0);
+  const [displayedScore, setDisplayedScore] = useState<number>(0);
+  const [isGaugeLoaded, setIsGaugeLoaded] = useState<boolean>(false);
+  const [roleTitle, setRoleTitle] = useState<string>('');
+  const [totalSkills, setTotalSkills] = useState<number>(0);
+  const [completedSkills, setCompletedSkills] = useState<number>(0);
+  const [inProgressSkills, setInProgressSkills] = useState<number>(0);
+  const [lockedSkills, setLockedSkills] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [skillResources, setSkillResources] = useState<any[]>([]);
 
   // Modals state
@@ -65,6 +42,63 @@ export const RoadmapPage: React.FC = () => {
   const [evidenceMilestoneId, setEvidenceMilestoneId] = useState<string | null>(null);
 
   // 1. Fetch dynamic roadmap and curated resources from backend
+  const loadRoadmap = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const user = getStoredUser();
+      const studentId = user?.student_profile_id || user?.id || user?.student_id;
+      const roleId = user?.selected_role_id;
+
+      const res = await roadmapApi.getRoadmap(studentId, roleId);
+      if (res.success && res.data) {
+        if (res.data.role_name) {
+          setRoleTitle(res.data.role_name);
+        }
+        if (res.data.readiness_pct !== undefined) {
+          setReadinessScore(res.data.readiness_pct);
+        }
+        if (res.data.total_skills !== undefined) {
+          setTotalSkills(res.data.total_skills);
+        }
+        if (res.data.completed_skills !== undefined) {
+          setCompletedSkills(res.data.completed_skills);
+        }
+        if (res.data.in_progress_skills !== undefined) {
+          setInProgressSkills(res.data.in_progress_skills);
+        }
+        if (res.data.locked_skills !== undefined) {
+          setLockedSkills(res.data.locked_skills);
+        }
+
+        if (Array.isArray(res.data.phases)) {
+          const mappedPhases: Phase[] = res.data.phases.map((p: any) => ({
+            id: p.id || `p-${p.phase_number}`,
+            phase_number: p.phase_number,
+            title: p.title || `Phase ${p.phase_number}: Competency Milestones`,
+            description: p.description,
+            learning_outcome: p.learning_outcome,
+            status: p.status || 'LOCKED',
+            topics: p.topics || p.milestones?.map((m: any) => m.title) || [],
+            milestones: p.milestones || [],
+            has_decision_point: !!p.has_decision_point,
+            selected_branch_id: p.selected_branch_id,
+            selected_option_name: p.selected_option_name,
+            decision_options: p.decision_options || [],
+          }));
+          setPhases(mappedPhases);
+        }
+      } else {
+        setError(res.error?.message || 'Failed to load personalized roadmap.');
+      }
+    } catch (err: any) {
+      console.error('Roadmap API load error:', err);
+      setError(err.message || 'Failed to connect to roadmap service.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -82,44 +116,11 @@ export const RoadmapPage: React.FC = () => {
     }
 
     loadResources();
-
-    async function loadRoadmap() {
-      const user = getStoredUser();
-      const studentId = user?.id || user?.student_id;
-      const roleId = user?.selected_role_id || 'role-ml';
-
-      try {
-        const res = await roadmapApi.getRoadmap(studentId, roleId);
-        if (mounted && res.success && res.data) {
-          if (res.data.role_name) {
-            setRoleTitle(res.data.role_name);
-          }
-          if (res.data.readiness_pct !== undefined) {
-            setReadinessScore(res.data.readiness_pct);
-          }
-
-          if (Array.isArray(res.data.phases) && res.data.phases.length > 0) {
-            const mappedPhases: Phase[] = res.data.phases.map((p: any) => ({
-              id: `p-${p.phase_number}`,
-              phase_number: p.phase_number,
-              title: p.title || `Phase ${p.phase_number}: Skill Milestones`,
-              description: p.description || 'Complete prerequisite-ordered milestones to advance to the next competency stage.',
-              learning_outcome: p.learning_outcome || 'Master target skill competencies to unlock aligned industry opportunities.',
-              status: p.phase_number === 1 ? 'IN_PROGRESS' : 'LOCKED',
-              topics: p.milestones?.map((m: any) => m.title) || ['Core Concept Verification'],
-              has_decision_point: !!p.has_decision_point,
-              decision_options: p.decision_options || [],
-            }));
-            setPhases(mappedPhases);
-          }
-        }
-      } catch (err) {
-        console.warn('Roadmap API load error, using default phases:', err);
-      }
-    }
-
     loadRoadmap();
-    return () => { mounted = false; };
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // 2. Smooth animation for readiness gauge
@@ -152,32 +153,36 @@ export const RoadmapPage: React.FC = () => {
   }, [readinessScore]);
 
   // 3. Handle technology branch choice via backend API
-  const handleDecisionSelect = async (branchId: string) => {
+  const handleDecisionSelect = async (branchId: string, optionId?: string) => {
     try {
-      const res = await roadmapApi.selectBranch(branchId);
-      if (res.success && res.data?.updated_roadmap?.phases) {
-        const updatedPhases: Phase[] = res.data.updated_roadmap.phases.map((p: any) => ({
-          id: `p-${p.phase_number}`,
-          phase_number: p.phase_number,
-          title: p.title,
-          description: p.description || 'Target framework specialization milestone.',
-          learning_outcome: 'Build complete applications using the selected framework.',
-          status: 'IN_PROGRESS',
-          topics: p.milestones?.map((m: any) => m.title) || [],
-          has_decision_point: false,
-        }));
-        setPhases(updatedPhases);
+      const res = await roadmapApi.selectBranch(branchId, optionId);
+      if (res.success && res.data?.updated_roadmap) {
+        const ur = res.data.updated_roadmap;
+        if (ur.readiness_pct !== undefined) setReadinessScore(ur.readiness_pct);
+        if (ur.role_name) setRoleTitle(ur.role_name);
+        if (ur.completed_skills !== undefined) setCompletedSkills(ur.completed_skills);
+        if (ur.in_progress_skills !== undefined) setInProgressSkills(ur.in_progress_skills);
+        if (ur.locked_skills !== undefined) setLockedSkills(ur.locked_skills);
+
+        if (Array.isArray(ur.phases)) {
+          const updatedPhases: Phase[] = ur.phases.map((p: any) => ({
+            id: p.id || `p-${p.phase_number}`,
+            phase_number: p.phase_number,
+            title: p.title,
+            description: p.description,
+            learning_outcome: p.learning_outcome,
+            status: p.status,
+            topics: p.topics || [],
+            milestones: p.milestones || [],
+            has_decision_point: !!p.has_decision_point,
+            selected_branch_id: p.selected_branch_id,
+            selected_option_name: p.selected_option_name,
+            decision_options: p.decision_options || [],
+          }));
+          setPhases(updatedPhases);
+        }
       } else {
-        // Fallback local UI update
-        setPhases((prev) => {
-          const updated = [...prev];
-          const dp = updated.find((p) => p.has_decision_point);
-          if (dp) {
-            dp.has_decision_point = false;
-            dp.topics = [...(dp.topics || []), `Specialization: ${branchId.replace('branch-', '').toUpperCase()} Selected`];
-          }
-          return updated;
-        });
+        await loadRoadmap();
       }
     } catch (err) {
       console.warn('Branch selection API error:', err);
@@ -189,30 +194,15 @@ export const RoadmapPage: React.FC = () => {
   // 4. Handle portfolio evidence submission via backend API
   const handleEvidenceSubmit = async (milestoneId: string, url: string, description: string) => {
     try {
-      const res = await portfolioApi.submitEvidence({
+      await portfolioApi.submitEvidence({
         skill_id: milestoneId,
         type: 'GITHUB',
         url,
         description,
       });
 
-      if (res.success && res.data?.new_readiness_pct) {
-        setReadinessScore(res.data.new_readiness_pct);
-      } else {
-        setReadinessScore((prev) => Math.min(100, prev + 5));
-      }
-
-      setPhases((prev) => {
-        const idx = prev.findIndex((p) => p.id === milestoneId);
-        if (idx !== -1) {
-          return prev.map((p, i) => {
-            if (i === idx) return { ...p, status: 'COMPLETED' as const };
-            if (i === idx + 1 && p.status === 'LOCKED') return { ...p, status: 'IN_PROGRESS' as const };
-            return p;
-          });
-        }
-        return prev;
-      });
+      // Reload live roadmap DAG from backend to compute newly unlocked milestones
+      await loadRoadmap();
     } catch (err) {
       console.warn('Evidence submission error:', err);
     } finally {
@@ -222,31 +212,68 @@ export const RoadmapPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 md:px-12 space-y-8">
-      <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+      {/* Header with National GovTech identity */}
+      <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-6">
         <FadeIn delay={100}>
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron/10 text-saffron-600 text-xs font-bold uppercase tracking-wider mb-2 border border-saffron/30">
-              {t('roadmap.badge')}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron/10 text-saffron-700 text-xs font-bold uppercase tracking-wider mb-2.5 border border-saffron/30 shadow-2xs">
+              <Compass className="w-3.5 h-3.5 text-saffron-600" />
+              {t('roadmap.badge', 'AI-Driven Skill Acquisition DAG')}
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('roadmap.title')}</h1>
-            <p className="text-gray-500 mt-1">{t('roadmap.subtitle')} {roleTitle}.</p>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+              {t('roadmap.title', 'Personalized Learning Trajectory')}
+            </h1>
+            <p className="text-gray-600 mt-1.5 text-base max-w-2xl">
+              {roleTitle ? (
+                <>Topologically ordered milestone DAG aligned to <strong className="text-gray-900 font-semibold">{roleTitle}</strong> requirements.</>
+              ) : (
+                'Real-time dependency ordering driven by your verified competency state.'
+              )}
+            </p>
+
+            {/* Live Stats Strip */}
+            {!isLoading && totalSkills > 0 && (
+              <div className="flex flex-wrap items-center gap-3 mt-4 pt-3 border-t border-[#EAE3B3]/60 text-xs">
+                <div className="flex items-center gap-1.5 font-bold text-gray-800 bg-white/80 px-3 py-1 rounded-lg border border-[#EAE3B3]">
+                  <Award className="w-4 h-4 text-[#000080]" />
+                  <span>{totalSkills} Total Milestones</span>
+                </div>
+                <div className="flex items-center gap-1.5 font-semibold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>{completedSkills} Mastered</span>
+                </div>
+                <div className="flex items-center gap-1.5 font-semibold text-blue-800 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
+                  <Clock className="w-4 h-4 text-blue-600" />
+                  <span>{inProgressSkills} Active Focus</span>
+                </div>
+                {lockedSkills > 0 && (
+                  <div className="flex items-center gap-1.5 font-semibold text-gray-600 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200">
+                    <Lock className="w-4 h-4 text-gray-400" />
+                    <span>{lockedSkills} Prerequisite Locked</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </FadeIn>
 
+        {/* Readiness Arc Gauge */}
         <FadeIn delay={200}>
-          <div className="flex flex-col items-center relative">
-            <span className="block text-sm text-gray-500 font-semibold mb-2 uppercase tracking-wide">{t('roadmap.currentReadiness')}</span>
+          <div className="flex flex-col items-center relative bg-white/80 p-4 rounded-2xl border border-[#EAE3B3] shadow-xs">
+            <span className="block text-xs text-gray-500 font-bold mb-1 uppercase tracking-wider">
+              {t('roadmap.currentReadiness', 'Role Readiness Index')}
+            </span>
             
-            <div className="relative w-52 h-28 flex justify-center items-end">
+            <div className="relative w-48 h-26 flex justify-center items-end">
               <svg className="absolute top-0 left-0 w-full h-full drop-shadow-sm" viewBox="0 0 200 120">
                 <defs>
                   <linearGradient id="roadmap-gauge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" stopColor="#FF9933" />
-                    <stop offset="45%" stopColor="#FACC15" />
+                    <stop offset="50%" stopColor="#FACC15" />
                     <stop offset="100%" stopColor="#138808" />
                   </linearGradient>
                   <filter id="roadmap-arc-glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#138808" floodOpacity="0.15" />
+                    <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#138808" floodOpacity="0.2" />
                   </filter>
                 </defs>
 
@@ -275,30 +302,98 @@ export const RoadmapPage: React.FC = () => {
               
               {/* Percentage Text */}
               <div className="absolute bottom-1.5 flex items-baseline justify-center">
-                <span className="text-[2.5rem] font-medium text-[#1E1B4B] leading-none tracking-tight">
+                <span className="text-4xl font-extrabold text-[#000080] leading-none tracking-tight">
                   {displayedScore}
                 </span>
-                <span className="text-xl font-normal text-[#1E1B4B]/70 ml-0.5">
+                <span className="text-xl font-bold text-[#000080]/70 ml-0.5">
                   %
                 </span>
               </div>
             </div>
             
-            <span className="text-xs text-gray-500 font-medium mt-2">of target skills acquired</span>
+            <span className="text-[11px] text-gray-500 font-medium mt-1">
+              of target competency benchmark
+            </span>
           </div>
         </FadeIn>
       </header>
 
-      <FadeIn delay={300}>
-        <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-6 md:p-8">
-          <RoadmapTimeline 
-            phases={phases} 
-            onEvidenceClick={(id) => setEvidenceMilestoneId(id)} 
-            onDecisionClick={(phase) => setDecisionPhase(phase)} 
-          />
-        </div>
-      </FadeIn>
+      {/* Loading Skeleton State */}
+      {isLoading && (
+        <FadeIn delay={100}>
+          <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-8 space-y-6 animate-pulse">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gray-200" />
+              <div className="space-y-2 flex-1">
+                <div className="h-4 bg-gray-200 rounded w-1/4" />
+                <div className="h-6 bg-gray-200 rounded w-1/2" />
+              </div>
+            </div>
+            <div className="space-y-4 pl-12 border-l-2 border-dashed border-[#EAE3B3]">
+              <div className="h-24 bg-white/80 rounded-xl border border-[#EAE3B3]" />
+              <div className="h-24 bg-white/80 rounded-xl border border-[#EAE3B3]" />
+              <div className="h-24 bg-white/80 rounded-xl border border-[#EAE3B3]" />
+            </div>
+            <p className="text-center text-xs font-semibold text-gray-500 pt-2 flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-saffron" />
+              Calculating live topological DAG prerequisite sequence...
+            </p>
+          </div>
+        </FadeIn>
+      )}
 
+      {/* Error / Offline Alert */}
+      {!isLoading && error && (
+        <FadeIn delay={100}>
+          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-6 flex items-start gap-4 text-amber-900">
+            <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-bold text-base">Unable to Calibrate Real-time Roadmap</h3>
+              <p className="text-sm text-amber-800 mt-1">{error}</p>
+              <button
+                onClick={loadRoadmap}
+                className="mt-3 px-4 py-1.5 bg-white border border-amber-300 text-amber-900 font-semibold rounded-lg text-xs hover:bg-amber-100 transition cursor-pointer"
+              >
+                Retry Connection
+              </button>
+            </div>
+          </div>
+        </FadeIn>
+      )}
+
+      {/* Empty / Uncalibrated Prompt */}
+      {!isLoading && !error && phases.length === 0 && (
+        <FadeIn delay={100}>
+          <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-10 text-center space-y-4">
+            <Compass className="w-12 h-12 text-[#000080] mx-auto opacity-70" />
+            <h2 className="text-2xl font-bold text-gray-900">Unlock Your Personalized Roadmap</h2>
+            <p className="text-sm text-gray-600 max-w-lg mx-auto">
+              Complete the quick diagnostic skill calibration to evaluate your current proficiencies and generate your custom prerequisite DAG.
+            </p>
+            <button
+              onClick={() => navigate('/assessment/quiz')}
+              className="btn-saffron px-6 py-2.5 text-sm font-bold rounded-xl shadow-sm inline-flex items-center gap-2"
+            >
+              Take Diagnostic Calibration Quiz
+            </button>
+          </div>
+        </FadeIn>
+      )}
+
+      {/* Live Roadmap Timeline */}
+      {!isLoading && phases.length > 0 && (
+        <FadeIn delay={300}>
+          <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-6 md:p-8">
+            <RoadmapTimeline 
+              phases={phases} 
+              onEvidenceClick={(id) => setEvidenceMilestoneId(id)} 
+              onDecisionClick={(phase) => setDecisionPhase(phase)} 
+            />
+          </div>
+        </FadeIn>
+      )}
+
+      {/* Curated Learning Resources tailored to student gaps */}
       {skillResources.length > 0 && (
         <FadeIn delay={400}>
           <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-6 md:p-8 space-y-6">
@@ -308,7 +403,7 @@ export const RoadmapPage: React.FC = () => {
                 <h2 className="text-xl font-bold">Curated Learning Resources for Priority Gaps</h2>
               </div>
               <span className="self-start sm:self-auto text-xs bg-indigo-50 text-indigo-700 font-semibold px-3 py-1 rounded-full border border-indigo-200">
-                Role 5 Recommendation Engine
+                NPTEL • SWAYAM • Open Curricula
               </span>
             </div>
 
@@ -358,6 +453,7 @@ export const RoadmapPage: React.FC = () => {
         </FadeIn>
       )}
 
+      {/* Decision Point Branching Modal */}
       <DecisionPointModal 
         isOpen={!!decisionPhase}
         phaseTitle={decisionPhase?.title || ''}
@@ -366,6 +462,7 @@ export const RoadmapPage: React.FC = () => {
         onSelect={handleDecisionSelect}
       />
 
+      {/* Evidence Submission Verification Modal */}
       <EvidenceSubmitModal 
         isOpen={!!evidenceMilestoneId}
         milestoneId={evidenceMilestoneId}
@@ -375,3 +472,4 @@ export const RoadmapPage: React.FC = () => {
     </div>
   );
 };
+

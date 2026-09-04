@@ -1,29 +1,42 @@
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { getStoredUser } from '../../services/api';
 
 export default function StudentDashboardPage() {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
+  const storedUser = getStoredUser();
 
-  // Load state from localStorage or use defaults
-  const userJson = localStorage.getItem('demo_user');
-  const user = userJson
-    ? JSON.parse(userJson)
-    : {
-        full_name: 'Priya Sharma',
-        institution: 'VIT Chennai',
-        degree: 'B.Tech CSE',
-        year_of_study: 2,
-        interests: ['AI/ML', 'Backend', 'Cloud'],
-      };
+  const user = authUser || storedUser || {
+    full_name: 'Student',
+    institution: '',
+    degree: '',
+    year_of_study: 1,
+    interests: [],
+  };
 
   const assessmentJson = localStorage.getItem('assessment_result');
-  const assessment = assessmentJson ? JSON.parse(assessmentJson) : null;
+  let assessment: any = null;
+  if (assessmentJson) {
+    try {
+      const parsed = JSON.parse(assessmentJson);
+      const currentStudentId = user?.student_profile_id || user?.id;
+      if (!parsed.student_id || parsed.student_id === currentStudentId) {
+        assessment = parsed;
+      }
+    } catch {
+      // ignore
+    }
+  }
 
   const selfAssessmentJson = localStorage.getItem('self_assessment');
   const selfAssessment = selfAssessmentJson ? JSON.parse(selfAssessmentJson) : null;
 
   const readinessScore = assessment
-    ? Math.round((assessment.correct_answers / assessment.total_questions) * 100)
-    : 68;
+    ? (assessment.overall_accuracy_pct !== undefined
+        ? Math.round(assessment.overall_accuracy_pct)
+        : (assessment.total_questions ? Math.round((assessment.correct_answers / assessment.total_questions) * 100) : 0))
+    : (user.readiness_pct !== undefined ? Math.round(user.readiness_pct) : 0);
 
   return (
     <div className="min-h-screen bg-[#0A111F] text-white">

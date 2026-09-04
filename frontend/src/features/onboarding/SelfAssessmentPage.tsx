@@ -144,7 +144,7 @@ export default function SelfAssessmentPage() {
     setLoading(true);
 
     const user = getStoredUser();
-    const studentId = user?.id || user?.student_id || 'student-demo';
+    const studentId = user?.student_profile_id || user?.student_id || user?.id;
 
     const ratingPayload = currentRole.skills.map((skill) => ({
       skill_id: skill.id,

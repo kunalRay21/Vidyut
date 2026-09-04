@@ -167,13 +167,13 @@ export async function seedOpportunities() {
   // 4. Seed Learning Resources
   await seedResources();
 
-  // 5. Ensure demo student has skill states seeded for live compatibility scoring
-  const demoStudent = await query<{ id: string }>(
-    `SELECT sp.id FROM student_profiles sp JOIN users u ON sp.user_id = u.id WHERE u.email = 'test.student@vidyut.ac.in' LIMIT 1`
+  // 5. Ensure existing student profiles have skill states seeded for live compatibility scoring
+  const students = await query<{ id: string }>(
+    `SELECT sp.id FROM student_profiles sp LIMIT 10`
   );
 
-  if (demoStudent.rows.length > 0) {
-    const studentId = demoStudent.rows[0].id;
+  for (const studentRow of students.rows) {
+    const studentId = studentRow.id;
     const initialSkills = [
       { name: 'Python', level: 'PROFICIENT' },
       { name: 'FastAPI', level: 'INTERMEDIATE' },
@@ -201,7 +201,7 @@ export async function seedOpportunities() {
         );
       }
     }
-    console.log(`✅ Initial skill proficiencies seeded for demo student (${studentId})!`);
+    console.log(`✅ Initial skill proficiencies seeded for student (${studentId})!`);
   }
 }
 

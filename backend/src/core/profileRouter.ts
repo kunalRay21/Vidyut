@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authenticateJWT, AuthenticatedRequest, requireRole } from '../auth/middleware';
+import { verifyToken } from '../auth/jwt';
 import { apiResponse, apiSuccess, apiError } from './responses';
 import { pool, query } from '../database/db';
 import { memoryStore } from '../database/store';
@@ -53,10 +54,8 @@ router.get('/me/skills', async (req: Request, res: Response) => {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ') && (!studentId || !roleId)) {
       try {
-        const jwt = require('jsonwebtoken');
         const token = authHeader.split(' ')[1];
-        const JWT_SECRET = process.env.JWT_SECRET || 'vidyut_jwt_super_secret_signing_key_2026';
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        const decoded = verifyToken(token);
         if (decoded?.id) {
           const profileRes = await query(
             `SELECT id, selected_role_id FROM student_profiles WHERE user_id = $1`,
