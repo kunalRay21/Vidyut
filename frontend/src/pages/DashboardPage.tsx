@@ -24,24 +24,32 @@ export const DashboardPage: React.FC = () => {
         <div className="col-span-1 md:col-span-2">
           {/* Profile Overview Card */}
           <FadeIn delay={200}>
-            <div className="bg-[#FFFFED] rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">Career Goal Summary</h2>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-6 mb-6">
+              <h2 className="text-xl font-bold mb-4 text-gray-900 font-heading">Career Goal Summary</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 text-gray-600">
-                  <Target className="w-5 h-5 text-blue-500" />
-                  <span>Target Role: <strong className="text-gray-900">{profile.selected_role}</strong></span>
+                  <div className="w-8 h-8 rounded-lg bg-saffron/10 flex items-center justify-center shrink-0">
+                    <Target className="w-4 h-4 text-saffron" />
+                  </div>
+                  <span className="text-sm">Target Role: <strong className="text-gray-900">{profile.selected_role}</strong></span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-600">
-                  <GraduationCap className="w-5 h-5 text-indigo-500" />
-                  <span>Institution: <strong className="text-gray-900">{profile.institution}</strong></span>
+                  <div className="w-8 h-8 rounded-lg bg-[#000080]/10 flex items-center justify-center shrink-0">
+                    <GraduationCap className="w-4 h-4 text-[#000080]" />
+                  </div>
+                  <span className="text-sm">Institution: <strong className="text-gray-900">{profile.institution}</strong></span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-600">
-                  <BookOpen className="w-5 h-5 text-emerald-500" />
-                  <span>Degree: <strong className="text-gray-900">{profile.degree}</strong></span>
+                  <div className="w-8 h-8 rounded-lg bg-indiaGreen/10 flex items-center justify-center shrink-0">
+                    <BookOpen className="w-4 h-4 text-indiaGreen" />
+                  </div>
+                  <span className="text-sm">Degree: <strong className="text-gray-900">{profile.degree}</strong></span>
                 </div>
                 <div className="flex items-center gap-3 text-gray-600">
-                  <User className="w-5 h-5 text-purple-500" />
-                  <span>Year: <strong className="text-gray-900">Year {profile.year_of_study}</strong></span>
+                  <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <span className="text-sm">Year: <strong className="text-gray-900">Year {profile.year_of_study}</strong></span>
                 </div>
               </div>
             </div>
@@ -64,12 +72,15 @@ export const DashboardPage: React.FC = () => {
           </FadeIn>
           
           <FadeIn delay={300}>
-            <div className="mt-6 bg-blue-50 rounded-lg p-6 border border-blue-100 flex flex-col items-center text-center">
-              <h3 className="font-semibold text-blue-900 mb-2">Next Milestone</h3>
-              <p className="text-sm text-blue-700 mb-4">Complete "Python Fundamentals" assessment to boost your readiness by 5%.</p>
+            <div className="mt-6 bg-[#FFFEF2] rounded-2xl p-6 border border-[#EAE3B3] flex flex-col items-center text-center shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-saffron via-[#000080] to-indiaGreen" />
+              <h3 className="font-bold text-[#000080] mb-2 font-heading">Next Milestone</h3>
+              <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                Complete "Python Fundamentals" assessment to boost your readiness by 5%.
+              </p>
               <button 
                 onClick={() => navigate('/roadmap')}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md font-medium hover:bg-blue-700 transition-colors"
+                className="w-full btn-saffron py-2.5 px-4 rounded-xl text-sm font-semibold shadow-sm transition"
               >
                 Go to Roadmap
               </button>

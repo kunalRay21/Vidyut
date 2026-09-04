@@ -9,8 +9,11 @@ interface FadeInProps {
 export const FadeIn: React.FC<FadeInProps> = ({ children, delay = 0, className = '' }) => {
   return (
     <div 
-      className={`opacity-0 animate-fade-in-up ${className}`}
-      style={{ animationDelay: `${delay}ms` }}
+      className={`animate-fade-in-up ${className}`}
+      style={{ 
+        animationDelay: `${delay}ms`,
+        animationFillMode: 'both'
+      }}
     >
       {children}
     </div>

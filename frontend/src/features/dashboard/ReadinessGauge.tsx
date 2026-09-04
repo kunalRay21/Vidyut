@@ -13,8 +13,8 @@ export const ReadinessGauge: React.FC<ReadinessGaugeProps> = ({ percentage }) =>
   const liquidTop = 95 - (validPercentage * 0.9);
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 bg-[#FFFFED] rounded-lg shadow-sm border border-gray-100 h-full">
-      <h3 className="text-lg font-semibold text-gray-700 mb-4">Role Readiness</h3>
+    <div className="flex flex-col items-center justify-center p-6 bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] h-full">
+      <h3 className="text-lg font-bold text-gray-800 mb-4 font-heading">Role Readiness</h3>
       
       <div className="relative w-36 h-36 flex items-center justify-center">
         {/* SVG Liquid Gauge */}
@@ -38,7 +38,7 @@ export const ReadinessGauge: React.FC<ReadinessGaugeProps> = ({ percentage }) =>
           </defs>
 
           {/* Unfilled area - consistent with background */}
-          <circle cx="50" cy="50" r="45" fill="#FFFFED" />
+          <circle cx="50" cy="50" r="45" fill="#FFFEF2" />
 
           {/* Liquid layers */}
           <g clipPath="url(#bubble-clip)">
