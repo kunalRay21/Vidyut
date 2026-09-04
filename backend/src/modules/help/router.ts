@@ -77,12 +77,12 @@ helpRouter.post('/ask', (req: Request, res: Response) => {
     });
   }
 
-  // Not matched: gracefully return pre-defined suggestions
+  // Not matched: gracefully return related topic suggestions
   return res.json({
     success: true,
     matched: false,
     message:
-      "I am a guided assistant configured to answer verified questions from Vidyut's official knowledge base only. I couldn't find a direct answer for that query. Please select from one of these related topics below:",
+      "I'm here to help you navigate Vidyut! I couldn't find a direct answer for that question, but here are some topics I can help you with right now:",
     suggestions: candidates.map((c) => ({
       id: c.id,
       question: c.question,

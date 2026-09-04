@@ -99,7 +99,7 @@ app.use('/api/v1/skills', skillGraphRouter);            // Member 4 (Skill Graph
 app.use('/api/v1/assessments', assessmentRouter);       // Member 4 (Assessment Engine)
 app.use('/api/v1/roadmap', roadmapRouter);              // Member 4 (Adaptive Roadmap)
 app.use('/api/v1/portfolio', portfolioRouter);          // Member 4 (Portfolio & Evidence)
-app.use('/api/v1/help', helpRouter);                    // Guided Help Assistant (Pre-defined FAQs)
+app.use('/api/v1/help', helpRouter);                    // Vidyut Help Assistant
 
 // ---------------------------------------------------------------------------
 // Generic error handler (must be last middleware)

@@ -35,7 +35,7 @@ export const HelpAssistant: React.FC = () => {
   const initialMessage: ChatMessage = {
     id: 'welcome',
     sender: 'assistant',
-    text: 'Hello! I am Vidyut\'s Guided Help Assistant. I can answer specific, verified questions about Roadmaps, Assessments, Compatibility Scoring, Career Domains, and Curated Resources. Click any question below or type your query!',
+    text: 'Hi there! 👋 I\'m your Vidyut Assistant. I can help guide you through your career roadmap, skill assessments, compatibility scores, and recommended learning resources. How can I help you today?',
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   };
 
@@ -121,11 +121,10 @@ export const HelpAssistant: React.FC = () => {
         setIsTyping(false);
         setMessages((prev) => [...prev, botMsg]);
       } else {
-        // Did not match: enforce constraint that this assistant only answers pre-defined questions
         const botMsg: ChatMessage = {
           id: `assistant-${Date.now()}`,
           sender: 'assistant',
-          text: 'I am a specialized assistant configured to answer verified questions from Vidyut\'s official knowledge base only. I could not find a direct answer for that query. Please select from one of these relevant questions below:',
+          text: 'I\'m here to help you navigate Vidyut! I couldn\'t find a direct answer for that question, but here are some topics I can help you with right now:',
           suggestions: candidates,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
@@ -158,7 +157,7 @@ export const HelpAssistant: React.FC = () => {
             <Sparkles className="w-5 h-5 animate-pulse" />
             <span className="text-sm font-semibold tracking-wide">Help Assistant</span>
             <span className="bg-amber-700/60 text-amber-100 text-xs px-2 py-0.5 rounded-full font-medium hidden sm:inline">
-              FAQ
+              AI Guide
             </span>
           </button>
         ) : null}
@@ -175,13 +174,14 @@ export const HelpAssistant: React.FC = () => {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold tracking-tight">Vidyut Help Assistant</h3>
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    Pre-Defined Q&A
+                  <h3 className="text-sm font-bold tracking-tight">Vidyut Assistant</h3>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Online
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-300">
-                  Verified answers for roadmaps, scoring & opportunities
+                  Your smart guide for roadmaps, skills & opportunities
                 </p>
               </div>
             </div>
@@ -239,7 +239,7 @@ export const HelpAssistant: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search pre-defined questions..."
+              placeholder="Search topics or ask a question..."
               className="w-full text-xs bg-transparent border-none focus:outline-none placeholder-slate-400 text-slate-800"
             />
             {searchQuery && (
@@ -254,16 +254,16 @@ export const HelpAssistant: React.FC = () => {
 
           {/* Conversation & Questions Display */}
           <div className="flex-1 p-3.5 overflow-y-auto space-y-3.5 bg-[#FAF9F6] text-xs">
-            {/* If user is filtering questions in the search bar, show matching pre-defined questions */}
+            {/* If user is filtering questions in the search bar, show matching topics */}
             {searchQuery && (
               <div className="bg-white p-2.5 rounded-xl border border-amber-200/80 shadow-xs mb-2">
                 <p className="text-[11px] font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
                   <Search className="w-3 h-3 text-amber-600" />
-                  Matching Questions ({filteredQuestions.length}):
+                  Suggested Topics ({filteredQuestions.length}):
                 </p>
                 {filteredQuestions.length === 0 ? (
                   <p className="text-slate-500 text-[11px] italic">
-                    No pre-defined question matches &quot;{searchQuery}&quot;. Please try a different term like &quot;roadmap&quot;, &quot;score&quot;, or &quot;free&quot;.
+                    No topics found matching &quot;{searchQuery}&quot;. Try searching for &quot;roadmap&quot;, &quot;score&quot;, or &quot;free&quot;.
                   </p>
                 ) : (
                   <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto">
@@ -324,7 +324,7 @@ export const HelpAssistant: React.FC = () => {
                 {msg.suggestions && msg.suggestions.length > 0 && (
                   <div className="mt-2 flex flex-col gap-1 w-[88%]">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-                      Related Verified Questions:
+                      Related Topics & Next Steps:
                     </p>
                     <div className="flex flex-col gap-1">
                       {msg.suggestions.map((sug) => (
@@ -361,7 +361,7 @@ export const HelpAssistant: React.FC = () => {
           {messages.length === 1 && !searchQuery && (
             <div className="px-3 py-2 bg-white border-t border-gray-100">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                Frequently Asked Questions:
+                Suggested Questions to Explore:
               </p>
               <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
                 {filteredQuestions.slice(0, 3).map((q) => (
@@ -387,7 +387,7 @@ export const HelpAssistant: React.FC = () => {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Ask a question (pre-defined topics only)..."
+              placeholder="Ask a question about Vidyut..."
               className="flex-1 text-xs px-3 py-2 bg-slate-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white text-slate-800 placeholder-slate-400"
             />
             <button
