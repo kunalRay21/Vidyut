@@ -88,15 +88,17 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#FFFEFA]/90 backdrop-blur-md border-b border-gray-200/60 transition-all">
-      {/* Delicate national tricolor micro-line */}
-      <div className="h-[2px] w-full bg-gradient-to-r from-saffron/80 via-white/50 to-indiaGreen/80" />
-
+    <header 
+      className="sticky top-0 z-50 border-b border-gray-200/90 shadow-sm transition-all"
+      style={{
+        background: 'linear-gradient(90deg, #FFCE99 0%, #FFF3CC 30%, #FEFFE3 50%, #D4F0D1 70%, #AAE2A8 100%)'
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand Logo & Name - Clean & Uncluttered */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg overflow-hidden border border-gray-200/80 shadow-2xs bg-white flex items-center justify-center shrink-0 group-hover:border-saffron/60 transition">
+            <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#FFE0B2] shadow-2xs bg-[#FFF3E0] flex items-center justify-center shrink-0 group-hover:border-saffron/70 transition">
               <img
                 src="/edu-logo.jpg"
                 alt="Vidyut Emblem"
@@ -107,7 +109,7 @@ export const Navbar: React.FC = () => {
               />
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="font-heading font-black text-lg tracking-tight text-[#000080] group-hover:text-saffron-600 transition">
+              <span className="font-heading font-black text-lg tracking-tight text-gray-900 group-hover:text-[#000080] transition">
                 VIDYUT
               </span>
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-saffron animate-pulse" />
@@ -121,8 +123,8 @@ export const Navbar: React.FC = () => {
               className={({ isActive }) =>
                 `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   isActive
-                    ? 'text-gray-950 font-semibold bg-black/[0.04]'
-                    : 'text-gray-600 hover:text-gray-950 hover:bg-black/[0.02]'
+                    ? 'text-gray-950 font-bold bg-white/70 shadow-2xs backdrop-blur-xs'
+                    : 'text-gray-700 hover:text-black hover:bg-white/40'
                 }`
               }
             >
@@ -134,8 +136,8 @@ export const Navbar: React.FC = () => {
               className={({ isActive }) =>
                 `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   isActive
-                    ? 'text-gray-950 font-semibold bg-black/[0.04]'
-                    : 'text-gray-600 hover:text-gray-950 hover:bg-black/[0.02]'
+                    ? 'text-gray-950 font-bold bg-white/70 shadow-2xs backdrop-blur-xs'
+                    : 'text-gray-700 hover:text-black hover:bg-white/40'
                 }`
               }
             >
@@ -147,8 +149,8 @@ export const Navbar: React.FC = () => {
               className={({ isActive }) =>
                 `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   isActive
-                    ? 'text-gray-950 font-semibold bg-black/[0.04]'
-                    : 'text-gray-600 hover:text-gray-950 hover:bg-black/[0.02]'
+                    ? 'text-gray-950 font-bold bg-white/70 shadow-2xs backdrop-blur-xs'
+                    : 'text-gray-700 hover:text-black hover:bg-white/40'
                 }`
               }
             >
@@ -160,8 +162,8 @@ export const Navbar: React.FC = () => {
               className={({ isActive }) =>
                 `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   isActive
-                    ? 'text-gray-950 font-semibold bg-black/[0.04]'
-                    : 'text-gray-600 hover:text-gray-950 hover:bg-black/[0.02]'
+                    ? 'text-gray-950 font-bold bg-white/70 shadow-2xs backdrop-blur-xs'
+                    : 'text-gray-700 hover:text-black hover:bg-white/40'
                 }`
               }
             >
@@ -175,14 +177,14 @@ export const Navbar: React.FC = () => {
                 onClick={() => setPortalsDropdownOpen((prev) => !prev)}
                 className={`px-3.5 py-1.5 rounded-full text-sm font-medium flex items-center gap-1 transition-colors cursor-pointer ${
                   location.pathname.startsWith('/industry') || location.pathname.startsWith('/institution')
-                    ? 'text-gray-950 font-semibold bg-black/[0.04]'
-                    : 'text-gray-600 hover:text-gray-950 hover:bg-black/[0.02]'
+                    ? 'text-gray-950 font-bold bg-white/70 shadow-2xs backdrop-blur-xs'
+                    : 'text-gray-700 hover:text-black hover:bg-white/40'
                 }`}
               >
                 <span>Portals</span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${
-                    portalsDropdownOpen ? 'rotate-180 text-gray-700' : ''
+                  className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-200 ${
+                    portalsDropdownOpen ? 'rotate-180 text-gray-900' : ''
                   }`}
                 />
               </button>
@@ -350,7 +352,12 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-[#FFFEFA]/98 backdrop-blur-xl px-5 py-5 space-y-4 shadow-xl animate-in slide-in-from-top-2 duration-200">
+        <div
+          className="md:hidden border-t border-gray-200/80 px-5 py-5 space-y-4 shadow-xl animate-in slide-in-from-top-2 duration-200"
+          style={{
+            background: 'linear-gradient(180deg, #FFF3CC 0%, #FEFFE3 40%, #EAF5EA 100%)',
+          }}
+        >
           {/* Authenticated user header card on mobile */}
           {isAuthenticated && user && (
             <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-gray-100 shadow-xs">
