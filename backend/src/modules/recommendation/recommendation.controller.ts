@@ -36,6 +36,7 @@ import {
   type ProfileService,
   type OpportunityRepository,
 } from './recommendation.service';
+import type { ExplanationService } from './explanation.service';
 
 // ---------------------------------------------------------------------------
 // Response shape helpers
@@ -88,11 +89,13 @@ function errorResponse(
  * @param db             - Persistence client (Prisma-compatible).
  * @param profileService - Role 2's profile + skill state fetcher.
  * @param opportunityRepo- Opportunity reader.
+ * @param explanationService - Explanation generation.
  */
 export function createRecommendationController(
   db: RecommendationPersistenceClient,
   profileService: ProfileService,
-  opportunityRepo: OpportunityRepository
+  opportunityRepo: OpportunityRepository,
+  explanationService: ExplanationService
 ) {
   /**
    * GET /api/v1/recommendations/opportunities
@@ -145,6 +148,7 @@ export function createRecommendationController(
         db,
         profileService,
         opportunityRepo,
+        explanationService,
         { refresh }
       );
 

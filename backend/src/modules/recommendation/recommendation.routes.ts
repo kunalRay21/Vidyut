@@ -20,6 +20,7 @@ import type {
   ProfileService,
   OpportunityRepository,
 } from './recommendation.service';
+import type { ExplanationService } from './explanation.service';
 
 /**
  * Creates an Express Router with all recommendation routes registered.
@@ -30,15 +31,17 @@ import type {
  * @param db             - Recommendation persistence client.
  * @param profileService - Profile + skill state provider.
  * @param opportunityRepo- Active opportunity reader.
+ * @param explanationService - Explanation service.
  * @returns              - Configured Express Router.
  */
 export function createRecommendationRouter(
   db: RecommendationPersistenceClient,
   profileService: ProfileService,
-  opportunityRepo: OpportunityRepository
+  opportunityRepo: OpportunityRepository,
+  explanationService: ExplanationService
 ): Router {
   const router = Router();
-  const controller = createRecommendationController(db, profileService, opportunityRepo);
+  const controller = createRecommendationController(db, profileService, opportunityRepo, explanationService);
 
   /**
    * GET /opportunities

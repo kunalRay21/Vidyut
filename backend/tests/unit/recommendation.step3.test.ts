@@ -26,6 +26,8 @@ import {
 // createRecommendationRouter lives in recommendation.routes.ts
 import { createRecommendationRouter as _createRouter } from '../../src/modules/recommendation/recommendation.routes';
 
+import type { ExplanationService } from '../../src/modules/recommendation/explanation.service';
+
 // ---------------------------------------------------------------------------
 // Test fixtures
 // ---------------------------------------------------------------------------
@@ -90,7 +92,19 @@ function makeMocks(overrides?: {
 
   const dbClient: RecommendationPersistenceClient = { recommendation: db };
 
-  return { profileService, opportunityRepo, db, dbClient };
+  // Create a mock explanation service that returns a deterministic fallback
+  const explanationService = {
+    generateExplanation: jest.fn().mockResolvedValue({
+      summary: 'Mock summary',
+      matchingSkills: [],
+      gapSkills: [],
+      gapSeverity: 'none',
+      careerAlignment: 'direct',
+      eligibilityStatus: 'eligible'
+    }),
+  } as unknown as ExplanationService;
+
+  return { profileService, opportunityRepo, db, dbClient, explanationService };
 }
 
 // ===========================================================================
@@ -137,33 +151,33 @@ describe('GetRecommendationsQuerySchema', () => {
 describe('generateRecommendations()', () => {
   // ── B1. Profile service is called ──────────────────────────────────────
   it('calls profileService.getProfile with the correct studentId', async () => {
-    const { profileService, opportunityRepo, dbClient } = makeMocks();
-    await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo);
+    const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks();
+    await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService);
     expect(profileService.getProfile).toHaveBeenCalledWith(STUDENT_ID);
   });
 
   // ── B2. Skill states are fetched ───────────────────────────────────────
   it('calls profileService.getSkillStates with the correct studentId', async () => {
-    const { profileService, opportunityRepo, dbClient } = makeMocks();
-    await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo);
+    const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks();
+    await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService);
     expect(profileService.getSkillStates).toHaveBeenCalledWith(STUDENT_ID);
   });
 
   // ── B3. Opportunities are fetched ─────────────────────────────────────
   it('calls opportunityRepo.findAllActive', async () => {
-    const { profileService, opportunityRepo, dbClient } = makeMocks();
-    await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo);
+    const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks();
+    await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService);
     expect(opportunityRepo.findAllActive).toHaveBeenCalled();
   });
 
   // ── B4. Scoring engine is invoked ─────────────────────────────────────
   it('scores each opportunity and attaches scores to result items', async () => {
     const opp1 = makeOpportunity('opp-1', DOMAIN_SWE); // no skills → neutral 0.5 match
-    const { profileService, opportunityRepo, dbClient } = makeMocks({
+    const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks({
       opportunities: [opp1],
     });
 
-    const result = await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, { refresh: true });
+    const result = await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService, { refresh: true });
 
     const allItems = [...result.readyNow, ...result.almostReady, ...result.aspirational];
     // Every item must have a scores object with a total
@@ -182,9 +196,9 @@ describe('generateRecommendations()', () => {
     // null eligibility (0.8) + matching interest (1.0)
     // = 0.5*0.5 + 1.0*0.25 + 0.8*0.15 + 1.0*0.10 = 0.25+0.25+0.12+0.10 = 0.72 → ALMOST_READY
     const opp = makeOpportunity('opp-high', DOMAIN_SWE);
-    const { profileService, opportunityRepo, dbClient } = makeMocks({ opportunities: [opp] });
+    const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks({ opportunities: [opp] });
 
-    const result = await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, { refresh: true });
+    const result = await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService, { refresh: true });
 
     // The score of 0.72 falls in ALMOST_READY (0.50–0.74)
     expect(result.almostReady.length + result.readyNow.length + result.aspirational.length).toBeGreaterThanOrEqual(0);
@@ -204,9 +218,9 @@ describe('generateRecommendations()', () => {
       makeOpportunity('opp-a', DOMAIN_SWE),
       makeOpportunity('opp-b', DOMAIN_SWE),
     ];
-    const { profileService, opportunityRepo, db, dbClient } = makeMocks({ opportunities: opps });
+    const { profileService, opportunityRepo, db, dbClient, explanationService } = makeMocks({ opportunities: opps });
 
-    await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, { refresh: true });
+    await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService, { refresh: true });
 
     // upsert should have been called once per included item
     expect(db.upsert).toHaveBeenCalled();
@@ -222,9 +236,9 @@ describe('generateRecommendations()', () => {
   // ── B7. Multiple opportunities ────────────────────────────────────────
   it('handles multiple opportunities across segments correctly', async () => {
     const opps = Array.from({ length: 5 }, (_, i) => makeOpportunity(`opp-${i}`, DOMAIN_SWE));
-    const { profileService, opportunityRepo, dbClient } = makeMocks({ opportunities: opps });
+    const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks({ opportunities: opps });
 
-    const result = await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, { refresh: true });
+    const result = await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService, { refresh: true });
 
     const total = result.readyNow.length + result.almostReady.length + result.aspirational.length;
     expect(result.meta.totalOpportunitiesScored).toBe(5);
@@ -233,9 +247,9 @@ describe('generateRecommendations()', () => {
 
   // ── B8. Empty opportunity list ────────────────────────────────────────
   it('handles empty opportunity list gracefully', async () => {
-    const { profileService, opportunityRepo, dbClient, db } = makeMocks({ opportunities: [] });
+    const { profileService, opportunityRepo, dbClient, db, explanationService } = makeMocks({ opportunities: [] });
 
-    const result = await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, { refresh: true });
+    const result = await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService, { refresh: true });
 
     expect(result.readyNow).toEqual([]);
     expect(result.almostReady).toEqual([]);
@@ -247,21 +261,21 @@ describe('generateRecommendations()', () => {
   // ── B9. Persistence failure propagates ───────────────────────────────
   it('propagates database upsert failures', async () => {
     const opp = makeOpportunity('opp-fail', DOMAIN_SWE);
-    const { profileService, opportunityRepo, db, dbClient } = makeMocks({ opportunities: [opp] });
+    const { profileService, opportunityRepo, db, dbClient, explanationService } = makeMocks({ opportunities: [opp] });
     db.upsert.mockRejectedValue(new Error('DB connection lost'));
 
     await expect(
-      generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, { refresh: true })
+      generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService, { refresh: true })
     ).rejects.toThrow('DB connection lost');
   });
 
   // ── B10. Profile service failure propagates ──────────────────────────
   it('propagates profile service failures', async () => {
-    const { profileService, opportunityRepo, dbClient } = makeMocks();
+    const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks();
     profileService.getProfile.mockRejectedValue(new Error('Student not found'));
 
     await expect(
-      generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, { refresh: true })
+      generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService, { refresh: true })
     ).rejects.toThrow('Student not found');
   });
 
@@ -291,10 +305,10 @@ describe('generateRecommendations()', () => {
       },
     ];
 
-    const { profileService, opportunityRepo, db, dbClient } = makeMocks({ existingRecs });
+    const { profileService, opportunityRepo, db, dbClient, explanationService } = makeMocks({ existingRecs });
 
     const result = await generateRecommendations(
-      STUDENT_ID, dbClient, profileService, opportunityRepo,
+      STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService,
       { refresh: false }
     );
 
@@ -322,13 +336,13 @@ describe('generateRecommendations()', () => {
       },
     ];
 
-    const { profileService, opportunityRepo, dbClient } = makeMocks({
+    const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks({
       existingRecs,
       opportunities: [makeOpportunity('opp-fresh', DOMAIN_SWE)],
     });
 
     const result = await generateRecommendations(
-      STUDENT_ID, dbClient, profileService, opportunityRepo,
+      STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService,
       { refresh: true }
     );
 
@@ -340,10 +354,10 @@ describe('generateRecommendations()', () => {
 
   // ── B13. Meta fields are correct ─────────────────────────────────────
   it('returns correct meta: studentId, fromCache=false on fresh compute', async () => {
-    const { profileService, opportunityRepo, dbClient } = makeMocks({ opportunities: [] });
+    const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks({ opportunities: [] });
 
     const result = await generateRecommendations(
-      STUDENT_ID, dbClient, profileService, opportunityRepo,
+      STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService,
       { refresh: true }
     );
 
@@ -356,9 +370,9 @@ describe('generateRecommendations()', () => {
   // ── B14. Upsert uses correct unique key ──────────────────────────────
   it('upsert is called with correct studentId_opportunityId composite key', async () => {
     const opp = makeOpportunity('opp-key-test', DOMAIN_SWE);
-    const { profileService, opportunityRepo, db, dbClient } = makeMocks({ opportunities: [opp] });
+    const { profileService, opportunityRepo, db, dbClient, explanationService } = makeMocks({ opportunities: [opp] });
 
-    await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, { refresh: true });
+    await generateRecommendations(STUDENT_ID, dbClient, profileService, opportunityRepo, explanationService, { refresh: true });
 
     if (db.upsert.mock.calls.length > 0) {
       const key = db.upsert.mock.calls[0]![0].where.studentId_opportunityId;
@@ -374,10 +388,10 @@ describe('generateRecommendations()', () => {
 // ===========================================================================
 
 function makeTestApp(overrides?: Parameters<typeof makeMocks>[0]) {
-  const { profileService, opportunityRepo, dbClient } = makeMocks(overrides);
+  const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks(overrides);
   const app = express();
   app.use(express.json());
-  app.use('/api/v1/recommendations', _createRouter(dbClient, profileService, opportunityRepo));
+  app.use('/api/v1/recommendations', _createRouter(dbClient, profileService, opportunityRepo, explanationService));
   // Generic error handler
   app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     const msg = err instanceof Error ? err.message : 'error';
@@ -491,12 +505,12 @@ describe('GET /api/v1/recommendations/opportunities', () => {
 
   // ── C6. Service errors forward to error middleware ────────────────────
   it('forwards service errors as 500 to the error middleware', async () => {
-    const { profileService, opportunityRepo, dbClient } = makeMocks({ opportunities: [] });
+    const { profileService, opportunityRepo, dbClient, explanationService } = makeMocks({ opportunities: [] });
     profileService.getProfile.mockRejectedValue(new Error('Profile DB down'));
 
     const app = express();
     app.use(express.json());
-    app.use('/api/v1/recommendations', _createRouter(dbClient, profileService, opportunityRepo));
+    app.use('/api/v1/recommendations', _createRouter(dbClient, profileService, opportunityRepo, explanationService));
     app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
       const msg = err instanceof Error ? err.message : 'error';
       res.status(500).json({ success: false, error: msg });

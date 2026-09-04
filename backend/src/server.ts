@@ -22,6 +22,9 @@ import type {
   ProfileService,
   OpportunityRepository,
 } from './modules/recommendation/recommendation.service';
+import { GeminiClient } from './modules/ai/ai.client';
+import { CentralizedAIService } from './modules/ai/ai.service';
+import { ExplanationService } from './modules/recommendation/explanation.service';
 
 /**
  * Stub persistence client — satisfies the interface but throws if called.
@@ -72,9 +75,18 @@ const stubOpportunityRepo: OpportunityRepository = {
   },
 };
 
+/**
+ * Initialize AI and Explanation services.
+ * We initialize the Gemini client with an env var API key, which might be undefined.
+ * The AIService safely handles errors, and the ExplanationService has a deterministic fallback.
+ */
+const aiClient = new GeminiClient(process.env.GEMINI_API_KEY);
+const aiService = new CentralizedAIService(aiClient);
+const explanationService = new ExplanationService(aiService);
+
 app.use(
   '/api/v1/recommendations',
-  createRecommendationRouter(stubDb, stubProfileService, stubOpportunityRepo)
+  createRecommendationRouter(stubDb, stubProfileService, stubOpportunityRepo, explanationService)
 );
 
 // ---------------------------------------------------------------------------
