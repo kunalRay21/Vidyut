@@ -473,6 +473,7 @@ export class AssessmentService {
       coding_solved: codingSolved,
       effective_coding_counted: effectiveCodingPoints,
       overall_accuracy_pct: overallAccuracyPct,
+      overall_readiness_pct: Math.min(100, Math.round(overallAccuracyPct * 0.95 + 5)),
       skill_scores: skillScores,
       discrepancies: discrepancies,
     };
