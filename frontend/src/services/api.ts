@@ -135,39 +135,192 @@ export const skillGraphApi = {
 };
 
 // ----------------------------------------------------
-// 4. Assessment Engine
+// 4. Assessment Subsystem Contracts & API
 // ----------------------------------------------------
+export interface SelfRatingRequest {
+  student_id?: string;
+  role_id: string;
+  ratings: {
+    skill_id: string;
+    rating: 'NOT_FAMILIAR' | 'BEGINNER' | 'AVERAGE' | 'GOOD' | 'EXPERT' | string;
+  }[];
+}
+
+export interface StartSessionRequest {
+  student_id?: string;
+  role_id?: string;
+  test_title?: string;
+  total_time_seconds?: number;
+}
+
+export interface AnswerAutoSaveRequest {
+  question_id: string;
+  selected_option: 'A' | 'B' | 'C' | 'D' | null;
+  selected_options?: ('A' | 'B' | 'C' | 'D')[];
+  is_marked_for_review?: boolean;
+  time_spent_delta_seconds?: number;
+  coding_language?: string;
+  code_solution?: string;
+}
+
+export interface HeartbeatRequest {
+  time_remaining_seconds: number;
+  tab_switch_increment?: number;
+  current_question_index?: number;
+}
+
+export interface SubmitAssessmentRequest {
+  answers: {
+    question_id: string;
+    selected_option: 'A' | 'B' | 'C' | 'D' | null;
+    selected_options?: ('A' | 'B' | 'C' | 'D')[];
+    time_spent_seconds?: number;
+    coding_language?: string;
+    code_solution?: string;
+  }[];
+}
+
 export const assessmentApi = {
-  saveSelfRatings: async (roleId: string, ratings: Array<{ skill_id: string; rating: string }>, studentId?: string) => {
-    const user = getStoredUser();
-    const resolvedStudentId = studentId || user?.id || user?.student_id;
-    return await request('/api/v1/assessments/self', {
+  /**
+   * Save initial self-ratings
+   */
+  saveSelfRatings: async (
+    roleOrPayload: string | SelfRatingRequest,
+    ratings?: Array<{ skill_id: string; rating: string }>,
+    studentId?: string
+  ) => {
+    let body: any;
+    if (typeof roleOrPayload === 'string') {
+      const user = getStoredUser();
+      body = {
+        role_id: roleOrPayload,
+        ratings: ratings || [],
+        student_id: studentId || user?.id || user?.student_id,
+      };
+    } else {
+      const user = getStoredUser();
+      body = {
+        student_id: user?.id || user?.student_id,
+        ...roleOrPayload,
+      };
+    }
+    const res = await request('/api/v1/assessments/self', {
       method: 'POST',
-      body: JSON.stringify({
-        student_id: resolvedStudentId,
-        role_id: roleId,
-        ratings,
-      }),
+      body: JSON.stringify(body),
     });
+    return res.data !== undefined ? res.data : res;
   },
 
-  startSession: async (roleId: string, studentId?: string) => {
-    const user = getStoredUser();
-    const resolvedStudentId = studentId || user?.id || user?.student_id || 'student-demo';
-    return await request('/api/v1/assessments/start', {
+  /**
+   * Start or create a new assessment session
+   */
+  startSession: async (roleOrPayload?: string | StartSessionRequest, studentId?: string) => {
+    let body: any = {};
+    if (typeof roleOrPayload === 'string') {
+      const user = getStoredUser();
+      body = {
+        role_id: roleOrPayload,
+        student_id: studentId || user?.id || user?.student_id || 'student-demo',
+      };
+    } else if (typeof roleOrPayload === 'object' && roleOrPayload !== null) {
+      const user = getStoredUser();
+      body = {
+        student_id: user?.id || user?.student_id || 'student-demo',
+        ...roleOrPayload,
+      };
+    }
+
+    const res = await request<any>('/api/v1/assessments/start', {
       method: 'POST',
-      body: JSON.stringify({
-        student_id: resolvedStudentId,
-        role_id: roleId,
-      }),
+      body: JSON.stringify(body),
     });
+
+    const payloadData = res.data || {};
+    return {
+      success: res.success,
+      data: payloadData,
+      ...payloadData,
+    };
   },
 
+  /**
+   * Fetch active session state (State recovery on reload)
+   */
+  getSession: async (sessionId: string) => {
+    const res = await request<any>(`/api/v1/assessments/session/${sessionId}`);
+    if (!res.success) {
+      throw new Error(res.error?.message || `Failed to fetch session ${sessionId}`);
+    }
+    const payloadData = res.data || {};
+    return {
+      success: true,
+      data: payloadData,
+      ...payloadData,
+    };
+  },
+
+  /**
+   * Real-time autosave of single question answer
+   */
+  saveAnswer: async (sessionId: string, payload: AnswerAutoSaveRequest) => {
+    const res = await request<any>(`/api/v1/assessments/session/${sessionId}/answer`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+    return res.data !== undefined ? res.data : res;
+  },
+
+  /**
+   * Proctoring & timer heartbeat sync
+   */
+  recordHeartbeat: async (sessionId: string, payload: HeartbeatRequest) => {
+    const res = await request<any>(`/api/v1/assessments/session/${sessionId}/heartbeat`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return res.data !== undefined ? res.data : res;
+  },
+
+  /**
+   * Submit complete assessment
+   */
+  submitAssessment: async (sessionId: string, payload: SubmitAssessmentRequest) => {
+    const res = await request<any>(`/api/v1/assessments/${sessionId}/submit`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!res.success) {
+      throw new Error(res.error?.message || `Failed to submit assessment ${sessionId}`);
+    }
+    const payloadData = res.data || {};
+    return {
+      success: true,
+      data: payloadData,
+      ...payloadData,
+    };
+  },
+
+  /**
+   * Submit session alias for legacy QuizEngine
+   */
   submitSession: async (sessionId: string, answers: Array<{ question_id: string; selected_option: string }>) => {
-    return await request(`/api/v1/assessments/${sessionId}/submit`, {
-      method: 'POST',
-      body: JSON.stringify({ answers }),
-    });
+    return await assessmentApi.submitAssessment(sessionId, { answers: answers as any });
+  },
+
+  /**
+   * Fetch comprehensive post-test report
+   */
+  getReport: async (sessionId: string) => {
+    const res = await request<any>(`/api/v1/assessments/session/${sessionId}/report`);
+    if (!res.success) {
+      throw new Error(res.error?.message || `Failed to fetch report for session ${sessionId}`);
+    }
+    const payloadData = res.data || {};
+    return {
+      success: true,
+      data: payloadData,
+      ...payloadData,
+    };
   },
 };
 
@@ -327,3 +480,4 @@ export const institutionApi = {
     return await request('/api/v1/institution/dashboard');
   },
 };
+

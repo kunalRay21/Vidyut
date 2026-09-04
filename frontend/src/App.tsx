@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardPage } from './pages/DashboardPage';
 import { RoadmapPage } from './pages/RoadmapPage';
@@ -7,28 +7,19 @@ import { IndustryOnboardPage } from './pages/IndustryOnboardPage';
 import { IndustryPostJobPage } from './pages/IndustryPostJobPage';
 import { IndustryTalentPage } from './pages/IndustryTalentPage';
 import { InstitutionOnboardPage } from './pages/InstitutionOnboardPage';
-import { AssessmentQuizPage } from './pages/AssessmentQuizPage';
 import { LandingPage } from './pages/LandingPage';
 
 import LoginForm from './features/onboarding/LoginForm';
 import RegisterForm from './features/onboarding/RegisterForm';
 import DiscoveryPage from './features/onboarding/DiscoveryPage';
 import SelfAssessmentPage from './features/onboarding/SelfAssessmentPage';
-import QuizEngine from './features/onboarding/QuizEngine';
+import { ExamPlatformPage } from './features/assessment-platform';
 
 import InstitutionLoginForm from './features/institution/InstitutionLoginForm';
 import InstitutionDashboardPage from './features/institution/InstitutionDashboardPage';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Navbar } from './components/layout/Navbar';
-
-function QuizDispatcher() {
-  const { id } = useParams<{ id: string }>();
-  if (id && (id.startsWith('demo-') || id.startsWith('session') || id.startsWith('sess-') || /^[0-9a-fA-F-]{10,}$/.test(id) || /^\d+$/.test(id))) {
-    return <QuizEngine />;
-  }
-  return <AssessmentQuizPage />;
-}
 
 function NotFoundPage() {
   return (
@@ -61,15 +52,12 @@ function AppContent() {
     <div className="min-h-screen flex flex-col bg-[#FAFAF9] text-slate-900 selection:bg-saffron selection:text-gray-900">
       <Navbar />
 
-      {/* Routes */}
       <Routes>
-        {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/explore" element={<DiscoveryPage />} />
 
-        {/* Student Intake & Assessment Flow (Protected: STUDENT, ADMIN) */}
         <Route path="/assessment/self" element={
           <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
             <SelfAssessmentPage />
@@ -77,11 +65,15 @@ function AppContent() {
         } />
         <Route path="/assessment/quiz/:id" element={
           <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
-            <QuizDispatcher />
+            <ExamPlatformPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/assessment/quiz" element={
+          <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
+            <ExamPlatformPage />
           </ProtectedRoute>
         } />
 
-        {/* Student Progression & Learning Portals (Protected: STUDENT, ADMIN) */}
         <Route path="/dashboard" element={
           <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
             <div className="flex-1 bg-transparent text-gray-900 w-full">
@@ -104,7 +96,6 @@ function AppContent() {
           </ProtectedRoute>
         } />
 
-        {/* Industry & Recruiter Portals */}
         <Route path="/industry/onboard" element={
           <div className="flex-1 bg-transparent text-gray-900 w-full">
             <IndustryOnboardPage />
@@ -125,7 +116,6 @@ function AppContent() {
           </ProtectedRoute>
         } />
 
-        {/* Academic Institution Portals */}
         <Route path="/institution/onboard" element={
           <div className="flex-1 bg-transparent text-gray-900 w-full">
             <InstitutionOnboardPage />
@@ -138,11 +128,9 @@ function AppContent() {
           </ProtectedRoute>
         } />
 
-        {/* Fallback Catch-all */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
-      {/* Footer */}
       <footer className="border-t border-gray-200/80 bg-white py-6 text-center text-xs text-slate-500 mt-auto">
         <p>{t('footer.text')}</p>
       </footer>

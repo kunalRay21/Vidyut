@@ -26,7 +26,6 @@ const PORT = process.env.PORT || 8000;
 
 app.use(cors());
 app.use(express.json());
-
 // ---------------------------------------------------------------------------
 // Recommendation module
 // ---------------------------------------------------------------------------
@@ -83,7 +82,6 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'healthy' });
 });
-
 // Core Routes (Owned by Team Leader)
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/profile', profileRouter);
@@ -115,9 +113,11 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 async function startServer() {
   await initDatabaseSchema();
 
-  app.listen(PORT, () => {
-    console.log(`⚡ Vidyut Backend running on http://localhost:${PORT}`);
-  });
+  if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+      console.log(`⚡ Vidyut Backend running on http://localhost:${PORT}`);
+    });
+  }
 }
 
 if (process.env.NODE_ENV !== 'test' && require.main === module) {
