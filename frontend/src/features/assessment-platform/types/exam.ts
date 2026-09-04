@@ -53,6 +53,7 @@ export interface QuestionUserResponse {
   time_spent_seconds: number;
   coding_language?: CodingLanguage;
   code_solution?: string;
+  is_code_submitted?: boolean;
 }
 
 export interface SkillScoreSummary {

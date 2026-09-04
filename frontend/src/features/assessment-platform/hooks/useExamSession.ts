@@ -194,8 +194,24 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
       dispatchAutoSave(qId, nextVal);
       return { ...prev, [qId]: nextVal };
     });
-
     setVisitedQuestionIds(prev => new Set(prev).add(qId));
+  }, [currentQuestion, dispatchAutoSave]);
+
+  // Submit code solution for current or specific coding question
+  const submitCodeSolution = useCallback((qId?: string) => {
+    const targetId = qId || currentQuestion?.id;
+    if (!targetId) return;
+
+    setResponses(prev => {
+      const existing = prev[targetId];
+      if (!existing) return prev;
+      const nextVal: QuestionUserResponse = {
+        ...existing,
+        is_code_submitted: true,
+      };
+      dispatchAutoSave(targetId, nextVal);
+      return { ...prev, [targetId]: nextVal };
+    });
   }, [currentQuestion, dispatchAutoSave]);
 
   // Coding language change
@@ -262,7 +278,6 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
       dispatchAutoSave(qId, nextVal);
       return { ...prev, [qId]: nextVal };
     });
-    setVisitedQuestionIds(prev => new Set(prev).add(qId));
   }, [currentQuestion, dispatchAutoSave]);
 
   // Navigation
@@ -297,7 +312,13 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
     if (resp?.is_marked_for_review) return 'MARKED_FOR_REVIEW';
 
     if (targetQ?.section === 'CODING') {
-      if (resp?.code_solution && resp.code_solution.trim().length > 30) {
+      const isCustomCode = Boolean(
+        resp?.code_solution &&
+        resp.code_solution.trim().length > 25 &&
+        resp.code_solution.trim() !== targetQ.starter_code?.[resp.coding_language || 'python']?.trim()
+      );
+
+      if (resp?.is_code_submitted || isCustomCode) {
         return 'ANSWERED';
       }
     } else {
@@ -384,6 +405,7 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
     selectOption,
     updateCodeSolution,
     updateCodingLanguage,
+    submitCodeSolution,
     clearOption,
     toggleMarkForReview,
     goToQuestion,

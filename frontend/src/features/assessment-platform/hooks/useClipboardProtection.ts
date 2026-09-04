@@ -18,6 +18,8 @@ export function useClipboardProtection({ isActive = true }: UseClipboardProtecti
     }, 2800);
   }, []);
 
+  const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
+
   useEffect(() => {
     if (!isActive) return;
 
@@ -39,28 +41,27 @@ export function useClipboardProtection({ isActive = true }: UseClipboardProtecti
       triggerWarning('Pasting content is disabled during the assessment.');
     };
 
-    // 4. Prevent right-click context menu
+    // 4. Prevent right-click context menu (blocks 'Inspect Element')
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
-      triggerWarning('Right-click context menu is disabled for examination security.');
+      triggerWarning('Inspect Element and context menus are prohibited.');
     };
 
     // 5. Prevent drag-selection of text
     const handleSelectStart = (e: Event) => {
       const target = e.target as HTMLElement;
-      // Allow select only if explicitly inside an input/textarea if needed
       if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
         e.preventDefault();
       }
     };
 
-    // 6. Block keyboard shortcuts (Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A, Ctrl+P, Ctrl+U, F12)
+    // 6. Block inspect keyboard shortcuts (Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, F12, Ctrl+U)
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCtrlOrMeta = e.ctrlKey || e.metaKey;
       const key = e.key.toLowerCase();
 
       // Block copy (Ctrl+C / Cmd+C)
-      if (isCtrlOrMeta && key === 'c') {
+      if (isCtrlOrMeta && key === 'c' && !e.shiftKey) {
         e.preventDefault();
         triggerWarning('Copying text and code is strictly disabled.');
         return;
@@ -97,17 +98,34 @@ export function useClipboardProtection({ isActive = true }: UseClipboardProtecti
       // Block view source (Ctrl+U / Cmd+U)
       if (isCtrlOrMeta && key === 'u') {
         e.preventDefault();
-        triggerWarning('Viewing page source is disabled.');
+        triggerWarning('Viewing page source is prohibited.');
         return;
       }
 
-      // Block inspect / DevTools (F12 or Ctrl+Shift+I)
-      if (e.key === 'F12' || (isCtrlOrMeta && e.shiftKey && key === 'i')) {
+      // Block DevTools shortcuts: F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+      if (
+        e.key === 'F12' ||
+        (isCtrlOrMeta && e.shiftKey && (key === 'i' || key === 'j' || key === 'c'))
+      ) {
         e.preventDefault();
-        triggerWarning('Developer tools shortcut is disabled during the assessment.');
+        triggerWarning('Developer Tools & Element Inspection are prohibited.');
+        setIsDevToolsOpen(true);
         return;
       }
     };
+
+    // 7. Polling DevTools Open Detection (Window Dimension delta method)
+    const checkDevTools = () => {
+      const widthThreshold = window.outerWidth - window.innerWidth > 160;
+      const heightThreshold = window.outerHeight - window.innerHeight > 160;
+      if (widthThreshold || heightThreshold) {
+        setIsDevToolsOpen(true);
+      } else {
+        setIsDevToolsOpen(false);
+      }
+    };
+
+    const devToolsInterval = setInterval(checkDevTools, 800);
 
     document.addEventListener('copy', handleCopy);
     document.addEventListener('cut', handleCut);
@@ -117,6 +135,7 @@ export function useClipboardProtection({ isActive = true }: UseClipboardProtecti
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
+      clearInterval(devToolsInterval);
       document.removeEventListener('copy', handleCopy);
       document.removeEventListener('cut', handleCut);
       document.removeEventListener('paste', handlePaste);
@@ -129,5 +148,9 @@ export function useClipboardProtection({ isActive = true }: UseClipboardProtecti
     };
   }, [isActive, triggerWarning]);
 
-  return { warningMessage };
+  return {
+    warningMessage,
+    isDevToolsOpen,
+    setIsDevToolsOpen,
+  };
 }

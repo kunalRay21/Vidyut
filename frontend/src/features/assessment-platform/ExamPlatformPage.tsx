@@ -44,6 +44,7 @@ export const ExamPlatformPage: React.FC = () => {
     selectOption,
     updateCodeSolution,
     updateCodingLanguage,
+    submitCodeSolution,
     clearOption,
     toggleMarkForReview,
     goToQuestion,
@@ -94,8 +95,8 @@ export const ExamPlatformPage: React.FC = () => {
     isActive: examStatus === 'READY',
   });
 
-  // 6. Anti-Copy/Paste & Clipboard Protection
-  const { warningMessage: clipboardWarning } = useClipboardProtection({
+  // 6. Anti-Copy/Paste & Clipboard Protection (with DevTools / Inspect Mode Detection)
+  const { warningMessage: clipboardWarning, isDevToolsOpen } = useClipboardProtection({
     isActive: examStatus === 'READY',
   });
 
@@ -212,26 +213,36 @@ export const ExamPlatformPage: React.FC = () => {
               {/* Scrollable Question Body (Copy Protected) */}
               <div className="flex-1 overflow-y-auto px-6 sm:px-12 py-8 custom-scrollbar select-none">
                 <div className="max-w-3xl mx-auto space-y-6 select-none">
-                  <QuestionViewer
-                    question={currentQuestion}
-                    questionNumber={currentIndex + 1}
-                    totalQuestions={questions.length}
-                  />
-
-                  {currentQuestion.section === 'CODING' ? (
-                    <CodingWorkspace
-                      question={currentQuestion}
-                      currentLanguage={currentResponse?.coding_language || 'python'}
-                      currentCode={currentResponse?.code_solution ?? ''}
-                      onLanguageChange={updateCodingLanguage}
-                      onCodeChange={updateCodeSolution}
-                    />
+                  {isDevToolsOpen ? (
+                    <div className="p-16 text-center text-slate-500 font-mono text-xs select-none">
+                      [Protected Assessment Content — Inspect Mode Disabled]
+                    </div>
                   ) : (
-                    <OptionSelector
-                      question={currentQuestion}
-                      selectedOption={currentResponse?.selected_option || null}
-                      onSelectOption={selectOption}
-                    />
+                    <>
+                      <QuestionViewer
+                        question={currentQuestion}
+                        questionNumber={currentIndex + 1}
+                        totalQuestions={questions.length}
+                      />
+
+                      {currentQuestion.section === 'CODING' ? (
+                        <CodingWorkspace
+                          question={currentQuestion}
+                          currentLanguage={currentResponse?.coding_language || 'python'}
+                          currentCode={currentResponse?.code_solution ?? ''}
+                          isSubmitted={currentResponse?.is_code_submitted}
+                          onLanguageChange={updateCodingLanguage}
+                          onCodeChange={updateCodeSolution}
+                          onSubmitCode={() => submitCodeSolution(currentQuestion.id)}
+                        />
+                      ) : (
+                        <OptionSelector
+                          question={currentQuestion}
+                          selectedOption={currentResponse?.selected_option || null}
+                          onSelectOption={selectOption}
+                        />
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -276,6 +287,26 @@ export const ExamPlatformPage: React.FC = () => {
         hasStarted={hasEnteredFullscreenOnce}
         onTimeoutAutoSubmit={submitExam}
       />
+
+      {/* Gate 3: Anti-Inspect / DevTools Detected Security Shield */}
+      {isDevToolsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-fadeIn select-none">
+          <div className="max-w-md w-full bg-white rounded-2xl p-7 border border-slate-200 shadow-2xl text-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-rose-600 shadow-xs">
+              <ShieldAlert className="w-7 h-7" />
+            </div>
+            <h2 className="text-base font-bold font-heading text-slate-900">
+              Inspect Mode Restricted
+            </h2>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Developer Tools and Element Inspection are strictly prohibited during this assessment. Question and answer details have been removed from the DOM to maintain proctoring integrity.
+            </p>
+            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs font-mono text-amber-800">
+              Close Developer Tools (F12) to restore examination content.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Proctoring Tab-Switch Alert Modal (Strict 4-strike limit) */}
       <ProctorAlertModal
