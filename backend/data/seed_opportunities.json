@@ -1,0 +1,1762 @@
+[
+  {
+    "external_id": "ish-be-001",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/backend-engineering-internship-at-razorpay",
+    "title": "Backend Engineering Intern",
+    "organization": "Razorpay",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-15",
+    "stipend": "₹35,000 / month",
+    "description_raw": "Work directly with the Core Payments team to design high-throughput microservices using FastAPI, Redis caching, and PostgreSQL databases. You will be responsible for handling transaction idempotency and webhook delivery.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-fastapi",
+        "raw_mention": "FastAPI",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-redis",
+        "raw_mention": "Redis",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-002",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/platform-engineering-internship-at-swiggy",
+    "title": "Platform Engineering Intern",
+    "organization": "Swiggy",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-20",
+    "stipend": "₹40,000 / month",
+    "description_raw": "Build and optimize containerized distributed services for real-time delivery routing. Ideal candidate is comfortable with Go, Docker orchestration, and message brokers like Apache Kafka.",
+    "required_skills": [
+      {
+        "skill_id": "skill-golang",
+        "raw_mention": "Go",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-docker",
+        "raw_mention": "Docker",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-kafka",
+        "raw_mention": "Kafka",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-003",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/sde-intern-systems-at-flipkart",
+    "title": "SDE Intern - Core Systems",
+    "organization": "Flipkart",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-18",
+    "stipend": "₹50,000 / month",
+    "description_raw": "Join the e-commerce inventory and catalog infrastructure division. Develop scalable REST and gRPC endpoints in Java and Spring Boot with MySQL data consistency guarantees.",
+    "required_skills": [
+      {
+        "skill_id": "skill-java",
+        "raw_mention": "Java",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-spring-boot",
+        "raw_mention": "Spring Boot",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-mysql",
+        "raw_mention": "MySQL",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-grpc",
+        "raw_mention": "gRPC",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-004",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/payments-infra-intern-at-phonepe",
+    "title": "Payments Infrastructure Intern",
+    "organization": "PhonePe",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-25",
+    "stipend": "₹45,000 / month",
+    "description_raw": "Build resilient UPI transaction settlement pipelines. Strong understanding of SQL transaction isolation levels, Python backend frameworks, and fault-tolerant architecture required.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-system-design",
+        "raw_mention": "System Design",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-005",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/backend-intern-at-cred",
+    "title": "Backend Systems Intern",
+    "organization": "CRED",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-30",
+    "stipend": "₹50,000 / month",
+    "description_raw": "Design and maintain asynchronous event processing systems using Node.js, Redis, and DynamoDB. Participate in low-latency API tuning and load-testing campaigns.",
+    "required_skills": [
+      {
+        "skill_id": "skill-nodejs",
+        "raw_mention": "Node.js",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-redis",
+        "raw_mention": "Redis",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-006",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/logistics-api-intern-at-zomato",
+    "title": "Logistics & API Systems Intern",
+    "organization": "Zomato",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Gurugram, Haryana",
+    "deadline": "2026-11-05",
+    "stipend": "₹35,000 / month",
+    "description_raw": "Work on order allocation backend services using Python, Django, Celery, and PostgreSQL. Implement real-time geo-location matching algorithms and event streaming.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-django",
+        "raw_mention": "Django",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-007",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/api-platform-intern-at-postman",
+    "title": "API Platform Engineering Intern",
+    "organization": "Postman",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Remote, India",
+    "deadline": "2026-11-10",
+    "stipend": "₹40,000 / month",
+    "description_raw": "Help build the next generation of Postman API testing and collection runner backend services. Solid foundation in TypeScript, Node.js, OpenAPI specifications, and Docker required.",
+    "required_skills": [
+      {
+        "skill_id": "skill-typescript",
+        "raw_mention": "TypeScript",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-nodejs",
+        "raw_mention": "Node.js",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-docker",
+        "raw_mention": "Docker",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-008",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/foss-trading-systems-intern-at-zerodha",
+    "title": "Trading Systems & FOSS Intern",
+    "organization": "Zerodha",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-22",
+    "stipend": "₹45,000 / month",
+    "description_raw": "Contribute to Zerodha open-source software ecosystem and high-frequency backend ticker systems using Go, Linux kernel primitives, and PostgreSQL.",
+    "required_skills": [
+      {
+        "skill_id": "skill-golang",
+        "raw_mention": "Go",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-linux",
+        "raw_mention": "Linux",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-009",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/cloud-backend-intern-at-jio-platforms",
+    "title": "Cloud Backend Developer Intern",
+    "organization": "Jio Platforms",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Navi Mumbai, Maharashtra",
+    "deadline": "2026-10-28",
+    "stipend": "₹25,000 / month",
+    "description_raw": "Develop cloud native services for 5G enterprise applications. Hands-on experience with Python FastAPI, Kubernetes container management, and microservices.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-fastapi",
+        "raw_mention": "FastAPI",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-kubernetes",
+        "raw_mention": "Kubernetes",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-010",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/fintech-microservices-intern-at-groww",
+    "title": "Fintech Microservices Intern",
+    "organization": "Groww",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-11-01",
+    "stipend": "₹35,000 / month",
+    "description_raw": "Build order execution and mutual fund portfolio tracking APIs. Work with Spring Boot, MongoDB, and Redis caching layers for seamless user experience.",
+    "required_skills": [
+      {
+        "skill_id": "skill-java",
+        "raw_mention": "Java",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-spring-boot",
+        "raw_mention": "Spring Boot",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-redis",
+        "raw_mention": "Redis",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-011",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/backend-services-intern-at-urban-company",
+    "title": "Backend Services Intern",
+    "organization": "Urban Company",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Gurugram, Haryana",
+    "deadline": "2026-11-04",
+    "stipend": "₹30,000 / month",
+    "description_raw": "Engineer partner-facing scheduling services and payout engines. Implement secure APIs in Node.js, manage database indexing, and write integration tests.",
+    "required_skills": [
+      {
+        "skill_id": "skill-nodejs",
+        "raw_mention": "Node.js",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-docker",
+        "raw_mention": "Docker",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-012",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/supply-chain-backend-intern-at-meesho",
+    "title": "Supply Chain Backend Intern",
+    "organization": "Meesho",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Remote, India",
+    "deadline": "2026-10-19",
+    "stipend": "₹40,000 / month",
+    "description_raw": "Scale logistics dispatch services for tier-2/3 Indian cities. Integrate Kafka queues, automate database migrations, and handle order spikes during festive sales.",
+    "required_skills": [
+      {
+        "skill_id": "skill-java",
+        "raw_mention": "Java",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-kafka",
+        "raw_mention": "Kafka",
+        "min_proficiency": "BEGINNER"
+      },
+      {
+        "skill_id": "skill-mysql",
+        "raw_mention": "MySQL",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-013",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/financial-ledger-intern-at-bharatpe",
+    "title": "Financial Ledger Engineering Intern",
+    "organization": "BharatPe",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "New Delhi, Delhi",
+    "deadline": "2026-10-27",
+    "stipend": "₹30,000 / month",
+    "description_raw": "Develop double-entry accounting ledgers and merchant settlement microservices using Python, FastAPI, and relational databases.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-fastapi",
+        "raw_mention": "FastAPI",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-014",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/cloud-infrastructure-intern-at-browserstack",
+    "title": "Cloud Infrastructure Intern",
+    "organization": "BrowserStack",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Mumbai, Maharashtra",
+    "deadline": "2026-11-12",
+    "stipend": "₹45,000 / month",
+    "description_raw": "Automate browser virtual machines across cloud datacenters. Write backend device orchestration scripts using Go, Ruby, Docker, and Linux system calls.",
+    "required_skills": [
+      {
+        "skill_id": "skill-golang",
+        "raw_mention": "Go",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-docker",
+        "raw_mention": "Docker",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-linux",
+        "raw_mention": "Linux",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-015",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/10-minute-delivery-backend-intern-at-zepto",
+    "title": "Quick Commerce Backend Intern",
+    "organization": "Zepto",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Mumbai, Maharashtra",
+    "deadline": "2026-10-23",
+    "stipend": "₹35,000 / month",
+    "description_raw": "Help optimize dark store picking and rider dispatch algorithms with sub-second response times. Go, Redis in-memory storage, and WebSocket connections.",
+    "required_skills": [
+      {
+        "skill_id": "skill-golang",
+        "raw_mention": "Go",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-redis",
+        "raw_mention": "Redis",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-rest-apis",
+        "raw_mention": "REST APIs",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-016",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/adtech-platform-intern-at-inmobi",
+    "title": "AdTech Platform Backend Intern",
+    "organization": "InMobi",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-11-08",
+    "stipend": "₹40,000 / month",
+    "description_raw": "Work with massive scale ad bid evaluation systems handling over 100,000 requests per second. Java, distributed caching, and low-latency database queries.",
+    "required_skills": [
+      {
+        "skill_id": "skill-java",
+        "raw_mention": "Java",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-system-design",
+        "raw_mention": "System Design",
+        "min_proficiency": "BEGINNER"
+      },
+      {
+        "skill_id": "skill-mysql",
+        "raw_mention": "MySQL",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-017",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/iot-telemetry-backend-intern-at-ather",
+    "title": "IoT Telemetry Backend Intern",
+    "organization": "Ather Energy",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-11-15",
+    "stipend": "₹30,000 / month",
+    "description_raw": "Ingest real-time EV telemetry data streams (battery, motor RPM, GPS). Python backend using MQTT protocol, TimescaleDB / PostgreSQL time-series, and Docker.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-docker",
+        "raw_mention": "Docker",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-018",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/logistics-routing-backend-intern-at-delhivery",
+    "title": "Logistics Routing Backend Intern",
+    "organization": "Delhivery",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Gurugram, Haryana",
+    "deadline": "2026-10-31",
+    "stipend": "₹35,000 / month",
+    "description_raw": "Solve large scale travelling salesperson and hub-to-spoke network optimizations using Python, PostGIS geo-spatial queries, and REST APIs.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-rest-apis",
+        "raw_mention": "REST APIs",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-019",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/content-pipeline-intern-at-sharechat",
+    "title": "Content Pipeline Backend Intern",
+    "organization": "ShareChat",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Remote, India",
+    "deadline": "2026-10-24",
+    "stipend": "₹40,000 / month",
+    "description_raw": "Build real-time video transcode dispatchers and feed generation microservices using Go, gRPC, and NoSQL databases.",
+    "required_skills": [
+      {
+        "skill_id": "skill-golang",
+        "raw_mention": "Go",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-grpc",
+        "raw_mention": "gRPC",
+        "min_proficiency": "BEGINNER"
+      },
+      {
+        "skill_id": "skill-docker",
+        "raw_mention": "Docker",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-be-020",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/core-frameworks-intern-at-zoho",
+    "title": "Core Frameworks Backend Intern",
+    "organization": "Zoho Corporation",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Chennai, Tamil Nadu",
+    "deadline": "2026-11-20",
+    "stipend": "₹25,000 / month",
+    "description_raw": "Work on custom web servers, database connection pools, and core internal utilities in Java. Deep focus on object-oriented design and clean code.",
+    "required_skills": [
+      {
+        "skill_id": "skill-java",
+        "raw_mention": "Java",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-mysql",
+        "raw_mention": "MySQL",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-system-design",
+        "raw_mention": "System Design",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-001",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/machine-learning-research-intern-at-google",
+    "title": "Machine Learning Research Intern",
+    "organization": "Google India",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-18",
+    "stipend": "₹75,000 / month",
+    "description_raw": "Collaborate with research scientists on state-of-the-art deep learning architectures, attention mechanisms, and model compression for edge devices using PyTorch and JAX.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-deep-learning",
+        "raw_mention": "Deep Learning",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-002",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/nlp-systems-intern-at-microsoft-research",
+    "title": "NLP & LLM Systems Intern",
+    "organization": "Microsoft Research India",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-22",
+    "stipend": "₹70,000 / month",
+    "description_raw": "Research multilingual text understanding, instruction tuning, and prompt engineering for low-resource Indian languages using HuggingFace Transformers and PyTorch.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-nlp",
+        "raw_mention": "NLP",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "aicte-ml-003",
+    "source": "AICTE",
+    "original_url": "https://internship.aicte-india.org/internship-details/isro-satellite-imagery-ai-intern",
+    "title": "Satellite Imagery Deep Learning Intern",
+    "organization": "ISRO Satellite Centre",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-31",
+    "stipend": "₹20,000 / month",
+    "description_raw": "Government apprenticeship at ISRO. Apply convolutional neural networks and semantic segmentation models to multi-spectral remote sensing satellite data.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-computer-vision",
+        "raw_mention": "Computer Vision",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-004",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/generative-ai-intern-at-tcs-research",
+    "title": "Generative AI & LLM Systems Intern",
+    "organization": "TCS Research",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Pune, Maharashtra",
+    "deadline": "2026-11-02",
+    "stipend": "₹30,000 / month",
+    "description_raw": "Build enterprise Retrieval Augmented Generation (RAG) pipelines using LangChain, Vector Databases (ChromaDB/FAISS), and fine-tuned open weights models.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-nlp",
+        "raw_mention": "NLP",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-vector-db",
+        "raw_mention": "Vector DB",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-005",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/speech-audio-ai-intern-at-wipro",
+    "title": "Speech & Audio Processing AI Intern",
+    "organization": "Wipro AI Labs",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-11-06",
+    "stipend": "₹25,000 / month",
+    "description_raw": "Develop acoustic feature extraction and automatic speech recognition (ASR) pipelines. Experience with Librosa, PyTorch, and Whisper fine-tuning preferred.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "BEGINNER"
+      },
+      {
+        "skill_id": "skill-deep-learning",
+        "raw_mention": "Deep Learning",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-006",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/computer-vision-intern-at-infosys",
+    "title": "Computer Vision Solutions Intern",
+    "organization": "Infosys Center of AI",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Mysuru, Karnataka",
+    "deadline": "2026-10-29",
+    "stipend": "₹25,000 / month",
+    "description_raw": "Implement object detection, facial recognition, and OCR models using OpenCV and YOLOv8 for automated document inspection systems.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-computer-vision",
+        "raw_mention": "Computer Vision",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-opencv",
+        "raw_mention": "OpenCV",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-007",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/predictive-analytics-intern-at-persistent",
+    "title": "Predictive Analytics Data Science Intern",
+    "organization": "Persistent Systems",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Remote, India",
+    "deadline": "2026-11-09",
+    "stipend": "₹22,000 / month",
+    "description_raw": "Clean, analyze, and build regression and classification models on structured healthcare and insurance datasets using Pandas, NumPy, and Scikit-Learn.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pandas",
+        "raw_mention": "Pandas",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-scikit-learn",
+        "raw_mention": "Scikit-Learn",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-008",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/iot-predictive-maintenance-intern-at-ltts",
+    "title": "Industrial IoT & Predictive Maintenance ML Intern",
+    "organization": "L&T Technology Services",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Vadodara, Gujarat",
+    "deadline": "2026-11-14",
+    "stipend": "₹25,000 / month",
+    "description_raw": "Analyze sensor vibration and temperature anomalies to predict industrial equipment failure. Work with time-series analysis (ARIMA, LSTM) and Scikit-Learn.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-scikit-learn",
+        "raw_mention": "Scikit-Learn",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pandas",
+        "raw_mention": "Pandas",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-009",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/autonomous-driving-perception-intern-at-tata-elxsi",
+    "title": "Autonomous Driving Perception Intern",
+    "organization": "Tata Elxsi",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-26",
+    "stipend": "₹30,000 / month",
+    "description_raw": "Develop 3D bounding box estimation and LiDAR point cloud processing algorithms for Advanced Driver Assistance Systems (ADAS) using PyTorch and C++.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-computer-vision",
+        "raw_mention": "Computer Vision",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-010",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/conversational-ai-intern-at-reliance-jio",
+    "title": "Conversational AI & NLP Intern",
+    "organization": "Reliance AI COE",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Navi Mumbai, Maharashtra",
+    "deadline": "2026-11-16",
+    "stipend": "₹30,000 / month",
+    "description_raw": "Train intent recognition and dialogue management systems for customer support bots serving over 400 million users. Knowledge of LangChain and transformers required.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-nlp",
+        "raw_mention": "NLP",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-deep-learning",
+        "raw_mention": "Deep Learning",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-011",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/data-science-intern-at-fractal",
+    "title": "Client Data Science Intern",
+    "organization": "Fractal Analytics",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Mumbai, Maharashtra",
+    "deadline": "2026-10-21",
+    "stipend": "₹35,000 / month",
+    "description_raw": "Perform customer churn prediction, market basket analysis, and propensity modeling using Python, SQL, XGBoost, and SHAP interpretability frameworks.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pandas",
+        "raw_mention": "Pandas",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-scikit-learn",
+        "raw_mention": "Scikit-Learn",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-012",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/supply-chain-ml-intern-at-tiger-analytics",
+    "title": "Supply Chain ML Intern",
+    "organization": "Tiger Analytics",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Chennai, Tamil Nadu",
+    "deadline": "2026-11-18",
+    "stipend": "₹30,000 / month",
+    "description_raw": "Build demand forecasting models for global retail giants using Prophet, LightGBM, and Python. Must have solid grounding in statistical hypothesis testing.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-scikit-learn",
+        "raw_mention": "Scikit-Learn",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pandas",
+        "raw_mention": "Pandas",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-013",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/decision-sciences-trainee-at-mu-sigma",
+    "title": "Decision Sciences Trainee Intern",
+    "organization": "Mu Sigma",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-11-03",
+    "stipend": "₹25,000 / month",
+    "description_raw": "Learn and apply fundamental quantitative problem solving, data wrangling in SQL and Python, and statistical modeling on real enterprise case studies.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "BEGINNER"
+      },
+      {
+        "skill_id": "skill-pandas",
+        "raw_mention": "Pandas",
+        "min_proficiency": "BEGINNER"
+      },
+      {
+        "skill_id": "skill-mysql",
+        "raw_mention": "MySQL",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-014",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/fraud-detection-ml-intern-at-genpact",
+    "title": "Financial Fraud Detection ML Intern",
+    "organization": "Genpact",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Noida, Uttar Pradesh",
+    "deadline": "2026-11-21",
+    "stipend": "₹28,000 / month",
+    "description_raw": "Develop anti-money laundering and transaction anomaly detection pipelines using Isolation Forests, Autoencoders, and XGBoost in Python.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-scikit-learn",
+        "raw_mention": "Scikit-Learn",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-deep-learning",
+        "raw_mention": "Deep Learning",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-015",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/applied-genai-intern-at-hcltech",
+    "title": "Applied GenAI Solutions Intern",
+    "organization": "HCLTech AI Foundry",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Noida, Uttar Pradesh",
+    "deadline": "2026-11-11",
+    "stipend": "₹25,000 / month",
+    "description_raw": "Work on AI agent workflows, function calling, and structured output parsing using modern LLMs, LlamaIndex, and Python backend APIs.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-nlp",
+        "raw_mention": "NLP",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-fastapi",
+        "raw_mention": "FastAPI",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-016",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/battery-analytics-ml-intern-at-ola-electric",
+    "title": "Battery Analytics & Machine Learning Intern",
+    "organization": "Ola Electric",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-27",
+    "stipend": "₹30,000 / month",
+    "description_raw": "Predict Lithium-ion State of Charge (SOC) and State of Health (SOH) using electrochemical sensor telemetry and machine learning models in Python.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pandas",
+        "raw_mention": "Pandas",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-scikit-learn",
+        "raw_mention": "Scikit-Learn",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-017",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/cloud-data-intelligence-intern-at-druva",
+    "title": "Cloud Data Intelligence Intern",
+    "organization": "Druva",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Pune, Maharashtra",
+    "deadline": "2026-11-23",
+    "stipend": "₹35,000 / month",
+    "description_raw": "Build automated ransomware detection models analyzing cloud backup snapshot metadata and entropy changes. Strong Python and statistics skills required.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-scikit-learn",
+        "raw_mention": "Scikit-Learn",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-018",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/edge-ai-vision-intern-at-netradyne",
+    "title": "Edge AI & Computer Vision Intern",
+    "organization": "Netradyne",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-10-29",
+    "stipend": "₹40,000 / month",
+    "description_raw": "Deploy deep learning models on embedded automotive edge hardware (NVIDIA Jetson) for driver drowsiness detection and collision warnings using TensorRT.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-computer-vision",
+        "raw_mention": "Computer Vision",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-019",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/voice-ai-intern-at-observeai",
+    "title": "Voice AI & Speech Recognition Intern",
+    "organization": "Observe.AI",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-11-07",
+    "stipend": "₹40,000 / month",
+    "description_raw": "Build customer sentiment and speaker diarization models from call center audio recordings using Conformer and Wav2Vec architectures.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-deep-learning",
+        "raw_mention": "Deep Learning",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-020",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/pathology-ai-intern-at-sigtuple",
+    "title": "AI in Healthcare Pathology Intern",
+    "organization": "SigTuple",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-11-25",
+    "stipend": "₹30,000 / month",
+    "description_raw": "Develop deep learning cell classification algorithms for digitized peripheral blood smear microscopy slides using PyTorch and OpenCV.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-computer-vision",
+        "raw_mention": "Computer Vision",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-021",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/agtech-earth-observation-intern-at-cropin",
+    "title": "AgTech Earth Observation ML Intern",
+    "organization": "CropIn",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-11-28",
+    "stipend": "₹25,000 / month",
+    "description_raw": "Extract crop health NDVI indexes and predict crop yields using multi-temporal European Space Agency Sentinel-2 satellite feeds and Random Forests.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pandas",
+        "raw_mention": "Pandas",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-scikit-learn",
+        "raw_mention": "Scikit-Learn",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-022",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/robotics-perception-intern-at-greyorange",
+    "title": "Robotics Perception & Deep Learning Intern",
+    "organization": "GreyOrange",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Gurugram, Haryana",
+    "deadline": "2026-11-19",
+    "stipend": "₹35,000 / month",
+    "description_raw": "Develop 3D object detection, pick-and-place pose estimation, and obstacle avoidance software on warehouse automated guided vehicles (AGVs).",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-computer-vision",
+        "raw_mention": "Computer Vision",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-deep-learning",
+        "raw_mention": "Deep Learning",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-023",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/medical-imaging-ai-intern-at-qureai",
+    "title": "Medical Imaging AI Research Intern",
+    "organization": "Qure.ai",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Mumbai, Maharashtra",
+    "deadline": "2026-11-13",
+    "stipend": "₹40,000 / month",
+    "description_raw": "Train deep neural networks to detect intracranial hemorrhages and pulmonary nodules from CT scans and X-rays using 3D CNNs and PyTorch.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-computer-vision",
+        "raw_mention": "Computer Vision",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-024",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/conversational-agent-intern-at-yellowai",
+    "title": "Conversational Agent NLP Intern",
+    "organization": "Yellow.ai",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Remote, India",
+    "deadline": "2026-11-27",
+    "stipend": "₹30,000 / month",
+    "description_raw": "Implement intent classification and prompt orchestration pipelines for multi-turn conversational agents across WhatsApp and web channels.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-nlp",
+        "raw_mention": "NLP",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-ml-025",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/internship/detail/indic-nlp-speech-intern-at-karya",
+    "title": "Indic Language AI Speech Intern",
+    "organization": "Karya Inc",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Remote, India",
+    "deadline": "2026-12-01",
+    "stipend": "₹25,000 / month",
+    "description_raw": "Train and evaluate automatic speech recognition models for vernacular Indian dialects (Hindi, Marathi, Bhojpuri, Tamil) using PyTorch and HuggingFace.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-nlp",
+        "raw_mention": "NLP",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "unstop-hack-001",
+    "source": "UNSTOP",
+    "original_url": "https://unstop.com/hackathons/smart-india-hackathon-2026-ministry-of-education",
+    "title": "Smart India Hackathon (SIH) 2026",
+    "organization": "Ministry of Education & AICTE",
+    "type": "HACKATHON",
+    "mode": "HYBRID",
+    "location": "Pan India",
+    "deadline": "2026-10-25",
+    "stipend": "₹1,00,000 Cash Prize",
+    "description_raw": "World largest open innovation model competition where student teams build digital solutions for challenging problems posted by central ministries and industry partners.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-fastapi",
+        "raw_mention": "FastAPI",
+        "min_proficiency": "BEGINNER"
+      },
+      {
+        "skill_id": "skill-system-design",
+        "raw_mention": "System Design",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "unstop-hack-002",
+    "source": "UNSTOP",
+    "original_url": "https://unstop.com/competitions/flipkart-grid-8-software-development-track",
+    "title": "Flipkart GRiD 8.0 - Software Development Challenge",
+    "organization": "Flipkart",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "Online, India",
+    "deadline": "2026-10-30",
+    "stipend": "₹5,00,000 Prize Pool + PPIs",
+    "description_raw": "Flagship engineering campus challenge. Build high-concurrency e-commerce order routing and real-time fraud detection systems under strict latency constraints.",
+    "required_skills": [
+      {
+        "skill_id": "skill-java",
+        "raw_mention": "Java",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-system-design",
+        "raw_mention": "System Design",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-redis",
+        "raw_mention": "Redis",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "unstop-hack-003",
+    "source": "UNSTOP",
+    "original_url": "https://unstop.com/hackathons/tata-crucible-hackathon-2026",
+    "title": "Tata Crucible Hackathon 2026",
+    "organization": "Tata Group",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "Online, India",
+    "deadline": "2026-11-05",
+    "stipend": "₹2,50,000 Prize Pool",
+    "description_raw": "Design scalable AI and IoT solutions tackling sustainability, supply chain efficiency, and digital manufacturing for Tata Group companies.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-deep-learning",
+        "raw_mention": "Deep Learning",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "unstop-hack-004",
+    "source": "UNSTOP",
+    "original_url": "https://unstop.com/hackathons/amazon-ml-challenge-2026",
+    "title": "Amazon ML Challenge 2026",
+    "organization": "Amazon India",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "Online, India",
+    "deadline": "2026-10-28",
+    "stipend": "₹3,00,000 Prize Pool + SDE Interviews",
+    "description_raw": "Solve real-world Amazon e-commerce catalog problems by training machine learning models on millions of product images and descriptions.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-pytorch",
+        "raw_mention": "PyTorch",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-nlp",
+        "raw_mention": "NLP",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "unstop-hack-005",
+    "source": "UNSTOP",
+    "original_url": "https://unstop.com/hackathons/optum-stratethon-2026-engineering-track",
+    "title": "Optum Stratethon 2026 - Engineering Track",
+    "organization": "Optum (UnitedHealth Group)",
+    "type": "HACKATHON",
+    "mode": "HYBRID",
+    "location": "Hyderabad / Online",
+    "deadline": "2026-11-08",
+    "stipend": "₹3,50,000 Prize Pool",
+    "description_raw": "Develop patient-centric digital health applications, secure health records exchange protocols, and automated claim adjudication pipelines.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-fastapi",
+        "raw_mention": "FastAPI",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "aicte-hack-006",
+    "source": "AICTE",
+    "original_url": "https://internship.aicte-india.org/clean-energy-hackathon-2026",
+    "title": "National Clean Energy Innovation Hackathon",
+    "organization": "AICTE & Ministry of New and Renewable Energy",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "New Delhi / Online",
+    "deadline": "2026-11-12",
+    "stipend": "₹1,50,000 Grant Prize",
+    "description_raw": "Develop digital twins and smart grid analytics to balance solar and wind load distribution for Indian state discoms.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pandas",
+        "raw_mention": "Pandas",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "aicte-hack-007",
+    "source": "AICTE",
+    "original_url": "https://internship.aicte-india.org/cyber-security-challenge-2026",
+    "title": "AI for Bharat Cyber Security Challenge",
+    "organization": "AICTE & Indian Cyber Crime Coordination Centre (I4C)",
+    "type": "HACKATHON",
+    "mode": "HYBRID",
+    "location": "New Delhi / Online",
+    "deadline": "2026-11-15",
+    "stipend": "₹2,00,000 Prize",
+    "description_raw": "Create automated phishing website crawlers, UPI scam SMS classifiers, and network intrusion detection modules using machine learning.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-scikit-learn",
+        "raw_mention": "Scikit-Learn",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-linux",
+        "raw_mention": "Linux",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "aicte-hack-008",
+    "source": "AICTE",
+    "original_url": "https://internship.aicte-india.org/agritech-student-challenge-2026",
+    "title": "Digital AgriTech Innovation Challenge",
+    "organization": "AICTE & NABARD",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "Online, India",
+    "deadline": "2026-11-20",
+    "stipend": "₹1,00,000 Seed Grant",
+    "description_raw": "Build mobile-first farm advisory apps integrating weather forecasting APIs, mandi commodity price alerts, and offline sync capabilities.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-rest-apis",
+        "raw_mention": "REST APIs",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "aicte-hack-009",
+    "source": "AICTE",
+    "original_url": "https://internship.aicte-india.org/jal-shakti-hackathon-2026",
+    "title": "Smart Water Monitoring Hackathon",
+    "organization": "Ministry of Jal Shakti & AICTE",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "Online, India",
+    "deadline": "2026-11-22",
+    "stipend": "₹1,00,000 Award",
+    "description_raw": "Design IoT telemetry aggregators and anomaly detection dashboards tracking rural groundwater levels under the Jal Jeevan Mission.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "aicte-hack-010",
+    "source": "AICTE",
+    "original_url": "https://internship.aicte-india.org/smart-logistics-challenge-2026",
+    "title": "Smart Logistics Student Challenge",
+    "organization": "National Logistics Portal & AICTE",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "Online, India",
+    "deadline": "2026-11-26",
+    "stipend": "₹1,50,000 Prize",
+    "description_raw": "Create algorithmic dispatch models to optimize inter-state multi-modal cargo transit between ports, freight corridors, and dry docks.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-system-design",
+        "raw_mention": "System Design",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-hack-011",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/contest/tech-titans-national-coding-challenge-2026",
+    "title": "Tech Titans National Coding Challenge 2026",
+    "organization": "Internshala",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "Online, India",
+    "deadline": "2026-10-29",
+    "stipend": "₹50,000 Cash Prize + Certificates",
+    "description_raw": "Timed speed coding competition testing algorithmic efficiency, dynamic programming, graph theory, and mathematical problem solving in Python, C++, or Java.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-java",
+        "raw_mention": "Java",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-hack-012",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/contest/women-in-tech-hackathon-2026",
+    "title": "Women in Tech Hackathon 2026",
+    "organization": "Internshala & Global Tech Women",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "Online, India",
+    "deadline": "2026-11-04",
+    "stipend": "₹1,00,000 Prize + Mentorship",
+    "description_raw": "A 48-hour online hackathon for women college students to build assistive technology, accessible web applications, and education platforms.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-rest-apis",
+        "raw_mention": "REST APIs",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "ish-hack-013",
+    "source": "INTERNSHALA",
+    "original_url": "https://internshala.com/contest/open-source-summer-fest-2026",
+    "title": "Open Source Innovation Fest 2026",
+    "organization": "FOSS India Community",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "Online, India",
+    "deadline": "2026-11-17",
+    "stipend": "₹75,000 Stipend Grants",
+    "description_raw": "Contribute to Indian public digital infrastructure tools (UPI SDKs, ONDC connectors, DigiLocker plugins) under expert developer mentorship.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-git",
+        "raw_mention": "Git",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "direct-hack-014",
+    "source": "DIRECT",
+    "original_url": "https://vidyut.gov.in/hackathons/education-to-employment-2026",
+    "title": "Vidyut Innovation Hackathon: Education to Employment",
+    "organization": "Vidyut Platform",
+    "type": "HACKATHON",
+    "mode": "REMOTE",
+    "location": "Online, India",
+    "deadline": "2026-11-30",
+    "stipend": "₹2,00,000 Prize Pool",
+    "description_raw": "Build automated skill assessment engines, adaptive learning DAG visualizers, and opportunity recommenders on top of open Vidyut API specifications.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-fastapi",
+        "raw_mention": "FastAPI",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "BEGINNER"
+      }
+    ]
+  },
+  {
+    "external_id": "direct-hack-015",
+    "source": "DIRECT",
+    "original_url": "https://fintechsandbox.in/challenges/indian-fintech-sandbox-2026",
+    "title": "Indian FinTech Sandbox Hackathon 2026",
+    "organization": "Fintech Convergence Council",
+    "type": "HACKATHON",
+    "mode": "HYBRID",
+    "location": "Mumbai / Online",
+    "deadline": "2026-11-24",
+    "stipend": "₹3,00,000 Prize + Incubation",
+    "description_raw": "Build cross-border remittance solutions, micro-lending credit rating engines, and account aggregator financial health dashboards using sandbox APIs.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-fastapi",
+        "raw_mention": "FastAPI",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  }
+]
