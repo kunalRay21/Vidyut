@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type OpportunityCategory = 'READY_NOW' | 'ALMOST_READY' | 'ASPIRATIONAL';
 
@@ -13,10 +14,11 @@ interface OpportunityTabsProps {
 }
 
 export const OpportunityTabs: React.FC<OpportunityTabsProps> = ({ activeTab, onTabChange, counts }) => {
+  const { t } = useTranslation();
   const tabs = [
-    { id: 'READY_NOW' as const, label: 'Ready Now', count: counts.READY_NOW, color: 'text-green-700 bg-green-100 border-green-200' },
-    { id: 'ALMOST_READY' as const, label: 'Almost Ready', count: counts.ALMOST_READY, color: 'text-amber-700 bg-amber-100 border-amber-200' },
-    { id: 'ASPIRATIONAL' as const, label: 'Aspirational', count: counts.ASPIRATIONAL, color: 'text-purple-700 bg-purple-100 border-purple-200' },
+    { id: 'READY_NOW' as const, label: t('opportunities.tabs.readyNow', 'Ready to Apply'), count: counts.READY_NOW, color: 'text-green-700 bg-green-100 border-green-200' },
+    { id: 'ALMOST_READY' as const, label: t('opportunities.tabs.almostReady', 'Missing 1 Prerequisite'), count: counts.ALMOST_READY, color: 'text-amber-700 bg-amber-100 border-amber-200' },
+    { id: 'ASPIRATIONAL' as const, label: t('opportunities.tabs.aspirational', 'Stretch Goals'), count: counts.ASPIRATIONAL, color: 'text-purple-700 bg-purple-100 border-purple-200' },
   ];
 
   return (

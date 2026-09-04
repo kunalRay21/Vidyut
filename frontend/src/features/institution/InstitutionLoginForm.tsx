@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { GraduationCap } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const InstitutionLoginForm: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { loginInstitution } = useAuth();
@@ -47,18 +49,18 @@ const InstitutionLoginForm: React.FC = () => {
           </div>
 
           <h1 className="text-2xl font-bold font-heading text-gray-900">
-            Institution Portal Login
+            {t('institution.title', 'Institution Portal Login')}
           </h1>
 
           <p className="text-gray-600 text-sm mt-1">
-            Access placement intelligence & curriculum readiness analytics
+            {t('institution.registerSubtitle', 'Access placement intelligence & curriculum readiness analytics')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Officer Email
+              {t('auth.emailLabel')} *
             </label>
             <input
               type="email"
@@ -71,13 +73,13 @@ const InstitutionLoginForm: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
+              {t('auth.passwordLabel')} *
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder={t('auth.passwordPlaceholder')}
               className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-[#000080] focus:ring-1 focus:ring-[#000080] transition"
             />
           </div>
@@ -93,17 +95,17 @@ const InstitutionLoginForm: React.FC = () => {
             disabled={loading}
             className="w-full btn-chakra py-3 rounded-lg font-bold text-sm disabled:opacity-50 mt-2 cursor-pointer"
           >
-            {loading ? 'Authenticating...' : 'Sign In to Portal'}
+            {loading ? 'Authenticating...' : t('auth.signInBtn')}
           </button>
         </form>
 
         <div className="text-center mt-6 text-sm text-gray-600">
-          Don't have an institution account?{' '}
+          {t('auth.noAccount')}{' '}
           <Link
             to="/institution/onboard"
             className="text-[#000080] hover:underline font-semibold"
           >
-            Register College (AISHE)
+            {t('institution.registerHeading', 'Register College (AISHE)')}
           </Link>
         </div>
       </div>

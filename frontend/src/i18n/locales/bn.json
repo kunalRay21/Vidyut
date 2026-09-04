@@ -89,6 +89,103 @@
       "collegePortal": "কলেজ পোর্টাল (AISHE)"
     }
   },
+  "auth": {
+    "loginTitle": "স্বাগতম",
+    "loginSubtitle": "আপনার বিদ্যুৎ ক্যারিয়ার প্রস্তুতি যাত্রা চালিয়ে যেতে সাইন ইন করুন",
+    "registerTitle": "অ্যাকাউন্ট তৈরি করুন",
+    "registerSubtitle": "শিক্ষার্থী ও শিল্পের জন্য ভারতের যাচাইকৃত দক্ষতা নেটওয়ার্কে যোগ দিন",
+    "emailLabel": "ইমেল ঠিকানা",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "পাসওয়ার্ড",
+    "passwordPlaceholder": "••••••••",
+    "fullNameLabel": "সম্পূর্ণ নাম",
+    "fullNamePlaceholder": "প্রিয়া শর্মা",
+    "institutionLabel": "কলেজ / প্রতিষ্ঠান",
+    "institutionPlaceholder": "ভিআইটি চেন্নাই",
+    "degreeLabel": "ডিগ্রি ও বিভাগ",
+    "degreePlaceholder": "বি.টেক সিএসই",
+    "yearLabel": "অধ্যয়নের বছর",
+    "roleLabel": "ভূমিকা নির্বাচন করুন",
+    "signInBtn": "সাইন ইন",
+    "signUpBtn": "অ্যাকাউন্ট তৈরি করুন",
+    "quickDemoAccess": "দ্রুত ডেমো প্রবেশ (১-ক্লিক)",
+    "noAccount": "অ্যাকাউন্ট নেই?",
+    "alreadyAccount": "ইতিমধ্যে একটি অ্যাকাউন্ট আছে?",
+    "student": "শিক্ষার্থী",
+    "industry": "শিল্প",
+    "college": "কলেজ"
+  },
+  "dashboard": {
+    "title": "শিক্ষার্থী ড্যাশবোর্ড",
+    "welcome": "স্বাগতম",
+    "careerGoalSummary": "ক্যারিয়ার লক্ষ্য সারাংশ",
+    "targetRole": "লক্ষ্য ভূমিকা",
+    "institution": "প্রতিষ্ঠান",
+    "degree": "ডিগ্রি",
+    "year": "বছর",
+    "nextMilestone": "পরবর্তী মাইলফলক",
+    "nextMilestoneDesc": "নতুন সুযোগ আনলক করতে আপনার পূর্বশর্ত রোডম্যাপে এগিয়ে যান।",
+    "goToRoadmap": "রোডম্যাপে যান",
+    "readinessTitle": "যাচাইকৃত প্রস্তুতি"
+  },
+  "roadmap": {
+    "badge": "নিয়ন্ত্রিত DAG টপোলজিকাল ক্রম",
+    "title": "অভিযোজিত রোডম্যাপ",
+    "subtitle": "লক্ষ্য ভূমিকার জন্য আপনার ব্যক্তিগত পূর্বশর্ত পথ",
+    "currentReadiness": "বর্তমান প্রস্তুতি",
+    "milestoneStatus": {
+      "completed": "সম্পন্ন",
+      "inProgress": "চলমান",
+      "locked": "লক করা"
+    },
+    "chooseTrack": "বিশেষীকরণ সিদ্ধান্ত বিন্দু",
+    "submitEvidence": "কাজের প্রমাণ জমা দিন",
+    "viewOutcome": "শেখার ফলাফল"
+  },
+  "opportunities": {
+    "title": "সুযোগ মিল কেন্দ্র",
+    "subtitle": "আপনার যাচাইকৃত পূর্বশর্তের উপর ভিত্তি করে অ্যালগরিদম দ্বারা সাজানো সরাসরি সুযোগ।",
+    "tabs": {
+      "readyNow": "সরাসরি আবেদনযোগ্য",
+      "almostReady": "১টি পূর্বশর্ত বাকি",
+      "aspirational": "উচ্চাকাঙ্ক্ষী লক্ষ্য"
+    },
+    "matchScore": "মিল",
+    "missingPrereq": "বাকি পূর্বশর্ত",
+    "applyNow": "সরাসরি আবেদন করুন",
+    "viewMatchReasoning": "অ্যালগরিদমিক ব্যাখ্যা"
+  },
+  "industry": {
+    "title": "নিয়োগকারী পোর্টাল",
+    "subtitle": "যাচাইকৃত দক্ষতার ভিত্তিতে সঠিক নিয়োগ",
+    "viewTalentPool": "ট্যালেন্ট পুল দেখুন",
+    "postOpportunity": "সুযোগ পোস্ট করুন",
+    "talentSearch": "যাচাইকৃত প্রতিভা অনুসন্ধান করুন",
+    "verifiedScore": "প্রস্তুতি স্কোর",
+    "matchCandidates": "উপযুক্ত প্রার্থী",
+    "registerHeading": "বিদ্যুৎ পার্টনার হিসেবে যুক্ত হন",
+    "registerSubtitle": "যাচাইকৃত দক্ষ শিক্ষার্থীদের সরাসরি নিয়োগের জন্য আপনার সংস্থা নিবন্ধন করুন।",
+    "companyNameLabel": "কোম্পানির নাম",
+    "sectorLabel": "শিল্প খাত",
+    "websiteLabel": "কোম্পানির ওয়েবসাইট",
+    "registerBtn": "সংস্থা নিবন্ধন করুন"
+  },
+  "institution": {
+    "title": "প্রাতিষ্ঠানিক অ্যানালিটিক্স ড্যাশবোর্ড",
+    "badge": "NEP 2020 এবং AISHE মেট্রিক",
+    "totalEnrolled": "মোট তালিকাভুক্ত",
+    "avgReadiness": "গড় প্রস্তুতি",
+    "readyNow": "তৈরি শিক্ষার্থী",
+    "cohortTitle": "ব্যাচ প্লেসমেন্ট প্রস্তুতি বিশ্লেষণ",
+    "curriculumGapTitle": "পাঠ্যক্রম ব্যবধান হিটম্যাপ (NEP 2020)",
+    "registerHeading": "প্রতিষ্ঠান নিবন্ধন",
+    "registerSubtitle": "দক্ষতার ঘাটতি বিশ্লেষণ এবং শিক্ষার্থী প্রস্তুতি রিপোর্ট পেতে আপনার কলেজ যুক্ত করুন।",
+    "institutionNameLabel": "কলেজ / প্রতিষ্ঠানের নাম",
+    "aisheCodeLabel": "AISHE কোড",
+    "officerNameLabel": "প্লেসমেন্ট অফিসার / অ্যাডমিন নাম",
+    "departmentsLabel": "অংশগ্রহণকারী বিভাগসমূহ",
+    "registerBtn": "প্রতিষ্ঠান যুক্ত করুন"
+  },
   "footer": {
     "text": "বিদ্যুৎ — স্মার্ট ইন্ডিয়া হ্যাকাথন ২০২৬ · শিক্ষা মন্ত্রণালয় ও AICTE-এর উদ্যোগ"
   }

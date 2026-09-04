@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { OpportunityTabs, OpportunityCategory } from '../features/opportunities/OpportunityTabs';
 import { OpportunityCard } from '../features/opportunities/OpportunityCard';
 import { MatchExplanationModal } from '../features/opportunities/MatchExplanationModal';
@@ -41,6 +42,7 @@ const DEFAULT_MOCK_DATA = {
 };
 
 export const OpportunitiesPage: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<OpportunityCategory>('READY_NOW');
   const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
   const [categorizedOpps, setCategorizedOpps] = useState(DEFAULT_MOCK_DATA);
@@ -118,8 +120,8 @@ export const OpportunitiesPage: React.FC = () => {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-bold uppercase tracking-wider mb-2 border border-green-200">
             Live Verified Opportunity Pipeline
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Opportunity Hub</h1>
-          <p className="text-gray-500 mt-1">Curated roles and events matched dynamically to your verified skill graph.</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('opportunities.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('opportunities.subtitle')}</p>
         </header>
       </FadeIn>
 

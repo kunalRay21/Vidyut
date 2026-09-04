@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { UserPlus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterForm() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { registerStudent } = useAuth();
 
@@ -84,18 +86,18 @@ export default function RegisterForm() {
           </div>
 
           <h1 className="text-2xl font-bold font-heading text-gray-900">
-            Create Student Account
+            {t('auth.registerTitle')}
           </h1>
 
           <p className="text-gray-600 text-sm mt-1">
-            Join Vidyut and discover your personalized career readiness path
+            {t('auth.registerSubtitle')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name *
+              {t('auth.fullNameLabel')} *
             </label>
             <input
               type="text"
@@ -109,28 +111,28 @@ export default function RegisterForm() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address *
+              {t('auth.emailLabel')} *
             </label>
             <input
               type="email"
               name="email"
               value={form.email}
               onChange={handleChange}
-              placeholder="student@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password *
+              {t('auth.passwordLabel')} *
             </label>
             <input
               type="password"
               name="password"
               value={form.password}
               onChange={handleChange}
-              placeholder="Create a password"
+              placeholder={t('auth.passwordPlaceholder')}
               className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
             />
           </div>
@@ -138,28 +140,28 @@ export default function RegisterForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Institution *
+                {t('auth.institutionLabel')} *
               </label>
               <input
                 type="text"
                 name="institution"
                 value={form.institution}
                 onChange={handleChange}
-                placeholder="e.g. VIT Chennai"
+                placeholder={t('auth.institutionPlaceholder')}
                 className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Degree & Major *
+                {t('auth.degreeLabel')} *
               </label>
               <input
                 type="text"
                 name="degree"
                 value={form.degree}
                 onChange={handleChange}
-                placeholder="e.g. B.Tech CSE"
+                placeholder={t('auth.degreePlaceholder')}
                 className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
               />
             </div>
@@ -168,7 +170,7 @@ export default function RegisterForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Year of Study *
+                {t('auth.yearLabel')} *
               </label>
               <input
                 type="number"
@@ -184,7 +186,7 @@ export default function RegisterForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Interests
+                {t('auth.interestsLabel', 'Interests')}
               </label>
               <input
                 type="text"
@@ -208,17 +210,17 @@ export default function RegisterForm() {
             disabled={loading}
             className="w-full btn-saffron py-3 rounded-lg font-semibold disabled:opacity-50 mt-2 cursor-pointer"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? t('auth.creatingAccount', 'Creating Account...') : t('auth.signUpBtn')}
           </button>
         </form>
 
         <div className="text-center mt-6 text-sm text-gray-600">
-          Already have an account?{' '}
+          {t('auth.alreadyAccount')}{' '}
           <Link
             to="/login"
             className="text-saffron hover:underline font-semibold"
           >
-            Sign In
+            {t('nav.signIn')}
           </Link>
         </div>
       </div>

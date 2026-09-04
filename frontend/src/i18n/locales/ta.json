@@ -89,6 +89,103 @@
       "collegePortal": "கல்லூரி போர்ட்டல் (AISHE)"
     }
   },
+  "auth": {
+    "loginTitle": "மீண்டும் வருக",
+    "loginSubtitle": "உங்கள் வித்யுத் கற்றல் பயணத்தைத் தொடர உள்நுழையவும்",
+    "registerTitle": "கணக்கை உருவாக்கவும்",
+    "registerSubtitle": "இந்தியாவின் சரிபார்க்கப்பட்ட திறன் வலையமைப்பில் இணையுங்கள்",
+    "emailLabel": "மின்னஞ்சல் முகவரி",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "கடவுச்சொல்",
+    "passwordPlaceholder": "••••••••",
+    "fullNameLabel": "முழு பெயர்",
+    "fullNamePlaceholder": "பிரியா சர்மா",
+    "institutionLabel": "கல்லூரி / கல்வி நிறுவனம்",
+    "institutionPlaceholder": "விஐடி சென்னை",
+    "degreeLabel": "பட்டம் மற்றும் துறை",
+    "degreePlaceholder": "பி.டெக் சிஎஸ்இ",
+    "yearLabel": "பயிலும் ஆண்டு",
+    "roleLabel": "பங்கை தேர்ந்தெடுக்கவும்",
+    "signInBtn": "உள்நுழை",
+    "signUpBtn": "கணக்கை உருவாக்கு",
+    "quickDemoAccess": "டெமோ அணுகல் (1-கிளிக்)",
+    "noAccount": "கணக்கு இல்லையா?",
+    "alreadyAccount": "ஏற்கனவே கணக்கு உள்ளதா?",
+    "student": "மாணவர்",
+    "industry": "தொழில்துறை",
+    "college": "கல்லூரி"
+  },
+  "dashboard": {
+    "title": "மாணவர் டாஷ்போர்டு",
+    "welcome": "மீண்டும் வருக",
+    "careerGoalSummary": "தொழில் இலக்கு சுருக்கம்",
+    "targetRole": "இலக்கு பங்கு",
+    "institution": "கல்வி நிறுவனம்",
+    "degree": "பட்டம்",
+    "year": "ஆண்டு",
+    "nextMilestone": "அடுத்த மைல்கல்",
+    "nextMilestoneDesc": "வாய்ப்புகளைத் திறக்க உங்கள் கற்றல் வரைபடத்தில் முன்னேறுங்கள்.",
+    "goToRoadmap": "கற்றல் வரைபடத்திற்குச் செல்லவும்",
+    "readinessTitle": "சரிபார்க்கப்பட்ட தயார்நிலை"
+  },
+  "roadmap": {
+    "badge": "DAG இடவியல் வரிசைமுறை",
+    "title": "தகவமைப்பு கற்றல் வரைபடம்",
+    "subtitle": "உங்கள் இலக்குக்கான தனிப்பயனாக்கப்பட்ட கற்றல் பாதை",
+    "currentReadiness": "தற்போதைய தயார்நிலை",
+    "milestoneStatus": {
+      "completed": "முடிந்தது",
+      "inProgress": "செயலில் உள்ளது",
+      "locked": "பூட்டப்பட்டது"
+    },
+    "chooseTrack": "சிறப்புப் பிரிவு முடிவுப் புள்ளி",
+    "submitEvidence": "சான்றுகளைச் சமர்ப்பிக்கவும்",
+    "viewOutcome": "கற்றல் முடிவு"
+  },
+  "opportunities": {
+    "title": "வேலை வாய்ப்பு பொருத்தம்",
+    "subtitle": "உங்கள் சரிபார்க்கப்பட்ட திறன்களின் அடிப்படையில் அல்காரிதம் மூலம் தேர்ந்தெடுக்கப்பட்ட வாய்ப்புகள்.",
+    "tabs": {
+      "readyNow": "விண்ணப்பிக்க தயார்",
+      "almostReady": "1 முன்நிபந்தனை மீதமுள்ளது",
+      "aspirational": "உயர் இலக்குகள்"
+    },
+    "matchScore": "பொருத்தம்",
+    "missingPrereq": "மீதமுள்ள முன்நிபந்தனை",
+    "applyNow": "நேரடியாக விண்ணப்பிக்கவும்",
+    "viewMatchReasoning": "பொருத்தத்திற்கான காரணம்"
+  },
+  "industry": {
+    "title": "நிறுவன போர்ட்டல்",
+    "subtitle": "சரிபார்க்கப்பட்ட துல்லியமான ஆட்சேர்ப்பு",
+    "viewTalentPool": "திறமைசாலிகள் பட்டியலைப் பார்க்கவும்",
+    "postOpportunity": "வாய்ப்பை இடுகையிடவும்",
+    "talentSearch": "சரிபார்க்கப்பட்ட மாணவர்களைத் தேடுங்கள்",
+    "verifiedScore": "தயார்நிலை மதிப்பெண்",
+    "matchCandidates": "தகுதியான வேட்பாளர்கள்",
+    "registerHeading": "வித்யுத் நிறுவன பார்ட்னர் ஆக இணையுங்கள்",
+    "registerSubtitle": "சரிபார்க்கப்பட்ட திறமையான மாணவர்களை நேரடியாகப் பணியமர்த்த உங்கள் நிறுவனத்தைப் பதிவு செய்யவும்.",
+    "companyNameLabel": "நிறுவனத்தின் பெயர்",
+    "sectorLabel": "தொழில் துறை",
+    "websiteLabel": "நிறுவன இணையதளம்",
+    "registerBtn": "நிறுவனத்தைப் பதிவு செய்"
+  },
+  "institution": {
+    "title": "நிறுவன பகுப்பாய்வு டாஷ்போர்டு",
+    "badge": "NEP 2020 மற்றும் AISHE அளவீடு",
+    "totalEnrolled": "மொத்த மாணவர்கள்",
+    "avgReadiness": "சராசரி தயார்நிலை",
+    "readyNow": "முழு தயார்நிலை",
+    "cohortTitle": "மாணவர் வேலைவாய்ப்பு தயார்நிலை விநியோகம்",
+    "curriculumGapTitle": "பாடத்திட்ட இடைவெளி பகுப்பாய்வு (NEP 2020)",
+    "registerHeading": "கல்லூரி / கல்வி நிறுவனப் பதிவு",
+    "registerSubtitle": "பாடத்திட்ட இடைவெளி மற்றும் மாணவர் தயார்நிலை அறிக்கைகளைப் பெற உங்கள் கல்லூரியை இணைக்கவும்.",
+    "institutionNameLabel": "கல்லூரி / நிறுவனத்தின் பெயர்",
+    "aisheCodeLabel": "AISHE குறியீடு",
+    "officerNameLabel": "வேலைவாய்ப்பு அதிகாரி பெயர்",
+    "departmentsLabel": "பங்கேற்கும் துறைகள்",
+    "registerBtn": "நிறுவனத்தை இணைக்கவும்"
+  },
   "footer": {
     "text": "வித்யுத் — ஸ்மார்ட் இந்தியா ஹேக்கத்தான் 2026 · கல்வி அமைச்சகம் மற்றும் AICTE முன்முயற்சி"
   }

@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FadeIn } from '../../components/animations/FadeIn';
 import { Users, TrendingUp, CheckCircle, AlertTriangle, BookOpen } from 'lucide-react';
 
 const InstitutionDashboardPage: React.FC = () => {
+  const { t } = useTranslation();
   const metrics = {
     totalStudents: 420,
     averageReadiness: 54.2,
@@ -35,7 +37,7 @@ const InstitutionDashboardPage: React.FC = () => {
       <FadeIn delay={100}>
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-[#000080] text-xs font-bold uppercase tracking-wider mb-2 border border-blue-200">
-            Institution Analytics Dashboard
+            {t('institution.badge', 'Institution Analytics Dashboard')}
           </div>
           <h1 className="text-3xl font-extrabold text-gray-900 font-heading">
             VIT Chennai - School of Computer Science
@@ -54,7 +56,7 @@ const InstitutionDashboardPage: React.FC = () => {
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Enrolled</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('institution.totalEnrolled')}</p>
               <p className="text-3xl font-extrabold text-gray-900 mt-0.5">{metrics.totalStudents}</p>
             </div>
           </div>
@@ -66,7 +68,7 @@ const InstitutionDashboardPage: React.FC = () => {
               <TrendingUp className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Readiness</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('institution.avgReadiness')}</p>
               <p className="text-3xl font-extrabold text-amber-600 mt-0.5">{metrics.averageReadiness}%</p>
             </div>
           </div>
@@ -78,7 +80,7 @@ const InstitutionDashboardPage: React.FC = () => {
               <CheckCircle className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ready Now</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('institution.readyNow')}</p>
               <p className="text-3xl font-extrabold text-green-700 mt-0.5">{metrics.readyNow}%</p>
             </div>
           </div>
@@ -90,13 +92,13 @@ const InstitutionDashboardPage: React.FC = () => {
         <div className="bg-[#FFFEF2] border border-[#EAE3B3] rounded-2xl p-7 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900 font-heading mb-6 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-[#000080]" />
-            Cohort Placement Readiness Distribution
+            {t('institution.cohortTitle')}
           </h2>
 
           <div className="space-y-5">
             <div>
               <div className="flex justify-between text-sm mb-1.5">
-                <span className="font-semibold text-green-700">Ready Now (Skill Score ≥ 75%)</span>
+                <span className="font-semibold text-green-700">{t('institution.readyNow', 'Ready Now')} (Skill Score ≥ 75%)</span>
                 <span className="font-bold text-gray-900">{metrics.readyNow}% of cohort</span>
               </div>
               <div className="w-full h-3 bg-gray-200/80 rounded-full overflow-hidden">
@@ -133,7 +135,7 @@ const InstitutionDashboardPage: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 font-heading flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-saffron" />
-              Identified Curriculum Gaps vs. Industry Demand
+              {t('institution.curriculumGapTitle')}
             </h2>
             <span className="text-xs font-semibold text-gray-500">Live AICTE/Industry Target</span>
           </div>

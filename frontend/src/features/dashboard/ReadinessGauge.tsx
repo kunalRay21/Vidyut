@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ReadinessGaugeProps {
   percentage: number;
 }
 
 export const ReadinessGauge: React.FC<ReadinessGaugeProps> = ({ percentage }) => {
+  const { t } = useTranslation();
   // Clamp percentage between 0 and 100
   const validPercentage = Math.min(100, Math.max(0, Math.round(percentage)));
   // Map percentage to a liquid top Y coordinate (0 = bottom, 100 = top)
@@ -14,7 +16,7 @@ export const ReadinessGauge: React.FC<ReadinessGaugeProps> = ({ percentage }) =>
 
   return (
     <div className="flex flex-col items-center justify-center p-6 bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] h-full">
-      <h3 className="text-lg font-bold text-gray-800 mb-4 font-heading">Role Readiness</h3>
+      <h3 className="text-lg font-bold text-gray-800 mb-4 font-heading">{t('dashboard.readinessTitle', 'Role Readiness')}</h3>
       
       <div className="relative w-36 h-36 flex items-center justify-center">
         {/* SVG Liquid Gauge */}
@@ -101,7 +103,7 @@ export const ReadinessGauge: React.FC<ReadinessGaugeProps> = ({ percentage }) =>
         </div>
       </div>
       
-      <p className="text-sm text-gray-600 mt-4 text-center font-medium">of target skills acquired</p>
+      <p className="text-sm text-gray-600 mt-4 text-center font-medium">{t('dashboard.skillsAcquired', 'of target skills acquired')}</p>
     </div>
   );
 };

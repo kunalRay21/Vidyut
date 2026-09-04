@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoadmapTimeline, Phase } from '../features/roadmap/RoadmapTimeline';
 import { DecisionPointModal } from '../features/roadmap/DecisionPointModal';
 import { EvidenceSubmitModal } from '../features/roadmap/EvidenceSubmitModal';
@@ -50,6 +51,7 @@ const DEFAULT_PHASES: Phase[] = [
 ];
 
 export const RoadmapPage: React.FC = () => {
+  const { t } = useTranslation();
   const [phases, setPhases] = useState<Phase[]>(DEFAULT_PHASES);
   const [readinessScore, setReadinessScore] = useState(14);
   const [displayedScore, setDisplayedScore] = useState(0);
@@ -207,16 +209,16 @@ export const RoadmapPage: React.FC = () => {
         <FadeIn delay={100}>
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron/10 text-saffron-600 text-xs font-bold uppercase tracking-wider mb-2 border border-saffron/30">
-              Deterministic DAG Topological Sequence
+              {t('roadmap.badge')}
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Adaptive Roadmap</h1>
-            <p className="text-gray-500 mt-1">Your personalized prerequisite path to {roleTitle}.</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('roadmap.title')}</h1>
+            <p className="text-gray-500 mt-1">{t('roadmap.subtitle')} {roleTitle}.</p>
           </div>
         </FadeIn>
 
         <FadeIn delay={200}>
           <div className="flex flex-col items-center relative">
-            <span className="block text-sm text-gray-500 font-semibold mb-2 uppercase tracking-wide">Current Readiness</span>
+            <span className="block text-sm text-gray-500 font-semibold mb-2 uppercase tracking-wide">{t('roadmap.currentReadiness')}</span>
             
             <div className="relative w-52 h-28 flex justify-center items-end">
               <svg className="absolute top-0 left-0 w-full h-full drop-shadow-sm" viewBox="0 0 200 120">

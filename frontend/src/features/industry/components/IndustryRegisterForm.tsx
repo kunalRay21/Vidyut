@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Building2, Globe, Briefcase } from 'lucide-react';
 import { industryApi } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 
 export const IndustryRegisterForm: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { loginIndustry } = useAuth();
   const [companyName, setCompanyName] = useState('');
@@ -49,13 +51,13 @@ export const IndustryRegisterForm: React.FC = () => {
         <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <Building2 className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Partner with Vidyut</h2>
-        <p className="text-gray-500 mt-2">Register your organization to hire verified, skill-ready students directly from the ecosystem.</p>
+        <h2 className="text-2xl font-bold text-gray-900">{t('industry.registerHeading')}</h2>
+        <p className="text-gray-500 mt-2">{t('industry.registerSubtitle')}</p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('industry.companyNameLabel')} *</label>
           <input
             type="text"
             value={companyName}
@@ -67,7 +69,7 @@ export const IndustryRegisterForm: React.FC = () => {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Industry Sector</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('industry.sectorLabel')}</label>
           <select
             value={sector}
             onChange={(e) => setSector(e.target.value)}
@@ -81,7 +83,7 @@ export const IndustryRegisterForm: React.FC = () => {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Company Website</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('industry.websiteLabel')}</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Globe className="h-4 w-4 text-gray-400" />
@@ -115,7 +117,7 @@ export const IndustryRegisterForm: React.FC = () => {
         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-md transition-colors flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50"
       >
         <Briefcase className="w-5 h-5" />
-        {loading ? 'Registering Recruiter...' : 'Create Recruiter Account'}
+        {loading ? t('industry.registerBtn') : t('industry.registerBtn')}
       </button>
     </form>
   );

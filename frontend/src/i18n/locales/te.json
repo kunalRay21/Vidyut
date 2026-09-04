@@ -89,6 +89,103 @@
       "collegePortal": "కళాశాల పోర్టల్ (AISHE)"
     }
   },
+  "auth": {
+    "loginTitle": "తిరిగి స్వాగతం",
+    "loginSubtitle": "మీ విద్యుత్ కెరీర్ సంసిద్ధత ప్రయాణాన్ని కొనసాగించడానికి సైన్ ఇన్ చేయండి",
+    "registerTitle": "ఖాతాను సృష్టించండి",
+    "registerSubtitle": "ధృవీకరించబడిన జాతీయ నైపుణ్యాల నెట్‌వర్క్‌లో చేరండి",
+    "emailLabel": "ఈమెయిల్ చిరునామా",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "పాస్‌వర్డ్",
+    "passwordPlaceholder": "••••••••",
+    "fullNameLabel": "పూర్తి పేరు",
+    "fullNamePlaceholder": "ప్రియా శర్మ",
+    "institutionLabel": "కళాశాల / విద్యాసంస్థ",
+    "institutionPlaceholder": "వీఐటీ చెన్నై",
+    "degreeLabel": "డిగ్రీ మరియు కోర్సు",
+    "degreePlaceholder": "బీటెక్ సీఎస్ఈ",
+    "yearLabel": "చదువుతున్న సంవత్సరం",
+    "roleLabel": "పాత్రను ఎంచుకోండి",
+    "signInBtn": "లాగిన్ అవ్వండి",
+    "signUpBtn": "ఖాతా సృష్టించండి",
+    "quickDemoAccess": "డెమో ప్రవేశం (1-క్లిక్)",
+    "noAccount": "ఖాతా లేదా?",
+    "alreadyAccount": "ఇప్పటికే ఖాతా ఉందా?",
+    "student": "విద్యార్థి",
+    "industry": "పరిశ్రమ",
+    "college": "కళాశాల"
+  },
+  "dashboard": {
+    "title": "విద్యార్థి డాష్‌బోర్డ్",
+    "welcome": "తిరిగి స్వాగతం",
+    "careerGoalSummary": "కెరీర్ లక్ష్య సారాంశం",
+    "targetRole": "లక్ష్య పాత్ర",
+    "institution": "విద్యాసంస్థ",
+    "degree": "డిగ్రీ",
+    "year": "సంవత్సరం",
+    "nextMilestone": "తదుపరి మైలురాయి",
+    "nextMilestoneDesc": "అవకాశాలను అన్‌లాక్ చేయడానికి మీ రోడ్‌మ్యాప్‌లో ముందుకు సాగండి.",
+    "goToRoadmap": "రోడ్‌మ్యాప్‌కు వెళ్లండి",
+    "readinessTitle": "ధృవీకరించబడిన సంసిద్ధత"
+  },
+  "roadmap": {
+    "badge": "DAG టోపోలాజికల్ క్రమం",
+    "title": "అడాప్టివ్ రోడ్‌మ్యాప్",
+    "subtitle": "మీ లక్ష్యం కోసం రూపొందించిన వ్యక్తిగత మార్గం",
+    "currentReadiness": "ప్రస్తుత సంసిద్ధత",
+    "milestoneStatus": {
+      "completed": "పూర్తయింది",
+      "inProgress": "పురోగతిలో ఉంది",
+      "locked": "లాక్ చేయబడింది"
+    },
+    "chooseTrack": "ప్రత్యేకత నిర్ణయ స్థానం",
+    "submitEvidence": "రుజువు సమర్పించండి",
+    "viewOutcome": "అభ్యసన ఫలితం"
+  },
+  "opportunities": {
+    "title": "అవకాశాల సరిపోలిక కేంద్రం",
+    "subtitle": "మీ ధృవీకరించబడిన నైపుణ్యాల ఆధారంగా అల్గారిథమ్ ఎంచుకున్న అవకాశాలు.",
+    "tabs": {
+      "readyNow": "దరఖాస్తుకు సిద్ధంగా ఉంది",
+      "almostReady": "1 ముందస్తు అవసరం మిగిలి ఉంది",
+      "aspirational": "ఉన్నత లక్ష్యాలు"
+    },
+    "matchScore": "సరిపోలిక",
+    "missingPrereq": "మిగిలిన అవసరం",
+    "applyNow": "నేరుగా దరఖాస్తు చేయండి",
+    "viewMatchReasoning": "సరిపోలిక కారణం"
+  },
+  "industry": {
+    "title": "ఎంప్లాయర్ పోర్టల్",
+    "subtitle": "నిజమైన నైపుణ్యాల ఆధారంగా ప్రత్యక్ష నియామకాలు",
+    "viewTalentPool": "ప్రతిభ జాబితాను చూడండి",
+    "postOpportunity": "అవకాశాన్ని పోస్ట్ చేయండి",
+    "talentSearch": "ధృవీకరించబడిన విద్యార్థులను శోధించండి",
+    "verifiedScore": "సంసిద్ధత స్కోరు",
+    "matchCandidates": "అర్హులైన అభ్యర్థులు",
+    "registerHeading": "విద్యుత్ ఇండస్ట్రీ పార్ట్‌నర్‌గా చేరండి",
+    "registerSubtitle": "ధృవీకరించబడిన నైపుణ్యం కలిగిన విద్యార్థులను నేరుగా నియమించుకోవడానికి మీ సంస్థను నమోదు చేసుకోండి.",
+    "companyNameLabel": "కంపెనీ పేరు",
+    "sectorLabel": "పరిశ్రమ రంగం",
+    "websiteLabel": "కంపెనీ వెబ్‌సైట్",
+    "registerBtn": "సంస్థను నమోదు చేయండి"
+  },
+  "institution": {
+    "title": "సంస్థ విశ్లేషణల డాష్‌బోర్డ్",
+    "badge": "NEP 2020 & AISHE కొలమానం",
+    "totalEnrolled": "మొత్తం విద్యార్థులు",
+    "avgReadiness": "సగటు సంసిద్ధత",
+    "readyNow": "పూర్తి సంసిద్ధులు",
+    "cohortTitle": "ప్లేస్‌మెంట్ సంసిద్ధత పంపిణీ",
+    "curriculumGapTitle": "కరికులం గ్యాప్ విశ్లేషణ (NEP 2020)",
+    "registerHeading": "కళాశాల / విద్యా సంస్థ నమోదు",
+    "registerSubtitle": "నైపుణ్యాల లోటు విశ్లేషణ మరియు విద్యార్థుల సంసిద్ధత నివేదికలను పొందడానికి మీ కళాశాలను ఆన్‌బోర్డ్ చేయండి.",
+    "institutionNameLabel": "కళాశాల / సంస్థ పేరు",
+    "aisheCodeLabel": "AISHE కోడ్",
+    "officerNameLabel": "ప్లేస్‌మెంట్ ఆఫీసర్ పేరు",
+    "departmentsLabel": "పాల్గొనే విభాగాలు",
+    "registerBtn": "సంస్థను ఆన్‌బోర్డ్ చేయండి"
+  },
   "footer": {
     "text": "విద్యుత్ — స్మార్ట్ ఇండియా హ్యాకథాన్ 2026 · విద్యా మంత్రిత్వ శాఖ మరియు AICTE చొరవ"
   }

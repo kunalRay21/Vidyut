@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ExternalLink, Sparkles } from 'lucide-react';
 import { Opportunity } from './types'; // We'll define a shared types file or inline it
 
@@ -8,6 +9,7 @@ interface OpportunityCardProps {
 }
 
 export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, onViewExplanation }) => {
+  const { t } = useTranslation();
   const scorePct = Math.round(opportunity.compatibility_score * 100);
   
   // Badge styling based on source
@@ -29,7 +31,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, o
         
         <div className="flex flex-col items-end">
           <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-full border border-green-100">
-            <span className="font-bold text-sm">{scorePct}% Match</span>
+            <span className="font-bold text-sm">{scorePct}% {t('opportunities.matchScore', 'Match')}</span>
           </div>
         </div>
       </div>
@@ -37,18 +39,18 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, o
       <div className="flex items-center gap-3 mt-6">
         <button 
           onClick={() => onViewExplanation(opportunity)}
-          className="flex-1 flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 py-2 rounded-lg font-medium text-sm transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer"
         >
           <Sparkles className="w-4 h-4" />
-          AI Explanation
+          {t('opportunities.viewMatchReasoning', 'AI Explanation')}
         </button>
         <a 
           href={opportunity.original_url || '#'} 
           target="_blank" 
           rel="noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-lg font-medium text-sm transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer"
         >
-          Apply Now
+          {t('opportunities.applyNow', 'Apply Now')}
           <ExternalLink className="w-4 h-4" />
         </a>
       </div>

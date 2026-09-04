@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GitBranch, CheckCircle2, Check, Clock, Lock, BookOpen, Calculator, Database, BrainCircuit, Lightbulb } from 'lucide-react';
 import { MilestoneStatus } from './MilestoneCard';
 
@@ -44,6 +45,7 @@ const PhaseCard: React.FC<{
   onEvidenceClick: (id: string) => void;
   onDecisionClick: (p: Phase) => void;
 }> = ({ phase, index: _index, isTimelineReached, isLast, onEvidenceClick, onDecisionClick }) => {
+  const { t } = useTranslation();
   const cardRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -119,12 +121,12 @@ const PhaseCard: React.FC<{
               )}
               {phase.status === 'COMPLETED' && (
                 <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-0.5 rounded-full">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Completed
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {t('roadmap.milestoneStatus.completed', 'Completed')}
                 </span>
               )}
               {phase.status === 'IN_PROGRESS' && (
                 <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full">
-                  <Clock className="w-3.5 h-3.5" /> In Progress
+                  <Clock className="w-3.5 h-3.5" /> {t('roadmap.milestoneStatus.inProgress', 'In Progress')}
                 </span>
               )}
             </div>
@@ -148,7 +150,7 @@ const PhaseCard: React.FC<{
               <h5 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Topics</h5>
               {phase.status === 'IN_PROGRESS' && (
                 <span className="text-xs text-blue-600 font-medium opacity-80 italic animate-pulse">
-                  (Click any topic below to submit evidence)
+                  ({t('roadmap.submitEvidence', 'Submit Evidence')})
                 </span>
               )}
             </div>
@@ -190,7 +192,7 @@ const PhaseCard: React.FC<{
             }`}
             style={{ transitionDelay: `${300 + ((phase.topics?.length || 0) * 50)}ms` }}
           >
-            <h5 className="text-xs font-bold text-[#000080] uppercase tracking-widest mb-2">What you will learn</h5>
+            <h5 className="text-xs font-bold text-[#000080] uppercase tracking-widest mb-2">{t('roadmap.viewOutcome', 'What you will learn')}</h5>
             <p className="text-sm text-gray-700 leading-relaxed">{phase.learning_outcome}</p>
           </div>
         )}
@@ -204,13 +206,13 @@ const PhaseCard: React.FC<{
             style={{ transitionDelay: `${300 + ((phase.topics?.length || 0) * 50)}ms` }}
           >
             <GitBranch className="w-8 h-8 text-[#000080]/60 mx-auto mb-3" />
-            <h5 className="font-bold text-[#000080] mb-2 text-lg">Branch Decision Required</h5>
+            <h5 className="font-bold text-[#000080] mb-2 text-lg">{t('roadmap.chooseTrack', 'Branch Decision Required')}</h5>
             <p className="text-sm text-gray-600 mb-5">Choose your specialization to unlock the next milestones in your journey.</p>
             <button 
               onClick={() => onDecisionClick(phase)}
-              className="bg-[#FF9933] hover:bg-[#e68a2e] text-white px-6 py-2 rounded-full font-bold transition-all shadow-md hover:shadow-lg text-sm"
+              className="bg-[#FF9933] hover:bg-[#e68a2e] text-white px-6 py-2 rounded-full font-bold transition-all shadow-md hover:shadow-lg text-sm cursor-pointer"
             >
-              Make a Decision
+              {t('roadmap.chooseTrack', 'Choose Track')}
             </button>
           </div>
         )}

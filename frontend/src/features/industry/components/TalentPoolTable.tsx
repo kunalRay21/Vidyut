@@ -1,19 +1,21 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { MOCK_INDUSTRY_DATA } from '../mocks/industryMockData';
 import { CheckCircle, ShieldCheck } from 'lucide-react';
 
 export const TalentPoolTable: React.FC = () => {
+  const { t } = useTranslation();
   const candidates = MOCK_INDUSTRY_DATA.matched_talent_pool;
 
   return (
     <div className="bg-[#FFFFED] rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-[#FFFFED]">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Anonymized Talent Pool</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t('industry.talentSearch', 'Anonymized Talent Pool')}</h2>
           <p className="text-gray-500 text-sm mt-1">Showing verified candidates matching your minimum readiness threshold (70%+).</p>
         </div>
         <div className="bg-green-100 text-green-700 font-semibold px-4 py-2 rounded-lg text-sm border border-green-200">
-          {candidates.length} Verified Matches
+          {candidates.length} {t('industry.matchCandidates', 'Verified Matches')}
         </div>
       </div>
       
@@ -22,8 +24,8 @@ export const TalentPoolTable: React.FC = () => {
           <thead className="bg-[#FFFFED] text-xs uppercase text-gray-700 border-b border-gray-200">
             <tr>
               <th scope="col" className="px-6 py-4">Candidate Alias & Details</th>
-              <th scope="col" className="px-6 py-4">Target Role</th>
-              <th scope="col" className="px-6 py-4 text-center">Readiness Score</th>
+              <th scope="col" className="px-6 py-4">{t('dashboard.targetRole', 'Target Role')}</th>
+              <th scope="col" className="px-6 py-4 text-center">{t('industry.verifiedScore', 'Readiness Score')}</th>
               <th scope="col" className="px-6 py-4">Verified Skills</th>
               <th scope="col" className="px-6 py-4 text-center">Action</th>
             </tr>

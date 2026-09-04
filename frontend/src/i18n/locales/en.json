@@ -89,6 +89,103 @@
       "collegePortal": "College Portal (AISHE)"
     }
   },
+  "auth": {
+    "loginTitle": "Welcome Back",
+    "loginSubtitle": "Sign in to continue your Vidyut career readiness journey",
+    "registerTitle": "Create Your Account",
+    "registerSubtitle": "Join India's verified skill network for students, industry, and academia",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "fullNameLabel": "Full Name",
+    "fullNamePlaceholder": "Priya Sharma",
+    "institutionLabel": "College / Institution",
+    "institutionPlaceholder": "VIT Chennai",
+    "degreeLabel": "Degree & Major",
+    "degreePlaceholder": "B.Tech CSE",
+    "yearLabel": "Year of Study",
+    "roleLabel": "Select Role",
+    "signInBtn": "Sign In",
+    "signUpBtn": "Create Account",
+    "quickDemoAccess": "Quick Demo Access (1-Click)",
+    "noAccount": "Don't have an account?",
+    "alreadyAccount": "Already have an account?",
+    "student": "Student",
+    "industry": "Industry",
+    "college": "College"
+  },
+  "dashboard": {
+    "title": "Student Dashboard",
+    "welcome": "Welcome back",
+    "careerGoalSummary": "Career Goal Summary",
+    "targetRole": "Target Role",
+    "institution": "Institution",
+    "degree": "Degree",
+    "year": "Year",
+    "nextMilestone": "Next Milestone",
+    "nextMilestoneDesc": "Advance your prerequisite roadmap to unlock aligned industry opportunities.",
+    "goToRoadmap": "Go to Adaptive Roadmap",
+    "readinessTitle": "Verified Readiness"
+  },
+  "roadmap": {
+    "badge": "Deterministic DAG Topological Sequence",
+    "title": "Adaptive Roadmap",
+    "subtitle": "Your personalized prerequisite path to",
+    "currentReadiness": "Current Readiness",
+    "milestoneStatus": {
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "locked": "Locked"
+    },
+    "chooseTrack": "Specialization Decision Point",
+    "submitEvidence": "Submit Evidence",
+    "viewOutcome": "Learning Outcome"
+  },
+  "opportunities": {
+    "title": "Opportunity Matching Hub",
+    "subtitle": "Direct internships and roles algorithmically filtered by your verified prerequisites.",
+    "tabs": {
+      "readyNow": "Ready to Apply",
+      "almostReady": "Missing 1 Prerequisite",
+      "aspirational": "Stretch Goals"
+    },
+    "matchScore": "Match",
+    "missingPrereq": "Missing Prerequisite",
+    "applyNow": "Apply Directly",
+    "viewMatchReasoning": "Algorithmic Reasoning"
+  },
+  "industry": {
+    "title": "Employer Portal",
+    "subtitle": "Calibrated Hiring with Zero Resume Noise",
+    "viewTalentPool": "View Talent Pool",
+    "postOpportunity": "Post Opportunity",
+    "talentSearch": "Search Verified Talent Pool",
+    "verifiedScore": "Readiness Score",
+    "matchCandidates": "Eligible Candidates",
+    "registerHeading": "Partner with Vidyut",
+    "registerSubtitle": "Register your organization to hire verified, skill-ready students directly from the ecosystem.",
+    "companyNameLabel": "Company Name",
+    "sectorLabel": "Industry Sector",
+    "websiteLabel": "Company Website",
+    "registerBtn": "Register Organization"
+  },
+  "institution": {
+    "title": "Institution Analytics Dashboard",
+    "badge": "NEP 2020 & AISHE Metric",
+    "totalEnrolled": "Total Enrolled",
+    "avgReadiness": "Average Readiness",
+    "readyNow": "Ready Now",
+    "cohortTitle": "Cohort Placement Readiness Distribution",
+    "curriculumGapTitle": "Curriculum Gap Heatmap (NEP 2020 Realignment)",
+    "registerHeading": "Register Institution",
+    "registerSubtitle": "Onboard your college to access skill-gap analytics and student readiness reports.",
+    "institutionNameLabel": "College / Institution Name",
+    "aisheCodeLabel": "AISHE Code",
+    "officerNameLabel": "Placement Officer / Admin Name",
+    "departmentsLabel": "Participating Departments",
+    "registerBtn": "Onboard Institution"
+  },
   "footer": {
     "text": "Vidyut — Smart India Hackathon 2026 · Ministry of Education & AICTE Initiative"
   }
