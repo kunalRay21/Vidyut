@@ -66,4 +66,149 @@ describe('CentralizedAIService', () => {
       expect(result.summary).toBeUndefined();
     });
   });
+
+  describe('generateAssessmentQuestions', () => {
+    const input = {
+      skillId: 's1',
+      skillName: 'React',
+      proficiencyLevel: 'INTERMEDIATE',
+      competencyContext: 'Hooks and context',
+      count: 2
+    };
+
+    it('returns questions on valid response', async () => {
+      mockGenerateText.mockResolvedValue(JSON.stringify({
+        questions: [
+          {
+            questionText: 'What is a hook?',
+            options: ['A', 'B', 'C', 'D'],
+            correctOptionIndex: 1,
+            explanation: 'B is correct'
+          }
+        ]
+      }));
+
+      const result = await aiService.generateAssessmentQuestions(input);
+      expect(result.success).toBe(true);
+      expect(result.questions).toHaveLength(1);
+    });
+
+    it('returns success:false if fewer or more than 4 options', async () => {
+      mockGenerateText.mockResolvedValue(JSON.stringify({
+        questions: [
+          {
+            questionText: 'What is a hook?',
+            options: ['A', 'B', 'C'], // Only 3
+            correctOptionIndex: 1,
+            explanation: 'B is correct'
+          }
+        ]
+      }));
+
+      const result = await aiService.generateAssessmentQuestions(input);
+      expect(result.success).toBe(false);
+    });
+
+    it('returns success:false on invalid correctOptionIndex', async () => {
+      mockGenerateText.mockResolvedValue(JSON.stringify({
+        questions: [
+          {
+            questionText: 'What is a hook?',
+            options: ['A', 'B', 'C', 'D'],
+            correctOptionIndex: 5, // Invalid, > 3
+            explanation: 'B is correct'
+          }
+        ]
+      }));
+
+      const result = await aiService.generateAssessmentQuestions(input);
+      expect(result.success).toBe(false);
+    });
+
+    it('handles network failure safely', async () => {
+      mockGenerateText.mockRejectedValue(new Error('Network error'));
+      const result = await aiService.generateAssessmentQuestions(input);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('extractSkillsFromText', () => {
+    const input = { text: 'I know Python and React.' };
+
+    it('returns extracted skills on valid response', async () => {
+      mockGenerateText.mockResolvedValue(JSON.stringify({
+        skills: [
+          { mention: 'Python', skillName: 'Python' },
+          { mention: 'React', skillName: 'React' }
+        ]
+      }));
+
+      const result = await aiService.extractSkillsFromText(input);
+      expect(result.success).toBe(true);
+      expect(result.skills).toHaveLength(2);
+    });
+
+    it('returns empty skills correctly', async () => {
+      mockGenerateText.mockResolvedValue(JSON.stringify({ skills: [] }));
+      const result = await aiService.extractSkillsFromText(input);
+      expect(result.success).toBe(true);
+      expect(result.skills).toHaveLength(0);
+    });
+
+    it('returns success:false on malformed schema', async () => {
+      mockGenerateText.mockResolvedValue(JSON.stringify({
+        skills: [
+          { mention: 'Python' } // missing skillName
+        ]
+      }));
+
+      const result = await aiService.extractSkillsFromText(input);
+      expect(result.success).toBe(false);
+    });
+
+    it('handles network failure safely', async () => {
+      mockGenerateText.mockRejectedValue(new Error('Network error'));
+      const result = await aiService.extractSkillsFromText(input);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('generateCareerExplanation', () => {
+    const input = {
+      domainName: 'Frontend',
+      roles: ['UI Engineer'],
+      topTechnologies: ['React']
+    };
+
+    it('returns explanation on valid response', async () => {
+      mockGenerateText.mockResolvedValue(JSON.stringify({
+        explanation: 'A frontend engineer builds UI. '.repeat(5) // >50 chars
+      }));
+
+      const result = await aiService.generateCareerExplanation(input);
+      expect(result.success).toBe(true);
+      expect(result.explanation).toContain('frontend engineer');
+    });
+
+    it('returns success:false if explanation is too short', async () => {
+      mockGenerateText.mockResolvedValue(JSON.stringify({
+        explanation: 'Too short.'
+      }));
+
+      const result = await aiService.generateCareerExplanation(input);
+      expect(result.success).toBe(false);
+    });
+
+    it('returns success:false on malformed JSON', async () => {
+      mockGenerateText.mockResolvedValue('{"bad":"json"');
+      const result = await aiService.generateCareerExplanation(input);
+      expect(result.success).toBe(false);
+    });
+
+    it('handles network failure safely', async () => {
+      mockGenerateText.mockRejectedValue(new Error('Network error'));
+      const result = await aiService.generateCareerExplanation(input);
+      expect(result.success).toBe(false);
+    });
+  });
 });

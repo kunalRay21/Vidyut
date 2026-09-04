@@ -5,6 +5,9 @@ const mockGenerateOpportunityExplanation = jest.fn();
 
 const mockAiService: AIService = {
   generateOpportunityExplanation: mockGenerateOpportunityExplanation,
+  generateAssessmentQuestions: jest.fn(),
+  extractSkillsFromText: jest.fn(),
+  generateCareerExplanation: jest.fn(),
 };
 
 describe('ExplanationService', () => {
