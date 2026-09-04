@@ -4,6 +4,7 @@ import { useExamSession } from './hooks/useExamSession';
 import { useExamTimer } from './hooks/useExamTimer';
 import { useProctoring } from './hooks/useProctoring';
 import { useDeviceCheck } from './hooks/useDeviceCheck';
+import { useClipboardProtection } from './hooks/useClipboardProtection';
 import { ExamNavbar } from './components/ExamNavbar';
 import { QuestionPalette } from './components/QuestionPalette';
 import { QuestionViewer } from './components/QuestionViewer';
@@ -14,7 +15,7 @@ import { SubmitConfirmation } from './components/SubmitConfirmation';
 import { ResultAnalyticsView } from './components/ResultAnalyticsView';
 import { MobileRestrictedGate } from './components/MobileRestrictedGate';
 import { FullscreenGateModal } from './components/FullscreenGateModal';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, ShieldAlert } from 'lucide-react';
 
 export const ExamPlatformPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -90,6 +91,11 @@ export const ExamPlatformPage: React.FC = () => {
     isActive: examStatus === 'READY',
   });
 
+  // 6. Anti-Copy/Paste & Clipboard Protection
+  const { warningMessage: clipboardWarning } = useClipboardProtection({
+    isActive: examStatus === 'READY',
+  });
+
   // Handle final submission confirm
   const handleConfirmSubmit = async () => {
     setIsSubmitModalOpen(false);
@@ -113,7 +119,7 @@ export const ExamPlatformPage: React.FC = () => {
   // ----------------------------------------------------------------------------
   if (examStatus === 'LOADING') {
     return (
-      <div className="h-screen w-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+      <div className="h-screen w-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center select-none">
         <div className="w-9 h-9 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
         <h2 className="text-base font-bold font-heading text-slate-900 mb-1">
           Loading Examination Workspace...
@@ -130,7 +136,7 @@ export const ExamPlatformPage: React.FC = () => {
   // ----------------------------------------------------------------------------
   if (examStatus === 'ERROR') {
     return (
-      <div className="h-screen w-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+      <div className="h-screen w-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center select-none">
         <div className="w-12 h-12 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center mb-3 text-red-600">
           <AlertCircle className="w-6 h-6" />
         </div>
@@ -168,10 +174,18 @@ export const ExamPlatformPage: React.FC = () => {
   }
 
   // ----------------------------------------------------------------------------
-  // Render Live Exam Mode (Split-Pane Full-Height Workspace)
+  // Render Live Exam Mode (Protected Split-Pane Workspace)
   // ----------------------------------------------------------------------------
   return (
-    <div className="h-screen w-screen overflow-hidden flex flex-col bg-white text-slate-800">
+    <div className="h-screen w-screen overflow-hidden flex flex-col bg-white text-slate-800 select-none">
+      {/* Clipboard Protection Warning Toast */}
+      {clipboardWarning && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-rose-600 text-white text-xs font-semibold shadow-lg flex items-center gap-2 animate-fadeIn select-none">
+          <ShieldAlert className="w-4 h-4 text-white flex-shrink-0" />
+          <span>{clipboardWarning}</span>
+        </div>
+      )}
+
       {/* 1. Header Navbar (54px height) */}
       <ExamNavbar
         testTitle={testTitle}
@@ -187,14 +201,14 @@ export const ExamPlatformPage: React.FC = () => {
       />
 
       {/* 2. Main Workspace Split-Pane */}
-      <div className="flex-1 flex overflow-hidden w-full">
+      <div className="flex-1 flex overflow-hidden w-full select-none">
         {/* Left: Question Presentation & Options Area */}
-        <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
+        <div className="flex-1 flex flex-col h-full overflow-hidden bg-white select-none">
           {currentQuestion ? (
             <>
-              {/* Scrollable Question Body */}
-              <div className="flex-1 overflow-y-auto px-6 sm:px-12 py-8 custom-scrollbar">
-                <div className="max-w-3xl mx-auto space-y-6">
+              {/* Scrollable Question Body (Copy Protected) */}
+              <div className="flex-1 overflow-y-auto px-6 sm:px-12 py-8 custom-scrollbar select-none">
+                <div className="max-w-3xl mx-auto space-y-6 select-none">
                   <QuestionViewer
                     question={currentQuestion}
                     questionNumber={currentIndex + 1}
@@ -223,7 +237,7 @@ export const ExamPlatformPage: React.FC = () => {
               />
             </>
           ) : (
-            <div className="p-12 text-center text-slate-400">
+            <div className="p-12 text-center text-slate-400 select-none">
               No diagnostic questions found.
             </div>
           )}
