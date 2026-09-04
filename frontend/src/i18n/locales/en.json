@@ -1,0 +1,95 @@
+{
+  "nav": {
+    "brandSubtitle": "Adaptive Skill Intelligence",
+    "home": "Home",
+    "explore": "Explore Skills",
+    "diagnostic": "Take Diagnostic",
+    "portals": "Portals",
+    "studentPortal": "Student Portal",
+    "studentPortalDesc": "Roadmaps, milestones & evidence verification",
+    "industryPortal": "Industry & Recruiters",
+    "industryPortalDesc": "Direct calibrated hiring & talent search",
+    "collegePortal": "Institutions (AISHE)",
+    "collegePortalDesc": "NEP 2020 curriculum gap heatmaps",
+    "signIn": "Sign In",
+    "register": "Get Started",
+    "activeRole": "Active Role",
+    "switchRole": "Switch Portal Role",
+    "quickRoleNotice": "Quick-switch role for demo evaluation",
+    "language": "Language",
+    "logout": "Log Out"
+  },
+  "landing": {
+    "hero": {
+      "titlePrefix": "Empowering India's Students with",
+      "titleHighlight": "Adaptive Skill Intelligence",
+      "subtitle": "Standardized skill graphs, calibrated diagnostic evaluations, prerequisite-ordered learning roadmaps, and verified direct opportunity matching for students, colleges, and industry.",
+      "startDiagnostic": "Start Diagnostic Assessment",
+      "exploreCourses": "Explore Featured Courses",
+      "studentDashboard": "Student Dashboard"
+    },
+    "stats": {
+      "curatedDags": "Skill Graph DAGs",
+      "curatedDagsVal": "100% Curated",
+      "curatedDagsDesc": "Strict prerequisite ordering",
+      "diagnostic": "Diagnostic Engine",
+      "diagnosticVal": "Calibrated MCQs",
+      "diagnosticDesc": "Reveals real competency gaps",
+      "nep": "NEP 2020 & AISHE",
+      "nepVal": "Curriculum Heatmap",
+      "nepDesc": "Institutional batch readiness",
+      "opp": "Opportunity Match",
+      "oppVal": "Verified Direct",
+      "oppDesc": "Zero resume inflation hiring"
+    },
+    "mission": {
+      "title": "Bridging the Academia–Industry Divergence",
+      "subtitle": "Every year, over 1.5 million technical students graduate in India, yet over 48% face readiness gaps because college syllabi differ from production tech stacks. Vidyut replaces guesswork with a unified, verified intelligence loop.",
+      "studentsTitle": "For Students",
+      "studentsHeading": "Adaptive Roadmap & Proof of Work",
+      "studentsDesc": "Stop collecting random certificates. Vidyut maps your goal into a prerequisite Directed Acyclic Graph (DAG) with branching paths, hands-on milestones, and real diagnostic checks.",
+      "viewRoadmap": "View Roadmap Engine",
+      "industryTitle": "For Industry Employers",
+      "industryHeading": "Calibrated Hiring with Zero Resume Noise",
+      "industryDesc": "Filter students by verified readiness percentages and demonstrable GitHub proof instead of resume keywords. Post direct internships matched to candidates who already meet prerequisites.",
+      "viewIndustry": "Explore Employer Portal",
+      "institutionTitle": "For Colleges & Universities",
+      "institutionHeading": "NEP 2020 Compliance & Curriculum Gap Heatmaps",
+      "institutionDesc": "College administrators access cohort readiness analytics under AISHE codes, identifying which departments lack industry requirements so syllabi can be updated proactively.",
+      "viewInstitution": "View Institution Analytics"
+    },
+    "courses": {
+      "heading": "Explore Industry Career Courses",
+      "subtitle": "Prerequisite-ordered curriculums mapped directly to industry job descriptions. Click any track to evaluate your current baseline and receive your tailored roadmap.",
+      "viewTaxonomy": "View Full Skill Taxonomy",
+      "startPath": "Start Learning Path",
+      "prerequisites": "Prerequisites"
+    },
+    "engine": {
+      "heading": "How the Vidyut Adaptive Engine Works",
+      "subtitle": "From identifying what you truly know to landing a role where your verified abilities matter.",
+      "step1Title": "Course & Domain Intake",
+      "step1Desc": "Select your target profession. The system compiles the industry standard DAG graph specifying exact foundational, tool, and framework requirements.",
+      "step1Tag": "Prerequisite Graph Compiled",
+      "step2Title": "Calibrated Diagnostics",
+      "step2Desc": "Compare self-ratings against an adaptive 6-question diagnostic quiz. The engine pinpoints discrepancies and detects hidden skill deficiencies.",
+      "step2Tag": "Discrepancy Gauge Created",
+      "step3Title": "Adaptive Roadmap",
+      "step3Desc": "Learn strictly in prerequisite order. Pick between technology branches (e.g., FastAPI vs. Django) and submit evidence to advance.",
+      "step3Tag": "Dynamic Re-routing",
+      "step4Title": "Verified Opportunities",
+      "step4Desc": "Opportunities are categorized into Ready to Apply, Missing 1 Prerequisite, and Stretch Goals with algorithmic explanations of why you match.",
+      "step4Tag": "Direct Employer Pipeline"
+    },
+    "ctaBanner": {
+      "heading": "Ready to Build Your Verified Readiness Profile?",
+      "subtitle": "Join thousands of students and institutions moving away from resume noise and towards standardized, verifiable technical competency.",
+      "takeAssessment": "Take Self-Assessment Now",
+      "employerReg": "Employer Registration",
+      "collegePortal": "College Portal (AISHE)"
+    }
+  },
+  "footer": {
+    "text": "Vidyut — Smart India Hackathon 2026 · Ministry of Education & AICTE Initiative"
+  }
+}

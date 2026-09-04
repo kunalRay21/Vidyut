@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { DashboardPage } from './pages/DashboardPage';
 import { RoadmapPage } from './pages/RoadmapPage';
 import { OpportunitiesPage } from './pages/OpportunitiesPage';
@@ -55,6 +56,7 @@ function NotFoundPage() {
 }
 
 function AppContent() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF9] text-slate-900 selection:bg-saffron selection:text-gray-900">
       <Navbar />
@@ -142,7 +144,7 @@ function AppContent() {
 
       {/* Footer */}
       <footer className="border-t border-gray-200/80 bg-white py-6 text-center text-xs text-slate-500 mt-auto">
-        <p>Vidyut — Smart India Hackathon 2026 · Ministry of Education & AICTE Initiative</p>
+        <p>{t('footer.text')}</p>
       </footer>
     </div>
   );

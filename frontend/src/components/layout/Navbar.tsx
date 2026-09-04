@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Menu,
   X,
@@ -14,8 +15,10 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useAuth, UserRole } from '../../context/AuthContext';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
 
 export const Navbar: React.FC = () => {
+  const { t } = useTranslation();
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -128,7 +131,7 @@ export const Navbar: React.FC = () => {
                 }`
               }
             >
-              Explore
+              {t('nav.explore')}
             </NavLink>
 
             <NavLink
@@ -181,7 +184,7 @@ export const Navbar: React.FC = () => {
                     : 'text-gray-700 hover:text-black hover:bg-white/40'
                 }`}
               >
-                <span>Portals</span>
+                <span>{t('nav.portals')}</span>
                 <ChevronDown
                   className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-200 ${
                     portalsDropdownOpen ? 'rotate-180 text-gray-900' : ''
@@ -192,7 +195,7 @@ export const Navbar: React.FC = () => {
               {portalsDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 w-64 rounded-2xl bg-white border border-gray-100 shadow-xl p-2.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
                   <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                    Ecosystem Portals
+                    {t('nav.portals')}
                   </div>
 
                   <Link
@@ -205,10 +208,10 @@ export const Navbar: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900 group-hover:text-[#B85C16] transition-colors">
-                        Employer Portal
+                        {t('nav.industryPortal')}
                       </p>
                       <p className="text-xs text-gray-500 leading-snug">
-                        Hire verified talent & post internship opportunities
+                        {t('nav.industryPortalDesc')}
                       </p>
                     </div>
                   </Link>
@@ -223,10 +226,10 @@ export const Navbar: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900 group-hover:text-[#000080] transition-colors">
-                        College Portal
+                        {t('nav.collegePortal')}
                       </p>
                       <p className="text-xs text-gray-500 leading-snug">
-                        Curriculum analytics & student batch readiness
+                        {t('nav.collegePortalDesc')}
                       </p>
                     </div>
                   </Link>
@@ -235,21 +238,23 @@ export const Navbar: React.FC = () => {
             </div>
           </nav>
 
-          {/* Desktop Right Side: Auth / Profile Dropdown */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Desktop Right Side: Language Switcher + Auth / Profile Dropdown */}
+          <div className="hidden md:flex items-center gap-2.5">
+            <LanguageSwitcher />
+
             {!isAuthenticated || !user ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Link
                   to="/login"
                   className="text-xs font-semibold text-gray-600 hover:text-gray-950 px-2 py-1.5 transition"
                 >
-                  Sign In
+                  {t('nav.signIn')}
                 </Link>
                 <Link
                   to="/register"
                   className="text-xs font-semibold px-4 py-2 rounded-full bg-saffron text-white hover:bg-saffron-600 shadow-2xs transition-all hover:shadow-sm"
                 >
-                  Get Started
+                  {t('nav.register')}
                 </Link>
               </div>
             ) : (
@@ -326,8 +331,9 @@ export const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="flex md:hidden items-center gap-2">
+          {/* Mobile Menu Button + Language Switcher */}
+          <div className="flex md:hidden items-center gap-1.5">
+            <LanguageSwitcher compact />
             {isAuthenticated && user && (
               <button
                 type="button"
@@ -383,7 +389,7 @@ export const Navbar: React.FC = () => {
                 className="text-xs font-semibold text-red-600 hover:text-red-700 px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition flex items-center gap-1 cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span>Logout</span>
+                <span>{t('nav.logout')}</span>
               </button>
             </div>
           )}
@@ -391,7 +397,7 @@ export const Navbar: React.FC = () => {
           {/* Student / Explorer Links */}
           <div className="space-y-1">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 py-1">
-              Platform Features
+              {t('nav.portals')}
             </p>
 
             <NavLink
@@ -406,7 +412,7 @@ export const Navbar: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <Compass className="w-4 h-4 text-saffron" />
-                <span>Explore Domains</span>
+                <span>{t('nav.explore')}</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
@@ -423,7 +429,7 @@ export const Navbar: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <LayoutDashboard className="w-4 h-4 text-saffron" />
-                <span>Student Dashboard</span>
+                <span>{t('landing.hero.studentDashboard')}</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
@@ -440,7 +446,7 @@ export const Navbar: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <RouteIcon className="w-4 h-4 text-indiaGreen" />
-                <span>Adaptive Roadmap</span>
+                <span>Roadmap</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
@@ -481,7 +487,7 @@ export const Navbar: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <Building2 className="w-4 h-4 text-[#B85C16]" />
-                <span>Employer Portal</span>
+                <span>{t('nav.industryPortal')}</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
@@ -498,7 +504,7 @@ export const Navbar: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <GraduationCap className="w-4 h-4 text-[#000080]" />
-                <span>College Portal</span>
+                <span>{t('nav.collegePortal')}</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
@@ -511,13 +517,13 @@ export const Navbar: React.FC = () => {
                 to="/login"
                 className="w-full text-center py-2.5 px-4 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"
               >
-                Sign In
+                {t('nav.signIn')}
               </Link>
               <Link
                 to="/register"
                 className="w-full text-center py-2.5 px-4 rounded-xl bg-saffron text-white text-xs font-semibold shadow-2xs hover:bg-saffron-600 transition"
               >
-                Register
+                {t('nav.register')}
               </Link>
             </div>
           )}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Compass,
   Route as RouteIcon,
@@ -101,6 +102,7 @@ const FEATURED_COURSES: CourseTrack[] = [
 ];
 
 export const LandingPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleSelectCourse = (course: CourseTrack) => {
@@ -125,9 +127,9 @@ export const LandingPage: React.FC = () => {
           {/* Main Hero Headline */}
           <FadeIn delay={100}>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold font-heading tracking-tight text-gray-950 max-w-5xl leading-[1.12]">
-              Empowering India's Students with{' '}
+              {t('landing.hero.titlePrefix')}{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-saffron-600 via-[#000080] to-indiaGreen">
-                Adaptive Skill Intelligence
+                {t('landing.hero.titleHighlight')}
               </span>
             </h1>
           </FadeIn>
@@ -135,7 +137,7 @@ export const LandingPage: React.FC = () => {
           {/* Subtitle */}
           <FadeIn delay={180}>
             <p className="text-gray-600 text-base sm:text-lg md:text-xl max-w-3xl mt-6 leading-relaxed">
-              Standardized skill graphs, calibrated diagnostic evaluations, prerequisite-ordered learning roadmaps, and verified direct opportunity matching for students, colleges, and industry.
+              {t('landing.hero.subtitle')}
             </p>
           </FadeIn>
 
@@ -147,7 +149,7 @@ export const LandingPage: React.FC = () => {
                 className="btn-saffron text-sm px-6 py-3.5 rounded-full font-bold shadow-sm hover:shadow-md transition flex items-center gap-2"
               >
                 <Zap className="w-4 h-4 fill-white" />
-                <span>Start Diagnostic Assessment</span>
+                <span>{t('landing.hero.startDiagnostic')}</span>
               </Link>
 
               <a
@@ -155,14 +157,14 @@ export const LandingPage: React.FC = () => {
                 className="text-sm px-6 py-3.5 rounded-full border border-gray-300 bg-white hover:border-gray-400 text-gray-800 font-semibold shadow-2xs hover:bg-gray-50 transition flex items-center gap-2"
               >
                 <Compass className="w-4 h-4 text-saffron" />
-                <span>Explore Featured Courses</span>
+                <span>{t('landing.hero.exploreCourses')}</span>
               </a>
 
               <Link
                 to="/dashboard"
                 className="text-sm px-5 py-3.5 rounded-full text-gray-700 hover:text-gray-950 font-semibold hover:bg-black/[0.03] transition flex items-center gap-1.5"
               >
-                <span>Student Dashboard</span>
+                <span>{t('landing.hero.studentDashboard')}</span>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </Link>
             </div>
@@ -174,37 +176,37 @@ export const LandingPage: React.FC = () => {
               <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-gray-200/70 shadow-2xs">
                 <div className="flex items-center gap-2 text-saffron-600 text-xs font-bold mb-1">
                   <Database className="w-4 h-4" />
-                  <span>Skill Graph DAGs</span>
+                  <span>{t('landing.stats.curatedDags')}</span>
                 </div>
-                <p className="text-xl font-extrabold text-gray-900">100% Curated</p>
-                <p className="text-[11px] text-gray-500 mt-0.5">Strict prerequisite ordering</p>
+                <p className="text-xl font-extrabold text-gray-900">{t('landing.stats.curatedDagsVal')}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{t('landing.stats.curatedDagsDesc')}</p>
               </div>
 
               <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-gray-200/70 shadow-2xs">
                 <div className="flex items-center gap-2 text-indiaGreen text-xs font-bold mb-1">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Diagnostic Engine</span>
+                  <span>{t('landing.stats.diagnostic')}</span>
                 </div>
-                <p className="text-xl font-extrabold text-gray-900">Calibrated MCQs</p>
-                <p className="text-[11px] text-gray-500 mt-0.5">Reveals real competency gaps</p>
+                <p className="text-xl font-extrabold text-gray-900">{t('landing.stats.diagnosticVal')}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{t('landing.stats.diagnosticDesc')}</p>
               </div>
 
               <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-gray-200/70 shadow-2xs">
                 <div className="flex items-center gap-2 text-[#000080] text-xs font-bold mb-1">
                   <GraduationCap className="w-4 h-4" />
-                  <span>NEP 2020 & AISHE</span>
+                  <span>{t('landing.stats.nep')}</span>
                 </div>
-                <p className="text-xl font-extrabold text-gray-900">Curriculum Heatmap</p>
-                <p className="text-[11px] text-gray-500 mt-0.5">Institutional batch readiness</p>
+                <p className="text-xl font-extrabold text-gray-900">{t('landing.stats.nepVal')}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{t('landing.stats.nepDesc')}</p>
               </div>
 
               <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-gray-200/70 shadow-2xs">
                 <div className="flex items-center gap-2 text-amber-600 text-xs font-bold mb-1">
                   <Briefcase className="w-4 h-4" />
-                  <span>Opportunity Match</span>
+                  <span>{t('landing.stats.opp')}</span>
                 </div>
-                <p className="text-xl font-extrabold text-gray-900">Verified Direct</p>
-                <p className="text-[11px] text-gray-500 mt-0.5">Zero resume inflation hiring</p>
+                <p className="text-xl font-extrabold text-gray-900">{t('landing.stats.oppVal')}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{t('landing.stats.oppDesc')}</p>
               </div>
             </div>
           </FadeIn>
@@ -219,10 +221,10 @@ export const LandingPage: React.FC = () => {
           {/* Section Minimal Header */}
           <div className="text-center max-w-3xl mx-auto mb-14">
             <h2 className="text-3xl sm:text-4xl font-extrabold font-heading text-gray-950 tracking-tight">
-              Bridging the Academia–Industry Divergence
+              {t('landing.mission.title')}
             </h2>
             <p className="text-gray-600 text-sm sm:text-base mt-3 leading-relaxed">
-              Every year, over 1.5 million technical students graduate in India, yet over 48% face readiness gaps because college syllabi differ from production tech stacks. Vidyut replaces guesswork with a unified, verified intelligence loop.
+              {t('landing.mission.subtitle')}
             </p>
           </div>
 
@@ -236,18 +238,18 @@ export const LandingPage: React.FC = () => {
                     <RouteIcon className="w-6 h-6" />
                   </div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-saffron-700">
-                    For Students
+                    {t('landing.mission.studentsTitle')}
                   </span>
                   <h3 className="text-xl font-bold text-gray-900 mt-1 mb-2">
-                    Adaptive Roadmap & Proof of Work
+                    {t('landing.mission.studentsHeading')}
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    Stop collecting random certificates. Vidyut maps your goal into a prerequisite Directed Acyclic Graph (DAG) with branching paths, hands-on milestones, and real diagnostic checks.
+                    {t('landing.mission.studentsDesc')}
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-gray-200/60 flex items-center gap-1.5 text-xs font-bold text-saffron-700">
                   <Link to="/roadmap" className="hover:underline flex items-center gap-1">
-                    <span>View Roadmap Engine</span>
+                    <span>{t('landing.mission.viewRoadmap')}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -262,18 +264,18 @@ export const LandingPage: React.FC = () => {
                     <Building2 className="w-6 h-6" />
                   </div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-indiaGreen">
-                    For Industry Employers
+                    {t('landing.mission.industryTitle')}
                   </span>
                   <h3 className="text-xl font-bold text-gray-900 mt-1 mb-2">
-                    Calibrated Hiring with Zero Resume Noise
+                    {t('landing.mission.industryHeading')}
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    Filter students by verified readiness percentages and demonstrable GitHub proof instead of resume keywords. Post direct internships matched to candidates who already meet prerequisites.
+                    {t('landing.mission.industryDesc')}
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-gray-200/60 flex items-center gap-1.5 text-xs font-bold text-indiaGreen">
                   <Link to="/industry/onboard" className="hover:underline flex items-center gap-1">
-                    <span>Explore Employer Portal</span>
+                    <span>{t('landing.mission.viewIndustry')}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -288,18 +290,18 @@ export const LandingPage: React.FC = () => {
                     <GraduationCap className="w-6 h-6" />
                   </div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-[#000080]">
-                    For Colleges & Universities
+                    {t('landing.mission.institutionTitle')}
                   </span>
                   <h3 className="text-xl font-bold text-gray-900 mt-1 mb-2">
-                    NEP 2020 Compliance & Curriculum Gap Heatmaps
+                    {t('landing.mission.institutionHeading')}
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    College administrators access cohort readiness analytics under AISHE codes, identifying which departments lack industry requirements so syllabi can be updated proactively.
+                    {t('landing.mission.institutionDesc')}
                   </p>
                 </div>
                 <div className="mt-6 pt-4 border-t border-gray-200/60 flex items-center gap-1.5 text-xs font-bold text-[#000080]">
                   <Link to="/institution/dashboard" className="hover:underline flex items-center gap-1">
-                    <span>View Institution Analytics</span>
+                    <span>{t('landing.mission.viewInstitution')}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -318,10 +320,10 @@ export const LandingPage: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div>
               <h2 className="text-3xl sm:text-4xl font-extrabold font-heading text-gray-950 tracking-tight">
-                Explore Industry Career Courses
+                {t('landing.courses.heading')}
               </h2>
               <p className="text-gray-600 text-sm sm:text-base mt-2 max-w-2xl leading-relaxed">
-                Prerequisite-ordered curriculums mapped directly to industry job descriptions. Click any track to evaluate your current baseline and receive your tailored roadmap.
+                {t('landing.courses.subtitle')}
               </p>
             </div>
 
@@ -329,7 +331,7 @@ export const LandingPage: React.FC = () => {
               to="/explore"
               className="text-xs font-bold text-saffron-700 hover:text-saffron-800 hover:underline flex items-center gap-1 shrink-0 self-start md:self-auto"
             >
-              <span>View Full Skill Taxonomy</span>
+              <span>{t('landing.courses.viewTaxonomy')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -362,7 +364,7 @@ export const LandingPage: React.FC = () => {
 
                     {/* Prerequisite Footnote */}
                     <div className="mt-4 pt-3 border-t border-gray-100 text-[11px] text-gray-500">
-                      <span className="font-semibold text-gray-700">Prerequisites:</span> {course.prerequisites}
+                      <span className="font-semibold text-gray-700">{t('landing.courses.prerequisites')}:</span> {course.prerequisites}
                     </div>
 
                     {/* Technology Chips */}
@@ -386,7 +388,7 @@ export const LandingPage: React.FC = () => {
                       onClick={() => handleSelectCourse(course)}
                       className="text-xs font-bold text-saffron-700 group-hover:text-saffron-800 flex items-center gap-1 cursor-pointer transition-transform group-hover:translate-x-1"
                     >
-                      <span>Start Learning Path</span>
+                      <span>{t('landing.courses.startPath')}</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -405,10 +407,10 @@ export const LandingPage: React.FC = () => {
           {/* Section Minimal Header */}
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl sm:text-4xl font-extrabold font-heading text-gray-950 tracking-tight">
-              How the Vidyut Adaptive Engine Works
+              {t('landing.engine.heading')}
             </h2>
             <p className="text-gray-600 text-sm sm:text-base mt-3 leading-relaxed">
-              From identifying what you truly know to landing a role where your verified abilities matter.
+              {t('landing.engine.subtitle')}
             </p>
           </div>
 
@@ -422,14 +424,14 @@ export const LandingPage: React.FC = () => {
                     01
                   </div>
                   <h3 className="text-base font-bold text-gray-900 mb-1.5">
-                    Course & Domain Intake
+                    {t('landing.engine.step1Title')}
                   </h3>
                   <p className="text-gray-600 text-xs leading-relaxed">
-                    Select your target profession. The system compiles the industry standard DAG graph specifying exact foundational, tool, and framework requirements.
+                    {t('landing.engine.step1Desc')}
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-200/60 text-[11px] font-semibold text-saffron-700">
-                  Prerequisite Graph Compiled
+                  {t('landing.engine.step1Tag')}
                 </div>
               </div>
             </FadeIn>
@@ -442,14 +444,14 @@ export const LandingPage: React.FC = () => {
                     02
                   </div>
                   <h3 className="text-base font-bold text-gray-900 mb-1.5">
-                    Calibrated Diagnostics
+                    {t('landing.engine.step2Title')}
                   </h3>
                   <p className="text-gray-600 text-xs leading-relaxed">
-                    Compare self-ratings against an adaptive 6-question diagnostic quiz. The engine pinpoints discrepancies and detects hidden skill deficiencies.
+                    {t('landing.engine.step2Desc')}
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-200/60 text-[11px] font-semibold text-amber-700">
-                  Discrepancy Gauge Created
+                  {t('landing.engine.step2Tag')}
                 </div>
               </div>
             </FadeIn>
@@ -462,14 +464,14 @@ export const LandingPage: React.FC = () => {
                     03
                   </div>
                   <h3 className="text-base font-bold text-gray-900 mb-1.5">
-                    Adaptive Roadmap
+                    {t('landing.engine.step3Title')}
                   </h3>
                   <p className="text-gray-600 text-xs leading-relaxed">
-                    Learn strictly in prerequisite order. Pick between technology branches (e.g., FastAPI vs. Django) and submit evidence to advance.
+                    {t('landing.engine.step3Desc')}
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-200/60 text-[11px] font-semibold text-[#000080]">
-                  Dynamic Re-routing
+                  {t('landing.engine.step3Tag')}
                 </div>
               </div>
             </FadeIn>
@@ -482,14 +484,14 @@ export const LandingPage: React.FC = () => {
                     04
                   </div>
                   <h3 className="text-base font-bold text-gray-900 mb-1.5">
-                    Verified Opportunities
+                    {t('landing.engine.step4Title')}
                   </h3>
                   <p className="text-gray-600 text-xs leading-relaxed">
-                    Opportunities are categorized into Ready to Apply, Missing 1 Prerequisite, and Stretch Goals with algorithmic explanations of why you match.
+                    {t('landing.engine.step4Desc')}
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-200/60 text-[11px] font-semibold text-indiaGreen">
-                  Direct Employer Pipeline
+                  {t('landing.engine.step4Tag')}
                 </div>
               </div>
             </FadeIn>
@@ -503,29 +505,29 @@ export const LandingPage: React.FC = () => {
       <section className="py-16 md:py-20 bg-gradient-to-r from-saffron/15 via-[#FFFBF0] to-indiaGreen/15 border-t border-gray-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold font-heading text-gray-950 tracking-tight">
-            Ready to Build Your Verified Readiness Profile?
+            {t('landing.ctaBanner.heading')}
           </h2>
           <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto mt-3 leading-relaxed">
-            Join thousands of students and institutions moving away from resume noise and towards standardized, verifiable technical competency.
+            {t('landing.ctaBanner.subtitle')}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3.5 mt-8">
             <Link
               to="/assessment/self"
               className="btn-saffron text-sm px-6 py-3.5 rounded-full font-bold shadow-xs hover:shadow-md transition"
             >
-              Take Self-Assessment Now
+              {t('landing.ctaBanner.takeAssessment')}
             </Link>
             <Link
               to="/industry/onboard"
               className="text-sm px-6 py-3.5 rounded-full border border-gray-300 bg-white hover:border-gray-400 text-gray-800 font-semibold shadow-2xs hover:bg-gray-50 transition"
             >
-              Employer Registration
+              {t('landing.ctaBanner.employerReg')}
             </Link>
             <Link
               to="/institution/dashboard"
               className="text-sm px-6 py-3.5 rounded-full border border-[#000080]/30 text-[#000080] bg-blue-50/50 hover:bg-blue-50 font-semibold transition"
             >
-              College Portal (AISHE)
+              {t('landing.ctaBanner.collegePortal')}
             </Link>
           </div>
         </div>
