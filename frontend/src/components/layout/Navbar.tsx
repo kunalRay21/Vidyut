@@ -144,7 +144,7 @@ export const Navbar: React.FC = () => {
                 }`
               }
             >
-              Dashboard
+              {t('nav.dashboard')}
             </NavLink>
 
             <NavLink
@@ -157,7 +157,7 @@ export const Navbar: React.FC = () => {
                 }`
               }
             >
-              Roadmap
+              {t('nav.roadmap')}
             </NavLink>
 
             <NavLink
@@ -170,7 +170,7 @@ export const Navbar: React.FC = () => {
                 }`
               }
             >
-              Opportunities
+              {t('nav.opportunities')}
             </NavLink>
 
             {/* Portals Dropdown Trigger - Eliminates Horizontal Clutter */}
@@ -322,7 +322,7 @@ export const Navbar: React.FC = () => {
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition cursor-pointer"
                       >
                         <LogOut className="w-3.5 h-3.5" />
-                        <span>Sign Out</span>
+                        <span>{t('nav.logout')}</span>
                       </button>
                     </div>
                   </div>
@@ -429,7 +429,7 @@ export const Navbar: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <LayoutDashboard className="w-4 h-4 text-saffron" />
-                <span>{t('landing.hero.studentDashboard')}</span>
+                <span>{t('nav.dashboard')}</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
@@ -446,7 +446,7 @@ export const Navbar: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <RouteIcon className="w-4 h-4 text-indiaGreen" />
-                <span>Roadmap</span>
+                <span>{t('nav.roadmap')}</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
@@ -463,7 +463,7 @@ export const Navbar: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <Briefcase className="w-4 h-4 text-[#B85C16]" />
-                <span>Opportunities Hub</span>
+                <span>{t('nav.opportunities')}</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
