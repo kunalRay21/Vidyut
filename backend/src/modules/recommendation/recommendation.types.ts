@@ -134,3 +134,40 @@ export interface OpportunitySummary {
   readyNowCount: number;
   almostReadyCount: number;
 }
+
+// ---------------------------------------------------------------------------
+// Resource Recommendation types (Step 5)
+// ---------------------------------------------------------------------------
+
+export type RoadmapSkillStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+
+export interface RoadmapSkillState {
+  skillId: string;
+  skillName: string;
+  status: RoadmapSkillStatus;
+  sequence: number;
+  currentProficiency: ProficiencyLevel | null;
+  targetProficiency: ProficiencyLevel;
+}
+
+export interface ResourceItem {
+  id: string;
+  title: string;
+  url: string;
+  type: string;
+  isFree: boolean;
+  provider: string | null;
+}
+
+export interface ResourceRecommendation {
+  skillId: string;
+  skillName: string;
+  currentProficiency: ProficiencyLevel | null;
+  targetProficiency: ProficiencyLevel;
+  resources: ResourceItem[];
+}
+
+export interface ResourceRecommendationResponse {
+  skillResources: ResourceRecommendation[];
+}
+

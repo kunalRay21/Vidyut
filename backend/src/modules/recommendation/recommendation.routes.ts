@@ -22,6 +22,8 @@ import type {
 } from './recommendation.service';
 import type { ExplanationService } from './explanation.service';
 
+import type { ResourceRecommendationService } from './resource-recommendation.service';
+
 /**
  * Creates an Express Router with all recommendation routes registered.
  *
@@ -32,16 +34,24 @@ import type { ExplanationService } from './explanation.service';
  * @param profileService - Profile + skill state provider.
  * @param opportunityRepo- Active opportunity reader.
  * @param explanationService - Explanation service.
+ * @param resourceService - Resource recommendation generation.
  * @returns              - Configured Express Router.
  */
 export function createRecommendationRouter(
   db: RecommendationPersistenceClient,
   profileService: ProfileService,
   opportunityRepo: OpportunityRepository,
-  explanationService: ExplanationService
+  explanationService: ExplanationService,
+  resourceService?: ResourceRecommendationService
 ): Router {
   const router = Router();
-  const controller = createRecommendationController(db, profileService, opportunityRepo, explanationService);
+  const controller = createRecommendationController(
+    db, 
+    profileService, 
+    opportunityRepo, 
+    explanationService, 
+    resourceService
+  );
 
   /**
    * GET /opportunities
@@ -54,6 +64,17 @@ export function createRecommendationRouter(
    *   refresh?: "true" | "false"   (default: "false")
    */
   router.get('/opportunities', controller.getOpportunityRecommendations);
+
+  /**
+   * GET /resources
+   * Full path: GET /api/v1/recommendations/resources
+   *
+   * Returns skill gaps and mapped learning resources.
+   * 
+   * Query parameters:
+   *   skillId?: string (optional)
+   */
+  router.get('/resources', controller.getResourceRecommendations);
 
   return router;
 }

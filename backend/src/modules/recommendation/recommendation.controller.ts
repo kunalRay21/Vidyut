@@ -80,6 +80,8 @@ function errorResponse(
 // Controller factory
 // ---------------------------------------------------------------------------
 
+import type { ResourceRecommendationService } from './resource-recommendation.service';
+
 /**
  * Creates the recommendation controller with injected dependencies.
  *
@@ -90,12 +92,14 @@ function errorResponse(
  * @param profileService - Role 2's profile + skill state fetcher.
  * @param opportunityRepo- Opportunity reader.
  * @param explanationService - Explanation generation.
+ * @param resourceService - Resource recommendation generation.
  */
 export function createRecommendationController(
   db: RecommendationPersistenceClient,
   profileService: ProfileService,
   opportunityRepo: OpportunityRepository,
-  explanationService: ExplanationService
+  explanationService: ExplanationService,
+  resourceService?: ResourceRecommendationService
 ) {
   /**
    * GET /api/v1/recommendations/opportunities
@@ -116,8 +120,6 @@ export function createRecommendationController(
   ): Promise<void> {
     try {
       // ── 1. Resolve authenticated student ID ──────────────────────────────
-      // Placeholder: read from a trusted header until JWT middleware is wired.
-      // Replace with: const studentId = (req as AuthenticatedRequest).user.studentId;
       const studentId =
         (req.headers['x-student-id'] as string | undefined) ??
         (req.query['studentId'] as string | undefined);
@@ -174,5 +176,46 @@ export function createRecommendationController(
     }
   }
 
-  return { getOpportunityRecommendations };
+  /**
+   * GET /api/v1/recommendations/resources
+   *
+   * Query parameters:
+   *   skillId?: string
+   *
+   * Response:
+   *   200 { success: true, data: { skillResources: [...] } }
+   *   401 { success: false, error: "Authentication required" }
+   *   500 { success: false, error: "Internal server error" }
+   */
+  async function getResourceRecommendations(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const studentId =
+        (req.headers['x-student-id'] as string | undefined) ??
+        (req.query['studentId'] as string | undefined);
+
+      if (!studentId || studentId.trim() === '') {
+        errorResponse(res, 'Authentication required: student ID not found in request.', 401);
+        return;
+      }
+
+      if (!resourceService) {
+        errorResponse(res, 'Resource recommendation service is not configured.', 500);
+        return;
+      }
+
+      const skillId = req.query['skillId'] as string | undefined;
+
+      const result = await resourceService.getResourceRecommendations(studentId.trim(), skillId);
+
+      successResponse(res, result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  return { getOpportunityRecommendations, getResourceRecommendations };
 }

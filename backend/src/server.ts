@@ -25,6 +25,7 @@ import type {
 import { GeminiClient } from './modules/ai/ai.client';
 import { CentralizedAIService } from './modules/ai/ai.service';
 import { ExplanationService } from './modules/recommendation/explanation.service';
+import { ResourceRecommendationService, type ResourceRepository, type RoadmapRepository } from './modules/recommendation/resource-recommendation.service';
 
 /**
  * Stub persistence client — satisfies the interface but throws if called.
@@ -76,6 +77,28 @@ const stubOpportunityRepo: OpportunityRepository = {
 };
 
 /**
+ * Stub roadmap repository — returns an empty roadmap.
+ * Replace with Role 3's real repository when available.
+ */
+const stubRoadmapRepo: RoadmapRepository = {
+  getStudentRoadmap: async (studentId: string) => {
+    console.warn(`[STUB] RoadmapRepository.getStudentRoadmap(${studentId}) — real repo not wired.`);
+    return [];
+  }
+};
+
+/**
+ * Stub resource repository — returns an empty array.
+ * Replace with Role 3's real repository when available.
+ */
+const stubResourceRepo: ResourceRepository = {
+  findResourcesBySkillId: async (skillId: string) => {
+    console.warn(`[STUB] ResourceRepository.findResourcesBySkillId(${skillId}) — real repo not wired.`);
+    return [];
+  }
+};
+
+/**
  * Initialize AI and Explanation services.
  * We initialize the Gemini client with an env var API key, which might be undefined.
  * The AIService safely handles errors, and the ExplanationService has a deterministic fallback.
@@ -83,10 +106,11 @@ const stubOpportunityRepo: OpportunityRepository = {
 const aiClient = new GeminiClient(process.env.GEMINI_API_KEY);
 const aiService = new CentralizedAIService(aiClient);
 const explanationService = new ExplanationService(aiService);
+const resourceRecommendationService = new ResourceRecommendationService(stubResourceRepo, stubRoadmapRepo);
 
 app.use(
   '/api/v1/recommendations',
-  createRecommendationRouter(stubDb, stubProfileService, stubOpportunityRepo, explanationService)
+  createRecommendationRouter(stubDb, stubProfileService, stubOpportunityRepo, explanationService, resourceRecommendationService)
 );
 
 // ---------------------------------------------------------------------------
