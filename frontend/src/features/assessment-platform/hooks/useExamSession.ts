@@ -35,8 +35,14 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
     try {
       let data: any;
       if (sid) {
-        // Resume existing session
-        data = await assessmentApi.getSession(sid);
+        // Try to resume existing session; if not found, create a new one gracefully
+        try {
+          data = await assessmentApi.getSession(sid);
+        } catch {
+          data = await assessmentApi.startSession({
+            test_title: 'Diagnostic Assessment — Full Skill Calibration',
+          });
+        }
       } else {
         // Start new session
         data = await assessmentApi.startSession({
