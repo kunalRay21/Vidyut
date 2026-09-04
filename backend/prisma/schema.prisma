@@ -21,12 +21,12 @@ enum UserRole {
 }
 
 model User {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email        String    @unique @db.VarChar(255)
-  passwordHash String    @map("password_hash") @db.VarChar(255)
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
   role         UserRole
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   studentProfile StudentProfile?
   institution    Institution?
@@ -48,11 +48,12 @@ model StudentProfile {
   createdAt      DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  user               User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  selectedRole       Role?                @relation(fields: [selectedRoleId], references: [id], onDelete: SetNull)
+  user               User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  selectedRole       Role?               @relation(fields: [selectedRoleId], references: [id], onDelete: SetNull)
   assessmentSessions AssessmentSession[]
   skillStates        StudentSkillState[]
   roadmapStates      RoadmapState[]
+  recommendations    Recommendation[]
 
   @@map("student_profiles")
 }
@@ -95,7 +96,8 @@ model Domain {
   demandLevel String   @default("MEDIUM") @map("demand_level") @db.VarChar(50)
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  roles Role[]
+  roles         Role[]
+  opportunities Opportunity[]
 
   @@map("domains")
 }
@@ -133,6 +135,8 @@ model Skill {
   questions        Question[]
   skillStates      StudentSkillState[]
   milestones       Milestone[]
+  opportunityTags  OpportunitySkillTag[]
+  resources        Resource[]
 
   @@unique([roleId, name])
   @@map("skills")
@@ -306,12 +310,15 @@ model Opportunity {
   stipend        String?   @db.VarChar(100)
   descriptionRaw String?   @map("description_raw") @db.Text
   eligibilityRaw String?   @map("eligibility_raw") @db.Text
+  domainId       String?   @map("domain_id") @db.Uuid
   fingerprint    String?   @unique @db.VarChar(255)
   isActive       Boolean?  @default(true) @map("is_active")
   extractedAt    DateTime? @default(now()) @map("extracted_at") @db.Timestamptz(6)
   lastSeenAt     DateTime? @default(now()) @map("last_seen_at") @db.Timestamptz(6)
 
-  skillTags OpportunitySkillTag[]
+  domain          Domain?               @relation(fields: [domainId], references: [id], onDelete: SetNull)
+  skillTags       OpportunitySkillTag[]
+  recommendations Recommendation[]
 
   @@map("opportunities")
 }
@@ -319,11 +326,48 @@ model Opportunity {
 model OpportunitySkillTag {
   id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   opportunityId  String? @map("opportunity_id") @db.Uuid
-  skillId        String  @map("skill_id") @db.VarChar(100)
+  skillId        String  @map("skill_id") @db.Uuid
   minProficiency String? @default("BEGINNER") @map("min_proficiency") @db.VarChar(50)
   weight         Float?  @default(1.0)
 
   opportunity Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  skill       Skill        @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@map("opportunity_skill_tags")
+}
+
+// ----------------------------------------------------
+// 6. Role 5: Recommendations & Resources
+// ----------------------------------------------------
+
+model Resource {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  skillId   String   @map("skill_id") @db.Uuid
+  title     String   @db.VarChar(255)
+  url       String   @db.Text
+  type      String   @db.VarChar(50)
+  isFree    Boolean  @default(true) @map("is_free")
+  provider  String?  @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@map("resources")
+}
+
+model Recommendation {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  studentId          String   @map("student_id") @db.Uuid
+  opportunityId      String   @map("opportunity_id") @db.Uuid
+  compatibilityScore Float    @map("compatibility_score")
+  segment            String   @db.VarChar(50)
+  explanationJson    Json     @map("explanation_json")
+  generatedAt        DateTime @default(now()) @map("generated_at") @db.Timestamptz(6)
+
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  opportunity Opportunity    @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, opportunityId])
+  @@map("recommendations")
 }

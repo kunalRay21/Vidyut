@@ -227,6 +227,7 @@ export async function initDatabaseSchema(): Promise<boolean> {
       stipend VARCHAR(100),
       description_raw TEXT,
       eligibility_raw TEXT,
+      domain_id UUID REFERENCES domains(id) ON DELETE SET NULL,
       fingerprint VARCHAR(255) UNIQUE,
       is_active BOOLEAN DEFAULT TRUE,
       extracted_at TIMESTAMPTZ DEFAULT NOW(),
@@ -237,9 +238,34 @@ export async function initDatabaseSchema(): Promise<boolean> {
     CREATE TABLE IF NOT EXISTS opportunity_skill_tags (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       opportunity_id UUID REFERENCES opportunities(id) ON DELETE CASCADE,
-      skill_id VARCHAR(100) NOT NULL,
+      skill_id UUID NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
       min_proficiency VARCHAR(50) DEFAULT 'BEGINNER',
       weight FLOAT DEFAULT 1.0
+    );
+
+    -- Resources Table (Role 5)
+    CREATE TABLE IF NOT EXISTS resources (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      skill_id UUID NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+      title VARCHAR(255) NOT NULL,
+      url TEXT NOT NULL,
+      type VARCHAR(50) NOT NULL,
+      is_free BOOLEAN NOT NULL DEFAULT TRUE,
+      provider VARCHAR(255),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    -- Recommendations Table (Role 5)
+    CREATE TABLE IF NOT EXISTS recommendations (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+      opportunity_id UUID NOT NULL REFERENCES opportunities(id) ON DELETE CASCADE,
+      compatibility_score FLOAT NOT NULL,
+      segment VARCHAR(50) NOT NULL,
+      explanation_json JSONB NOT NULL,
+      generated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(student_id, opportunity_id)
     );
   `;
 
