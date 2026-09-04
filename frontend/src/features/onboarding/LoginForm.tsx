@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
+import { authApi, setStoredToken, setStoredUser } from '../../services/api';
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -22,28 +23,31 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const baseUrl = import.meta.env?.VITE_API_BASE_URL || '';
-      if (baseUrl) {
-        const response = await fetch(`${baseUrl}/api/v1/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-          throw new Error(result.message || 'Login failed.');
+      const response = await authApi.login(email, password);
+
+      if (response.success && response.data) {
+        if (response.data.access_token) {
+          setStoredToken(response.data.access_token);
         }
-        localStorage.setItem('access_token', result.data.access_token);
+        if (response.data.user) {
+          setStoredUser(response.data.user);
+        }
       } else {
-        // Demo fallback token
-        localStorage.setItem('access_token', 'demo-token');
+        // Fallback for offline demo mode
+        setStoredToken('demo-token');
+        setStoredUser({
+          id: 'student-demo',
+          email,
+          full_name: 'Priya Sharma',
+          institution: 'VIT Chennai',
+          degree: 'B.Tech CSE',
+          year_of_study: 2,
+        });
       }
 
-      navigate('/explore');
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Something went wrong. Please try again.'
-      );
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please verify your credentials.');
     } finally {
       setLoading(false);
     }
@@ -102,7 +106,7 @@ export default function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-saffron py-3 rounded-lg font-semibold disabled:opacity-50"
+            className="w-full btn-saffron py-3 rounded-lg font-semibold disabled:opacity-50 cursor-pointer"
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </button>

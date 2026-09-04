@@ -1,15 +1,102 @@
-import React from 'react';
-import { MOCK_STUDENT_PROFILE } from '../mocks/studentSessionMock';
+import React, { useEffect, useState } from 'react';
 import { ReadinessGauge } from '../features/dashboard/ReadinessGauge';
 import { SkillStateList } from '../features/dashboard/SkillStateList';
 import { DiscrepancyNotice } from '../features/dashboard/DiscrepancyNotice';
 import { User, BookOpen, Target, GraduationCap } from 'lucide-react';
 import { FadeIn } from '../components/animations/FadeIn';
 import { useNavigate } from 'react-router-dom';
+import { profileApi, getStoredUser } from '../services/api';
+
+const DEFAULT_PROFILE = {
+  full_name: 'Priya Sharma',
+  institution: 'VIT Chennai',
+  degree: 'B.Tech CSE',
+  year_of_study: 2,
+  selected_role: 'Machine Learning Engineer',
+  readiness_pct: 14.0,
+  skills: [
+    { name: 'Programming Fundamentals', progress: 100, currentLevel: 4 },
+    { name: 'Python', progress: 70, currentLevel: 3 },
+    { name: 'SQL', progress: 20, currentLevel: 1 },
+  ],
+};
 
 export const DashboardPage: React.FC = () => {
-  const profile = MOCK_STUDENT_PROFILE;
   const navigate = useNavigate();
+  const [profile, setProfile] = useState(DEFAULT_PROFILE);
+  const [discrepancyMsg, setDiscrepancyMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadDashboardData() {
+      // 1. Check stored user cache first
+      const stored = getStoredUser();
+      if (stored) {
+        setProfile((prev) => ({
+          ...prev,
+          full_name: stored.full_name || prev.full_name,
+          institution: stored.institution || prev.institution,
+          degree: stored.degree || prev.degree,
+          year_of_study: stored.year_of_study || prev.year_of_study,
+          readiness_pct: stored.readiness_pct !== undefined ? stored.readiness_pct : prev.readiness_pct,
+        }));
+      }
+
+      // 2. Check assessment results cache for discrepancy messages
+      const assessmentResultRaw = localStorage.getItem('assessment_result');
+      if (assessmentResultRaw) {
+        try {
+          const parsed = JSON.parse(assessmentResultRaw);
+          if (parsed.overall_accuracy_pct !== undefined) {
+            setProfile((prev) => ({ ...prev, readiness_pct: parsed.overall_accuracy_pct }));
+          }
+          if (parsed.discrepancies && parsed.discrepancies.length > 0) {
+            setDiscrepancyMsg(parsed.discrepancies[0].message);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      // 3. Fetch live data from backend
+      try {
+        const profileRes = await profileApi.getMe();
+        if (mounted && profileRes.success && profileRes.data) {
+          const p = profileRes.data;
+          setProfile((prev) => ({
+            ...prev,
+            full_name: p.full_name || prev.full_name,
+            institution: p.institution || prev.institution,
+            degree: p.degree || prev.degree,
+            year_of_study: p.year_of_study || prev.year_of_study,
+            selected_role: p.selected_role || prev.selected_role,
+            readiness_pct: p.readiness_pct !== undefined ? p.readiness_pct : prev.readiness_pct,
+          }));
+        }
+
+        const skillsRes = await profileApi.getSkills();
+        if (mounted && skillsRes.success && skillsRes.data?.skills) {
+          const mappedSkills = skillsRes.data.skills.map((s: any) => ({
+            name: s.skill_name || s.name,
+            progress: s.accuracy !== undefined ? Number(s.accuracy) : s.assessed_level === 'PROFICIENT' ? 85 : 40,
+            currentLevel: s.assessed_level === 'EXPERT' ? 5 : s.assessed_level === 'PROFICIENT' ? 4 : s.assessed_level === 'INTERMEDIATE' ? 3 : 2,
+          }));
+
+          setProfile((prev) => ({
+            ...prev,
+            skills: mappedSkills.length > 0 ? mappedSkills : prev.skills,
+            readiness_pct: skillsRes.data.readiness_pct !== undefined ? skillsRes.data.readiness_pct : prev.readiness_pct,
+          }));
+        }
+      } catch (err) {
+        console.warn('Live profile fetch error:', err);
+      }
+    }
+
+    loadDashboardData();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -56,12 +143,12 @@ export const DashboardPage: React.FC = () => {
           </FadeIn>
 
           <FadeIn delay={300}>
-            <DiscrepancyNotice />
+            <DiscrepancyNotice message={discrepancyMsg || undefined} />
           </FadeIn>
 
           <FadeIn delay={400}>
             <div className="mt-6">
-               <SkillStateList skills={profile.skills} />
+              <SkillStateList skills={profile.skills} />
             </div>
           </FadeIn>
         </div>
@@ -76,13 +163,13 @@ export const DashboardPage: React.FC = () => {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-saffron via-[#000080] to-indiaGreen" />
               <h3 className="font-bold text-[#000080] mb-2 font-heading">Next Milestone</h3>
               <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                Complete "Python Fundamentals" assessment to boost your readiness by 5%.
+                Advance your prerequisite roadmap to unlock aligned industry opportunities.
               </p>
               <button 
                 onClick={() => navigate('/roadmap')}
-                className="w-full btn-saffron py-2.5 px-4 rounded-xl text-sm font-semibold shadow-sm transition"
+                className="w-full btn-saffron py-2.5 px-4 rounded-xl text-sm font-semibold shadow-sm transition cursor-pointer"
               >
-                Go to Roadmap
+                Go to Adaptive Roadmap
               </button>
             </div>
           </FadeIn>
@@ -91,5 +178,3 @@ export const DashboardPage: React.FC = () => {
     </div>
   );
 };
-
-

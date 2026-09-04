@@ -2,7 +2,15 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export const DiscrepancyNotice: React.FC = () => {
+interface DiscrepancyNoticeProps {
+  message?: string;
+  skillName?: string;
+}
+
+export const DiscrepancyNotice: React.FC<DiscrepancyNoticeProps> = ({
+  message,
+  skillName = 'Python',
+}) => {
   const navigate = useNavigate();
 
   return (
@@ -17,15 +25,19 @@ export const DiscrepancyNotice: React.FC = () => {
             <span className="gov-badge text-[10px] py-0.5 px-2">Diagnostic Sync</span>
           </div>
           <p className="mt-2 text-sm text-amber-900/80 leading-relaxed">
-            Your self-assessed skill level for <strong className="text-amber-950 font-semibold">Python</strong> is higher than your recent diagnostic evaluation. 
-            We recommend completing the advanced Python assessment to calibrate your true skill level and unlock aligned opportunities.
+            {message || (
+              <>
+                Your self-assessed skill level for <strong className="text-amber-950 font-semibold">{skillName}</strong> differs from your recent diagnostic evaluation. 
+                Key prerequisite modules are prioritized in your adaptive roadmap to solidify your fundamentals.
+              </>
+            )}
           </p>
           <div className="mt-4">
             <button 
-              onClick={() => navigate('/assessment/quiz/python')}
+              onClick={() => navigate('/roadmap')}
               className="btn-saffron text-xs py-2 px-4 shadow-sm rounded-xl font-semibold cursor-pointer"
             >
-              Take Calibration Assessment
+              View Prioritized Roadmap Modules
             </button>
           </div>
         </div>
@@ -33,5 +45,3 @@ export const DiscrepancyNotice: React.FC = () => {
     </div>
   );
 };
-
-

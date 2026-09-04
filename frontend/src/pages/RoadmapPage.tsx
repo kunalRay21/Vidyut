@@ -2,170 +2,203 @@ import React, { useState, useEffect } from 'react';
 import { RoadmapTimeline, Phase } from '../features/roadmap/RoadmapTimeline';
 import { DecisionPointModal } from '../features/roadmap/DecisionPointModal';
 import { EvidenceSubmitModal } from '../features/roadmap/EvidenceSubmitModal';
+import { FadeIn } from '../components/animations/FadeIn';
+import { roadmapApi, portfolioApi, getStoredUser } from '../services/api';
 
-const INITIAL_PHASES: Phase[] = [
+const DEFAULT_PHASES: Phase[] = [
   {
-    id: "p1",
+    id: 'p1',
     phase_number: 1,
-    title: "Programming Fundamentals",
-    description: "Build a strong foundation in programming by understanding the core concepts and logic required to write structured programs.",
-    learning_outcome: "Understand how programs are structured and develop the logical thinking required to solve programming problems.",
-    status: "FAST_TRACKED",
-    topics: ["Programming Basics", "Variables and Data Types", "Input and Output", "Operators", "Conditional Statements", "Loops", "Functions", "Basic Problem Solving", "Control Flow"]
+    title: 'Programming Fundamentals',
+    description: 'Build a strong foundation in programming by understanding the core concepts and logic required to write structured programs.',
+    learning_outcome: 'Understand how programs are structured and develop the logical thinking required to solve programming problems.',
+    status: 'COMPLETED',
+    topics: ['Programming Basics', 'Variables and Data Types', 'Control Flow', 'Functions'],
   },
   {
-    id: "p2",
+    id: 'p2',
     phase_number: 2,
-    title: "Python Programming",
-    description: "Learn Python as a programming language and understand how to use its syntax, built-in features, and core programming concepts to write efficient programs.",
-    learning_outcome: "Write complete Python programs, work with different data structures, organize code using functions and modules, and handle common runtime errors.",
-    status: "IN_PROGRESS",
-    topics: ["Python Syntax", "Variables and Data Types in Python", "Lists, Tuples, Sets and Dictionaries", "Strings", "Conditional Statements", "Loops", "Functions", "Modules and Packages", "File Handling", "Exception Handling"]
+    title: 'Python Programming Core',
+    description: 'Learn Python syntax, built-in data structures, and core programming concepts.',
+    learning_outcome: 'Write complete Python programs and organize modular code.',
+    status: 'IN_PROGRESS',
+    topics: ['Python Syntax', 'Data Structures', 'Functions & Modules', 'Exception Handling'],
   },
   {
-    id: "p3",
+    id: 'p3',
     phase_number: 3,
-    title: "Object-Oriented Programming",
-    description: "Learn how to design larger and more structured applications using classes and objects.",
-    learning_outcome: "Understand how real-world entities can be represented in software and how object-oriented principles help build scalable and maintainable applications.",
-    status: "LOCKED",
-    topics: ["Classes and Objects", "Constructors", "Instance Variables", "Methods", "Encapsulation", "Inheritance", "Polymorphism", "Abstraction", "Method Overriding", "Composition"]
+    title: 'Relational Databases & SQL',
+    description: 'Design database schemas, query tables, and maintain data consistency.',
+    learning_outcome: 'Extract and manipulate structured datasets.',
+    status: 'LOCKED',
+    topics: ['SQL Queries', 'Joins & Aggregations', 'Database Normalization'],
   },
   {
-    id: "p4",
+    id: 'p4',
     phase_number: 4,
-    title: "Data Structures & Problem Solving",
-    description: "Learn how to organize data efficiently and select appropriate approaches for solving computational problems.",
-    learning_outcome: "Understand how data is stored and processed efficiently and improve your ability to solve programming problems systematically.",
-    status: "LOCKED",
-    topics: ["Arrays and Lists", "Stacks", "Queues", "Linked Lists", "Hashing", "Recursion", "Searching", "Sorting", "Basic Algorithmic Complexity"]
-  },
-  {
-    id: "p5",
-    phase_number: 5,
-    title: "Mathematics Foundations",
-    description: "Develop the mathematical intuition needed to understand machine learning algorithms under the hood.",
-    learning_outcome: "Apply concepts of linear algebra, calculus, and probability to understand and implement machine learning models.",
-    status: "LOCKED",
-    topics: ["Linear Algebra", "Statistics & Probability", "Calculus Basics"]
-  },
-  {
-    id: "p6",
-    phase_number: 6,
-    title: "Data Handling",
-    description: "Learn to query databases, clean messy datasets, and visualize insights effectively.",
-    learning_outcome: "Extract data from relational databases, manipulate large datasets, and build informative visualizations.",
-    status: "LOCKED",
-    topics: ["SQL Fundamentals", "pandas / Data Manipulation", "Data Visualization"]
-  },
-  {
-    id: "p7",
-    phase_number: 7,
-    title: "Core Machine Learning",
-    description: "Train, evaluate, and tune predictive models using industry-standard machine learning techniques.",
-    learning_outcome: "Build end-to-end machine learning pipelines to solve classification and regression problems.",
-    status: "LOCKED",
-    topics: ["Machine Learning Fundamentals", "scikit-learn", "Feature Engineering", "Model Evaluation & Metrics"],
+    title: 'Core Framework Specialization',
+    description: 'Select your technology specialization to unlock aligned framework milestones.',
+    learning_outcome: 'Develop complete server-side or deep learning applications.',
+    status: 'LOCKED',
+    topics: ['Framework Architecture', 'Routing & Data Models', 'Testing'],
     has_decision_point: true,
     decision_options: [
-      { branch_id: "branch-tf", name: "TensorFlow" },
-      { branch_id: "branch-pytorch", name: "PyTorch" }
-    ]
-  }
+      { branch_id: 'branch-pytorch', name: 'PyTorch' },
+      { branch_id: 'branch-tf', name: 'TensorFlow' },
+    ],
+  },
 ];
 
-import { FadeIn } from '../components/animations/FadeIn';
-import { MOCK_STUDENT_PROFILE } from '../mocks/studentSessionMock';
-
 export const RoadmapPage: React.FC = () => {
-  const [phases, setPhases] = useState<Phase[]>(INITIAL_PHASES);
-  const [readinessScore, setReadinessScore] = useState(MOCK_STUDENT_PROFILE.readiness_pct);
-  
-  // Animation states for the readiness gauge
+  const [phases, setPhases] = useState<Phase[]>(DEFAULT_PHASES);
+  const [readinessScore, setReadinessScore] = useState(14);
   const [displayedScore, setDisplayedScore] = useState(0);
   const [isGaugeLoaded, setIsGaugeLoaded] = useState(false);
+  const [roleTitle, setRoleTitle] = useState('Machine Learning Engineer');
 
+  // Modals state
+  const [decisionPhase, setDecisionPhase] = useState<Phase | null>(null);
+  const [evidenceMilestoneId, setEvidenceMilestoneId] = useState<string | null>(null);
+
+  // 1. Fetch dynamic roadmap from backend
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadRoadmap() {
+      const user = getStoredUser();
+      const studentId = user?.id || user?.student_id;
+      const roleId = user?.selected_role_id || 'role-ml';
+
+      try {
+        const res = await roadmapApi.getRoadmap(studentId, roleId);
+        if (mounted && res.success && res.data) {
+          if (res.data.role_name) {
+            setRoleTitle(res.data.role_name);
+          }
+          if (res.data.readiness_pct !== undefined) {
+            setReadinessScore(res.data.readiness_pct);
+          }
+
+          if (Array.isArray(res.data.phases) && res.data.phases.length > 0) {
+            const mappedPhases: Phase[] = res.data.phases.map((p: any) => ({
+              id: `p-${p.phase_number}`,
+              phase_number: p.phase_number,
+              title: p.title || `Phase ${p.phase_number}: Skill Milestones`,
+              description: p.description || 'Complete prerequisite-ordered milestones to advance to the next competency stage.',
+              learning_outcome: p.learning_outcome || 'Master target skill competencies to unlock aligned industry opportunities.',
+              status: p.phase_number === 1 ? 'IN_PROGRESS' : 'LOCKED',
+              topics: p.milestones?.map((m: any) => m.title) || ['Core Concept Verification'],
+              has_decision_point: !!p.has_decision_point,
+              decision_options: p.decision_options || [],
+            }));
+            setPhases(mappedPhases);
+          }
+        }
+      } catch (err) {
+        console.warn('Roadmap API load error, using default phases:', err);
+      }
+    }
+
+    loadRoadmap();
+    return () => { mounted = false; };
+  }, []);
+
+  // 2. Smooth animation for readiness gauge
   useEffect(() => {
     const timer = setTimeout(() => setIsGaugeLoaded(true), 100);
-    
     let startTimestamp: number | null = null;
-    const duration = 1500; // 1.5s
-    const startValue = displayedScore; 
+    const duration = 1200;
+    const startValue = displayedScore;
     let animationFrameId: number;
-    
+
     const step = (timestamp: number) => {
       if (!startTimestamp) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      
       const easeOut = 1 - Math.pow(1 - progress, 3);
       const currentScore = Math.round(startValue + (readinessScore - startValue) * easeOut);
-      
+
       setDisplayedScore(currentScore);
-      
       if (progress < 1) {
         animationFrameId = window.requestAnimationFrame(step);
       } else {
         setDisplayedScore(readinessScore);
       }
     };
-    
+
     animationFrameId = window.requestAnimationFrame(step);
-    
     return () => {
       clearTimeout(timer);
       window.cancelAnimationFrame(animationFrameId);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [readinessScore]);
 
-  // Modals state
-  const [decisionPhase, setDecisionPhase] = useState<Phase | null>(null);
-  const [evidenceMilestoneId, setEvidenceMilestoneId] = useState<string | null>(null);
-
-  const handleDecisionSelect = (branchId: string) => {
-    setPhases(prev => {
-      const updated = [...prev];
-      const p7 = updated.find(p => p.phase_number === 7);
-      if (p7) {
-        p7.has_decision_point = false;
-        if (!p7.topics) p7.topics = [];
-        p7.topics.push(`Specialization: ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'} Selected`);
-      }
-      
-      updated.push({
-        id: "p8",
-        phase_number: 8,
-        title: branchId === 'branch-pytorch' ? 'PyTorch Deep Learning' : 'TensorFlow Deep Learning',
-        description: `Learn to build deep neural networks using ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'}.`,
-        learning_outcome: `Develop, train, and deploy advanced neural network models using ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'}.`,
-        status: 'IN_PROGRESS',
-        topics: [
-          branchId === 'branch-pytorch' ? 'PyTorch Tensors & Autograd' : 'TF Tensors & Keras',
-          'Build a CNN'
-        ]
-      });
-      
-      return updated;
-    });
-    setDecisionPhase(null);
-  };
-
-  const handleEvidenceSubmit = (id: string, _url: string, _desc: string) => {
-    setReadinessScore(prev => Math.min(100, prev + 5));
-    
-    setPhases(prev => {
-      const idx = prev.findIndex(p => p.id === id);
-      if (idx !== -1) {
-        return prev.map((p, i) => {
-          if (i === idx) return { ...p, status: 'COMPLETED' as const };
-          if (i === idx + 1 && p.status === 'LOCKED') return { ...p, status: 'IN_PROGRESS' as const };
-          return p;
+  // 3. Handle technology branch choice via backend API
+  const handleDecisionSelect = async (branchId: string) => {
+    try {
+      const res = await roadmapApi.selectBranch(branchId);
+      if (res.success && res.data?.updated_roadmap?.phases) {
+        const updatedPhases: Phase[] = res.data.updated_roadmap.phases.map((p: any) => ({
+          id: `p-${p.phase_number}`,
+          phase_number: p.phase_number,
+          title: p.title,
+          description: p.description || 'Target framework specialization milestone.',
+          learning_outcome: 'Build complete applications using the selected framework.',
+          status: 'IN_PROGRESS',
+          topics: p.milestones?.map((m: any) => m.title) || [],
+          has_decision_point: false,
+        }));
+        setPhases(updatedPhases);
+      } else {
+        // Fallback local UI update
+        setPhases((prev) => {
+          const updated = [...prev];
+          const dp = updated.find((p) => p.has_decision_point);
+          if (dp) {
+            dp.has_decision_point = false;
+            dp.topics = [...(dp.topics || []), `Specialization: ${branchId.replace('branch-', '').toUpperCase()} Selected`];
+          }
+          return updated;
         });
       }
-      return prev;
-    });
-    
-    setEvidenceMilestoneId(null);
+    } catch (err) {
+      console.warn('Branch selection API error:', err);
+    } finally {
+      setDecisionPhase(null);
+    }
+  };
+
+  // 4. Handle portfolio evidence submission via backend API
+  const handleEvidenceSubmit = async (milestoneId: string, url: string, description: string) => {
+    try {
+      const res = await portfolioApi.submitEvidence({
+        skill_id: milestoneId,
+        type: 'GITHUB',
+        url,
+        description,
+      });
+
+      if (res.success && res.data?.new_readiness_pct) {
+        setReadinessScore(res.data.new_readiness_pct);
+      } else {
+        setReadinessScore((prev) => Math.min(100, prev + 5));
+      }
+
+      setPhases((prev) => {
+        const idx = prev.findIndex((p) => p.id === milestoneId);
+        if (idx !== -1) {
+          return prev.map((p, i) => {
+            if (i === idx) return { ...p, status: 'COMPLETED' as const };
+            if (i === idx + 1 && p.status === 'LOCKED') return { ...p, status: 'IN_PROGRESS' as const };
+            return p;
+          });
+        }
+        return prev;
+      });
+    } catch (err) {
+      console.warn('Evidence submission error:', err);
+    } finally {
+      setEvidenceMilestoneId(null);
+    }
   };
 
   return (
@@ -173,10 +206,14 @@ export const RoadmapPage: React.FC = () => {
       <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
         <FadeIn delay={100}>
           <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron/10 text-saffron-600 text-xs font-bold uppercase tracking-wider mb-2 border border-saffron/30">
+              Deterministic DAG Topological Sequence
+            </div>
             <h1 className="text-3xl font-bold text-gray-900">Adaptive Roadmap</h1>
-            <p className="text-gray-500 mt-2">Your personalized path to Machine Learning Engineer.</p>
+            <p className="text-gray-500 mt-1">Your personalized prerequisite path to {roleTitle}.</p>
           </div>
         </FadeIn>
+
         <FadeIn delay={200}>
           <div className="flex flex-col items-center relative">
             <span className="block text-sm text-gray-500 font-semibold mb-2 uppercase tracking-wide">Current Readiness</span>
@@ -212,7 +249,7 @@ export const RoadmapPage: React.FC = () => {
                   strokeLinecap="round" 
                   strokeDasharray={251.327}
                   strokeDashoffset={251.327 - ((isGaugeLoaded ? readinessScore : 0) / 100) * 251.327}
-                  className="transition-all duration-[1500ms] ease-out"
+                  className="transition-all duration-[1200ms] ease-out"
                   filter="url(#roadmap-arc-glow)"
                 />
               </svg>
@@ -260,5 +297,3 @@ export const RoadmapPage: React.FC = () => {
     </div>
   );
 };
-
-

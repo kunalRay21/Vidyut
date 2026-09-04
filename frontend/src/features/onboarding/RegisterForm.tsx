@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
+import { authApi, setStoredToken, setStoredUser } from '../../services/api';
 
 export default function RegisterForm() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function RegisterForm() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (
@@ -45,25 +46,50 @@ export default function RegisterForm() {
     setError('');
     setLoading(true);
 
-    const demoUser = {
-      full_name: form.full_name,
-      email: form.email,
-      institution: form.institution,
-      degree: form.degree,
-      year_of_study: Number(form.year_of_study),
-      interests: form.interests
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean),
-    };
+    const parsedInterests = form.interests
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
 
-    localStorage.setItem('demo_user', JSON.stringify(demoUser));
-    localStorage.setItem('access_token', 'demo-token');
+    try {
+      const response = await authApi.register({
+        email: form.email,
+        password: form.password,
+        full_name: form.full_name,
+        institution: form.institution,
+        degree: form.degree,
+        year_of_study: Number(form.year_of_study),
+        interests: parsedInterests,
+      });
 
-    setTimeout(() => {
-      setLoading(false);
+      if (response.success && response.data) {
+        if (response.data.access_token) {
+          setStoredToken(response.data.access_token);
+        }
+        if (response.data.user) {
+          setStoredUser(response.data.user);
+        }
+      } else {
+        // Fallback for offline demo mode
+        const demoUser = {
+          id: `student-${Date.now()}`,
+          full_name: form.full_name,
+          email: form.email,
+          institution: form.institution,
+          degree: form.degree,
+          year_of_study: Number(form.year_of_study),
+          interests: parsedInterests,
+        };
+        setStoredUser(demoUser);
+        setStoredToken('demo-token');
+      }
+
       navigate('/explore');
-    }, 400);
+    } catch (err: any) {
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -197,7 +223,7 @@ export default function RegisterForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-saffron py-3 rounded-lg font-semibold disabled:opacity-50 mt-2"
+            className="w-full btn-saffron py-3 rounded-lg font-semibold disabled:opacity-50 mt-2 cursor-pointer"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
