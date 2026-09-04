@@ -92,3 +92,9 @@ class DirectOpportunityResponse(BaseModel):
     success: bool = True
     data: OpportunityDetail
     message: str = "Opportunity posted successfully"
+
+
+class SyncResponse(BaseModel):
+    success: bool = True
+    data: Optional[dict] = None
+    message: str = "Scrape synchronization completed"

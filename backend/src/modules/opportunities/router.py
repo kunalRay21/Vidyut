@@ -1,7 +1,7 @@
 import math
 from typing import Optional, List
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 
@@ -13,9 +13,12 @@ from src.modules.opportunities.schemas import (
     OpportunityDetailResponse,
     OpportunityDirectCreate,
     DirectOpportunityResponse,
+    SyncResponse,
     PaginatedData
 )
 from src.pipeline.deduplication import generate_fingerprint
+from src.pipeline.orchestrator import PipelineOrchestrator
+from src.pipeline.scheduler import pipeline_scheduler
 
 # Inter-team DB dependency from Team Leader with graceful fallback
 try:
@@ -87,6 +90,54 @@ def list_opportunities(
             limit=limit,
             pages=pages
         )
+    )
+
+
+@router.post("/sync", response_model=SyncResponse)
+def trigger_live_scrape(
+    background: bool = Query(False, description="If true, executes scrape in background; if false, runs immediately and returns counts"),
+    keywords: Optional[str] = Query("backend,machine learning", description="Comma-separated keywords to scrape"),
+    background_tasks: BackgroundTasks = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Evaluator / Admin endpoint to trigger live multi-source web scraping and ingestion on demand.
+    Allows live demo evaluators on Swagger UI / Postman to witness fresh opportunities being ingested into the database.
+    """
+    kw_list = [k.strip() for k in keywords.split(",") if k.strip()] if keywords else ["backend", "machine learning"]
+
+    if background and background_tasks:
+        orchestrator = PipelineOrchestrator(db=db)
+        background_tasks.add_task(orchestrator.run_all, keywords=kw_list)
+        return SyncResponse(
+            success=True,
+            data={"status": "QUEUED", "keywords": kw_list, "timestamp": datetime.utcnow().isoformat()},
+            message="Web scraping ingestion pipeline scheduled in background"
+        )
+
+    orchestrator = PipelineOrchestrator(db=db)
+    stats = orchestrator.run_all(keywords=kw_list)
+    return SyncResponse(
+        success=True,
+        data=stats,
+        message=f"Live scrape completed! Received: {stats.get('received', 0)}, Inserted: {stats.get('inserted', 0)}, Updated: {stats.get('updated', 0)}"
+    )
+
+
+@router.get("/sync/status", response_model=SyncResponse)
+def get_sync_status():
+    """
+    Get status of the periodic 24-hour scheduler and last run results.
+    """
+    return SyncResponse(
+        success=True,
+        data={
+            "scheduler_running": pipeline_scheduler.is_running,
+            "interval_hours": pipeline_scheduler.interval_seconds / 3600.0,
+            "last_run_at": pipeline_scheduler.last_run_at.isoformat() if pipeline_scheduler.last_run_at else None,
+            "last_run_result": pipeline_scheduler.last_run_result
+        },
+        message="Pipeline scheduler status"
     )
 
 

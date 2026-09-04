@@ -317,3 +317,35 @@ def test_post_direct_opportunity(client, db_session):
     # Verify duplicate submission is rejected with 409 Conflict
     res_duplicate = client.post("/api/v1/opportunities/direct", json=payload)
     assert res_duplicate.status_code == 409
+
+
+def test_post_sync_endpoint(client, db_session):
+    """Verify POST /api/v1/opportunities/sync executes on-demand scrape and returns ingestion counts."""
+    res = client.post("/api/v1/opportunities/sync?keywords=backend")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["success"] is True
+    assert "received" in data["data"]
+    assert "inserted" in data["data"]
+
+
+def test_get_sync_status_endpoint(client):
+    """Verify GET /api/v1/opportunities/sync/status returns 24-hour scheduler status."""
+    res = client.get("/api/v1/opportunities/sync/status")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["success"] is True
+    assert "interval_hours" in data["data"]
+    assert data["data"]["interval_hours"] == 24.0
+
+
+def test_scheduler_lifecycle():
+    """Verify OpportunityPipelineScheduler starts, reports running, and stops cleanly."""
+    from src.pipeline.scheduler import OpportunityPipelineScheduler
+
+    test_sched = OpportunityPipelineScheduler(interval_hours=0.01)
+    assert test_sched.is_running is False
+    test_sched.start(run_immediately=False)
+    assert test_sched.is_running is True
+    test_sched.stop()
+    assert test_sched.is_running is False
