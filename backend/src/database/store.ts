@@ -36,9 +36,18 @@ export interface StoredCompany {
   website?: string;
 }
 
+export interface StoredSkillState {
+  student_id: string;
+  skill_id: string;
+  self_rating?: string;
+  assessed_level: string;
+  accuracy: number;
+}
+
 export const memoryStore = {
   users: new Map<string, StoredUser>(),
   profiles: new Map<string, StoredStudentProfile>(),
   institutions: new Map<string, StoredInstitution>(),
   companies: new Map<string, StoredCompany>(),
+  skill_states: new Map<string, StoredSkillState>(),
 };

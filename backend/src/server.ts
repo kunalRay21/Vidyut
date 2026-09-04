@@ -57,15 +57,15 @@ app.use('/api/v1/roadmap', roadmapRouter);              // Member 4 (Adaptive Ro
 app.use('/api/v1/portfolio', portfolioRouter);          // Member 4 (Portfolio & Evidence)
 
 async function startServer() {
-  if (process.env.NODE_ENV !== 'test') {
-    await initDatabaseSchema();
+  await initDatabaseSchema();
 
-    app.listen(PORT, () => {
-      console.log(`⚡ Vidyut Backend running on http://localhost:${PORT}`);
-    });
-  }
+  app.listen(PORT, () => {
+    console.log(`⚡ Vidyut Backend running on http://localhost:${PORT}`);
+  });
 }
 
-startServer();
+if (process.env.NODE_ENV !== 'test' && require.main === module) {
+  startServer();
+}
 
 export default app;
