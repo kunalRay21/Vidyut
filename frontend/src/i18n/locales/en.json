@@ -189,6 +189,26 @@
     "departmentsLabel": "Participating Departments",
     "registerBtn": "Onboard Institution"
   },
+  "explorePage": {
+    "badge": "Skill Graph Registry · Standardized Taxonomy",
+    "titlePrefix": "Explore Tech Domains &",
+    "titleHighlight": "Skill Graph DAGs",
+    "subtitle": "Navigate industry-curated career tracks, inspect strictly ordered prerequisite graphs, and gauge your readiness with live diagnostic benchmarks.",
+    "searchPlaceholder": "Search by domain, technology, framework or keyword...",
+    "allCategories": "All Tracks",
+    "allDemand": "All Demand",
+    "previewDag": "Preview Skill DAG",
+    "assessSkills": "Assess Skills",
+    "prerequisites": "Prerequisites",
+    "technologies": "Core Technologies",
+    "duration": "Duration",
+    "openRoles": "Active Roles",
+    "skillNodes": "Skill Nodes",
+    "close": "Close",
+    "takeDiagnostic": "Take Diagnostic Assessment",
+    "noResults": "No engineering tracks match your filter",
+    "clearFilters": "Reset Filters"
+  },
   "footer": {
     "text": "Vidyut — Smart India Hackathon 2026 · Ministry of Education & AICTE Initiative"
   }

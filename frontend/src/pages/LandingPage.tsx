@@ -340,20 +340,28 @@ export const LandingPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {FEATURED_COURSES.map((course, idx) => (
               <FadeIn key={course.id} delay={100 + idx * 80} className="h-full">
-                <div className="bg-white border border-gray-200/80 rounded-2xl p-6 hover:border-saffron hover:shadow-md transition-all duration-300 h-full flex flex-col justify-between group">
+                <div className="relative bg-white border border-gray-200/85 rounded-2xl p-6 hover:border-saffron-500/70 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col justify-between group overflow-hidden">
+                  {/* Tricolor Accent Line on Hover */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-saffron via-[#000080] to-indiaGreen opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
                   <div>
                     {/* Minimal Card Header */}
-                    <div className="flex items-center gap-2.5 mb-4">
-                      <div className="w-9 h-9 rounded-xl bg-gray-50 border border-gray-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        {course.icon}
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200/70 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                          {course.icon}
+                        </div>
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          {course.category}
+                        </span>
                       </div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        {course.category}
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 tracking-wide shrink-0">
+                        Verified DAG
                       </span>
                     </div>
 
                     {/* Course Title */}
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-saffron-600 transition-colors leading-snug">
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#000080] transition-colors leading-snug">
                       {course.title}
                     </h3>
 
