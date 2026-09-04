@@ -19,10 +19,9 @@ export const OptionSelector: React.FC<OptionSelectorProps> = ({
     { key: 'D', text: question.option_d, shortcutKey: '4' },
   ];
 
-  // Keyboard shortcut listener for options (1-4 or A-D)
+  // Keyboard shortcut listener (1-4 or A-D)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore when user is focusing input or textarea or pressing modifier keys
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
@@ -41,14 +40,14 @@ export const OptionSelector: React.FC<OptionSelectorProps> = ({
 
   return (
     <div className="space-y-3 pt-2">
-      <div className="flex items-center justify-between text-xs text-slate-400 pb-1">
-        <span>Select your answer:</span>
-        <span className="text-[11px] text-slate-500 hidden sm:inline">
-          Tip: Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">1</kbd>–<kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">4</kbd> or <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">A</kbd>–<kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">D</kbd>
+      <div className="flex items-center justify-between text-xs text-slate-500 pb-1">
+        <span className="font-medium text-slate-700">Choose one option:</span>
+        <span className="text-[11px] text-slate-400 hidden sm:inline">
+          Hotkeys: <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-slate-600">1</kbd>–<kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-slate-600">4</kbd> or <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-slate-600">A</kbd>–<kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-mono text-slate-600">D</kbd>
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-2.5">
         {options.map(opt => {
           const isSelected = selectedOption === opt.key;
 
@@ -57,44 +56,44 @@ export const OptionSelector: React.FC<OptionSelectorProps> = ({
               key={opt.key}
               onClick={() => onSelectOption(opt.key)}
               type="button"
-              className={`w-full text-left p-4 rounded-xl border transition-all duration-200 flex items-start gap-3.5 group relative ${
+              className={`w-full text-left p-3.5 rounded-xl border transition-colors flex items-start gap-3.5 group relative ${
                 isSelected
-                  ? 'bg-gradient-to-r from-saffron/15 to-transparent border-saffron shadow-md shadow-saffron/10 text-white'
-                  : 'bg-[#111D32] hover:bg-[#172540] border-[#1F3152] hover:border-slate-500 text-slate-200'
+                  ? 'bg-amber-50/80 border-amber-500 text-slate-900 shadow-xs'
+                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
               }`}
               aria-checked={isSelected}
               role="radio"
             >
               {/* Option Key Badge */}
               <div
-                className={`w-8 h-8 rounded-lg flex items-center justify-center font-mono font-bold text-sm flex-shrink-0 transition-colors ${
+                className={`w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs flex-shrink-0 transition-colors ${
                   isSelected
-                    ? 'bg-saffron text-slate-950 shadow-sm'
-                    : 'bg-[#172540] text-slate-300 group-hover:bg-[#1F3152] border border-[#1F3152]'
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-slate-100 text-slate-600 border border-slate-200 group-hover:bg-slate-200'
                 }`}
               >
                 {opt.key}
               </div>
 
               {/* Option Text */}
-              <div className="flex-1 pt-1 text-sm sm:text-base leading-relaxed">
+              <div className="flex-1 pt-0.5 text-sm sm:text-base leading-normal font-normal">
                 {opt.text}
               </div>
 
               {/* Radio Indicator */}
               <div className="pt-1 flex items-center gap-2 flex-shrink-0">
-                <span className="text-[10px] text-slate-500 font-mono hidden md:inline">
+                <span className="text-[10px] text-slate-400 font-mono hidden md:inline">
                   [{opt.shortcutKey}]
                 </span>
                 <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
                     isSelected
-                      ? 'border-saffron bg-saffron/20'
-                      : 'border-slate-600 group-hover:border-slate-400'
+                      ? 'border-amber-600 bg-amber-600'
+                      : 'border-slate-300 group-hover:border-slate-400'
                   }`}
                 >
                   {isSelected && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-saffron" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
                   )}
                 </div>
               </div>

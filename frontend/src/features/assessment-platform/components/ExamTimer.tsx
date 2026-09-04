@@ -14,22 +14,22 @@ export const ExamTimer: React.FC<ExamTimerProps> = ({
 }) => {
   return (
     <div
-      className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg border font-mono font-bold tracking-wider text-sm transition-all duration-300 shadow-sm ${
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border font-mono font-bold tracking-wider text-sm transition-colors ${
         isUrgent
-          ? 'bg-red-500/20 text-red-400 border-red-500/50 animate-pulse shadow-red-500/20'
+          ? 'bg-red-50 text-red-700 border-red-300 animate-pulse'
           : isWarning
-          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-          : 'bg-[#172540] text-emerald-400 border-[#1F3152]'
+          ? 'bg-amber-50 text-amber-800 border-amber-300'
+          : 'bg-slate-100 text-slate-800 border-slate-300'
       }`}
       title="Remaining Examination Time"
     >
       {isUrgent ? (
-        <AlertTriangle className="w-4 h-4 text-red-400 animate-bounce" />
+        <AlertTriangle className="w-4 h-4 text-red-600" />
       ) : (
-        <Clock className={`w-4 h-4 ${isWarning ? 'text-amber-400' : 'text-emerald-400'}`} />
+        <Clock className={`w-4 h-4 ${isWarning ? 'text-amber-700' : 'text-slate-600'}`} />
       )}
-      <span className="text-xs uppercase text-slate-400 font-sans font-semibold mr-0.5">Time:</span>
-      <span className="text-base">{formattedTime}</span>
+      <span className="text-[11px] uppercase text-slate-500 font-sans font-semibold">Time:</span>
+      <span className="text-sm font-semibold">{formattedTime}</span>
     </div>
   );
 };
