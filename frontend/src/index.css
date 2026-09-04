@@ -67,8 +67,7 @@
     background-image: var(--tricolor-glow);
     background-repeat: no-repeat;
   }
-
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
     color: #FFFFFF;
@@ -81,13 +80,6 @@
    ========================================================================== */
 
 @layer components {
-  /* Official Indian National Flag Top Header Ribbon */
-  .gov-tricolor-banner {
-    height: 4px;
-    width: 100%;
-    background: var(--tricolor-strip);
-  }
-
   /* National Emblem / Government Scheme Badge */
   .gov-badge {
     @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase;
@@ -197,7 +189,13 @@
 }
 
 .text-gradient-tricolor {
-  background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #22C55E 100%);
+  background: linear-gradient(90deg, #FF9933 0%, #000080 50%, #138808 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-india {
+  background: linear-gradient(90deg, #FF9933 0%, #FFD166 50%, #138808 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

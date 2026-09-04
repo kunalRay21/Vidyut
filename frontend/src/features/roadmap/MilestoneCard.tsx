@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Clock, Upload, Lock } from 'lucide-react';
 
-export type MilestoneStatus = 'COMPLETED' | 'IN_PROGRESS' | 'LOCKED';
+export type MilestoneStatus = 'COMPLETED' | 'IN_PROGRESS' | 'LOCKED' | 'FAST_TRACKED';
 
 interface MilestoneCardProps {
   id: string;
@@ -13,7 +13,8 @@ interface MilestoneCardProps {
 export const MilestoneCard: React.FC<MilestoneCardProps> = ({ id, title, status, onEvidenceSubmit }) => {
   const getStatusIcon = () => {
     switch (status) {
-      case 'COMPLETED': return <CheckCircle2 className="w-5 h-5 text-green-500" />;
+      case 'COMPLETED':
+      case 'FAST_TRACKED': return <CheckCircle2 className="w-5 h-5 text-green-500" />;
       case 'IN_PROGRESS': return <Clock className="w-5 h-5 text-blue-500" />;
       default: return <Lock className="w-5 h-5 text-gray-400" />;
     }
@@ -21,9 +22,10 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({ id, title, status,
 
   const getBorderColor = () => {
     switch (status) {
-      case 'COMPLETED': return 'border-green-200 bg-green-50';
+      case 'COMPLETED':
+      case 'FAST_TRACKED': return 'border-green-200 bg-green-50';
       case 'IN_PROGRESS': return 'border-blue-200 bg-blue-50';
-      default: return 'border-gray-200 bg-gray-50 opacity-75';
+      default: return 'border-gray-200 bg-[#FFFFED] opacity-75';
     }
   };
 
@@ -33,6 +35,9 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({ id, title, status,
         {getStatusIcon()}
         <span className={`font-medium ${status === 'LOCKED' ? 'text-gray-500' : 'text-gray-800'}`}>
           {title}
+          {status === 'FAST_TRACKED' && (
+            <span className="ml-2 text-sm font-normal text-green-700 opacity-80">— Already Proficient / Fast-tracked</span>
+          )}
         </span>
       </div>
       
@@ -48,3 +53,5 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({ id, title, status,
     </div>
   );
 };
+
+

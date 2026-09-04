@@ -6,8 +6,8 @@ export const MOCK_STUDENT_PROFILE = {
   selected_role: "Machine Learning Engineer",
   readiness_pct: 14.0,
   skills: [
-    { name: "Programming Fundamentals", assessed_level: "PROFICIENT", target_level: "PROFICIENT", status: "completed" },
-    { name: "Python", assessed_level: "BEGINNER", target_level: "PROFICIENT", status: "in_progress" },
-    { name: "SQL", assessed_level: "AWARENESS", target_level: "INTERMEDIATE", status: "not_started" }
+    { name: "Programming Fundamentals", progress: 100, currentLevel: 4 },
+    { name: "Python", progress: 70, currentLevel: 3 },
+    { name: "SQL", progress: 0, currentLevel: 1 }
   ]
 };

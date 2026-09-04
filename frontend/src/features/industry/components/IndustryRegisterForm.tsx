@@ -3,7 +3,7 @@ import { Building2, Globe, Briefcase } from 'lucide-react';
 
 export const IndustryRegisterForm: React.FC = () => {
   return (
-    <form className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 max-w-2xl mx-auto space-y-6">
+    <form className="bg-[#FFFFED] p-8 rounded-xl shadow-sm border border-gray-100 max-w-2xl mx-auto space-y-6">
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <Building2 className="w-8 h-8" />
@@ -46,3 +46,5 @@ export const IndustryRegisterForm: React.FC = () => {
     </form>
   );
 };
+
+

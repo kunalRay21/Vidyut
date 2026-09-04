@@ -40,3 +40,5 @@ export const OpportunityTabs: React.FC<OpportunityTabsProps> = ({ activeTab, onT
     </div>
   );
 };
+
+

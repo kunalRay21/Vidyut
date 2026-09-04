@@ -21,7 +21,7 @@ export const DecisionPointModal: React.FC<DecisionPointModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100">
+      <div className="bg-[#FFFFED] rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100">
         <div className="p-6 text-center border-b border-gray-50 relative">
           <button onClick={onClose} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
@@ -35,12 +35,12 @@ export const DecisionPointModal: React.FC<DecisionPointModalProps> = ({
           </p>
         </div>
         
-        <div className="p-6 bg-gray-50 flex flex-col gap-4">
+        <div className="p-6 bg-[#FFFFED] flex flex-col gap-4">
           {options.map((opt) => (
             <button
               key={opt.branch_id}
               onClick={() => onSelect(opt.branch_id)}
-              className="group flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 transition-all text-left"
+              className="group flex items-center justify-between p-4 bg-[#FFFFED] border border-gray-200 rounded-lg hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 transition-all text-left"
             >
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600">{opt.name}</h3>
@@ -56,3 +56,5 @@ export const DecisionPointModal: React.FC<DecisionPointModalProps> = ({
     </div>
   );
 };
+
+

@@ -65,6 +65,15 @@ export default {
         'gradient-saffron': 'linear-gradient(135deg, #FF9933 0%, #EA580C 100%)',
         'gradient-green': 'linear-gradient(135deg, #16A34A 0%, #138808 100%)',
         'gradient-chakra': 'linear-gradient(135deg, #1E3A8A 0%, #000080 100%)',
+      },
+      keyframes: {
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(24px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        }
+      },
+      animation: {
+        'fade-in-up': 'fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
       }
     },
   },

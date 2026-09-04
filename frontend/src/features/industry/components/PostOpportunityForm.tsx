@@ -14,7 +14,7 @@ export const PostOpportunityForm: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 max-w-3xl mx-auto">
+    <div className="bg-[#FFFFED] p-8 rounded-xl shadow-sm border border-gray-100 max-w-3xl mx-auto">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Post a New Opportunity</h2>
       
       <div className="space-y-6">
@@ -112,3 +112,5 @@ export const PostOpportunityForm: React.FC = () => {
     </div>
   );
 };
+
+

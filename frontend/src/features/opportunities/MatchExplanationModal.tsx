@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
 import { Opportunity } from './types';
+import { FadeIn } from '../../components/animations/FadeIn';
 
 interface MatchExplanationModalProps {
   opportunity: Opportunity | null;
@@ -13,7 +14,7 @@ export const MatchExplanationModal: React.FC<MatchExplanationModalProps> = ({ op
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100">
+      <FadeIn className="bg-[#FFFFED] rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 w-full">
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-indigo-50">
           <div className="flex items-center gap-2 text-indigo-800">
             <Sparkles className="w-5 h-5" />
@@ -69,7 +70,7 @@ export const MatchExplanationModal: React.FC<MatchExplanationModalProps> = ({ op
           </div>
         </div>
         
-        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+        <div className="p-4 bg-[#FFFFED] border-t border-gray-100 flex justify-end">
           <button 
             onClick={onClose}
             className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
@@ -77,7 +78,9 @@ export const MatchExplanationModal: React.FC<MatchExplanationModalProps> = ({ op
             Close Analysis
           </button>
         </div>
-      </div>
+      </FadeIn>
     </div>
   );
 };
+
+

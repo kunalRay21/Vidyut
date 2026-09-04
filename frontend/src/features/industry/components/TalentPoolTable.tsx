@@ -6,8 +6,8 @@ export const TalentPoolTable: React.FC = () => {
   const candidates = MOCK_INDUSTRY_DATA.matched_talent_pool;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+    <div className="bg-[#FFFFED] rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-[#FFFFED]">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Anonymized Talent Pool</h2>
           <p className="text-gray-500 text-sm mt-1">Showing verified candidates matching your minimum readiness threshold (70%+).</p>
@@ -19,7 +19,7 @@ export const TalentPoolTable: React.FC = () => {
       
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-gray-500">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-700 border-b border-gray-200">
+          <thead className="bg-[#FFFFED] text-xs uppercase text-gray-700 border-b border-gray-200">
             <tr>
               <th scope="col" className="px-6 py-4">Candidate Alias & Details</th>
               <th scope="col" className="px-6 py-4">Target Role</th>
@@ -30,7 +30,7 @@ export const TalentPoolTable: React.FC = () => {
           </thead>
           <tbody>
             {candidates.map((c, i) => (
-              <tr key={i} className="bg-white border-b hover:bg-gray-50">
+              <tr key={i} className="bg-[#FFFFED] border-b hover:bg-[#F0F2BD]">
                 <td className="px-6 py-4 font-medium text-gray-900 flex items-center gap-3">
                   <div className="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold">
                     #{c.candidate_alias.match(/#(\d+)/)?.[1] || 'C'}
@@ -72,3 +72,5 @@ export const TalentPoolTable: React.FC = () => {
     </div>
   );
 };
+
+

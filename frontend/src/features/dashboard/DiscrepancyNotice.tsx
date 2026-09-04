@@ -1,7 +1,10 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const DiscrepancyNotice: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-md">
       <div className="flex">
@@ -17,7 +20,10 @@ export const DiscrepancyNotice: React.FC = () => {
             </p>
           </div>
           <div className="mt-4">
-            <button className="bg-amber-100 text-amber-800 px-3 py-2 rounded-md text-sm font-medium hover:bg-amber-200 transition-colors">
+            <button 
+              onClick={() => navigate('/assessment/quiz/python')}
+              className="bg-amber-100 text-amber-800 px-3 py-2 rounded-md text-sm font-medium hover:bg-amber-200 transition-colors cursor-pointer"
+            >
               Take Calibration Assessment
             </button>
           </div>
@@ -26,3 +32,5 @@ export const DiscrepancyNotice: React.FC = () => {
     </div>
   );
 };
+
+

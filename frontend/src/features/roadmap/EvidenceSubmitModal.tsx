@@ -23,7 +23,7 @@ export const EvidenceSubmitModal: React.FC<EvidenceSubmitModalProps> = ({ isOpen
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+      <div className="bg-[#FFFFED] rounded-xl shadow-xl w-full max-w-md overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b border-gray-100">
           <h3 className="font-semibold text-lg text-gray-800">Submit Evidence</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -72,3 +72,5 @@ export const EvidenceSubmitModal: React.FC<EvidenceSubmitModalProps> = ({ isOpen
     </div>
   );
 };
+
+

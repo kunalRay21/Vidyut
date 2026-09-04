@@ -17,7 +17,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, o
   if (opportunity.source === 'AICTE') sourceBadgeStyle = "bg-orange-100 text-orange-700 border-orange-200";
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-[#FFFFED] border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-4">
         <div>
           <span className={`text-[10px] font-bold px-2 py-1 uppercase tracking-wider rounded-md border ${sourceBadgeStyle} mb-2 inline-block`}>
@@ -55,3 +55,5 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, o
     </div>
   );
 };
+
+

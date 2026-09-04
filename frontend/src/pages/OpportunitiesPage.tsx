@@ -36,6 +36,8 @@ const MOCK_DATA = {
   ASPIRATIONAL: [] as Opportunity[]
 };
 
+import { FadeIn } from '../components/animations/FadeIn';
+
 export const OpportunitiesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<OpportunityCategory>('READY_NOW');
   const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
@@ -50,35 +52,40 @@ export const OpportunitiesPage: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Opportunity Hub</h1>
-        <p className="text-gray-500 mt-2">Curated roles and events matched dynamically to your verified skill graph.</p>
-      </header>
+      <FadeIn delay={100}>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Opportunity Hub</h1>
+          <p className="text-gray-500 mt-2">Curated roles and events matched dynamically to your verified skill graph.</p>
+        </header>
+      </FadeIn>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <OpportunityTabs 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-          counts={counts}
-        />
-        
-        {currentOpps.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentOpps.map(opp => (
-              <OpportunityCard 
-                key={opp.id} 
-                opportunity={opp} 
-                onViewExplanation={setSelectedOpp} 
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="py-12 text-center">
-            <p className="text-gray-500 font-medium">No opportunities in this tier yet.</p>
-            <p className="text-sm text-gray-400 mt-2">Complete more milestones on your roadmap to unlock matches here.</p>
-          </div>
-        )}
-      </div>
+      <FadeIn delay={200}>
+        <div className="bg-[#FFFFED] rounded-xl shadow-sm border border-gray-100 p-6">
+          <OpportunityTabs 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab} 
+            counts={counts}
+          />
+          
+          {currentOpps.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentOpps.map((opp, index) => (
+                <FadeIn key={opp.id} delay={300 + index * 100}>
+                  <OpportunityCard 
+                    opportunity={opp} 
+                    onViewExplanation={setSelectedOpp} 
+                  />
+                </FadeIn>
+              ))}
+            </div>
+          ) : (
+            <div className="py-12 text-center">
+              <p className="text-gray-500 font-medium">No opportunities in this tier yet.</p>
+              <p className="text-sm text-gray-400 mt-2">Complete more milestones on your roadmap to unlock matches here.</p>
+            </div>
+          )}
+        </div>
+      </FadeIn>
 
       <MatchExplanationModal 
         isOpen={!!selectedOpp} 
@@ -88,3 +95,5 @@ export const OpportunitiesPage: React.FC = () => {
     </div>
   );
 };
+
+
