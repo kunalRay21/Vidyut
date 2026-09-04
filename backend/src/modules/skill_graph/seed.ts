@@ -295,12 +295,14 @@ async function seedSkillGraph() {
     );
   }
 
-  console.log('✅ Skill Graph seeded successfully!');
-  console.log('Backend Developer:', backendRoleId);
   console.log('Machine Learning Engineer:', mlRoleId);
 }
 
-seedSkillGraph().catch((error) => {
-  console.error('❌ Skill Graph seed failed:', error);
-  process.exit(1);
-});
+export { seedSkillGraph };
+
+if (require.main === module) {
+  seedSkillGraph().catch((error) => {
+    console.error('❌ Skill Graph seed failed:', error);
+    process.exit(1);
+  });
+}

@@ -62,11 +62,13 @@ export async function validateSkillGraph(): Promise<boolean> {
   return true;
 }
 
-validateSkillGraph()
-  .then((valid) => {
-    process.exit(valid ? 0 : 1);
-  })
-  .catch((error) => {
-    console.error('❌ DAG validation failed:', error);
-    process.exit(1);
-  });
+if (require.main === module) {
+  validateSkillGraph()
+    .then((valid) => {
+      process.exit(valid ? 0 : 1);
+    })
+    .catch((error) => {
+      console.error('❌ DAG validation failed:', error);
+      process.exit(1);
+    });
+}

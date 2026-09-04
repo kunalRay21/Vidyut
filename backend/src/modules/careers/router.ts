@@ -1,10 +1,11 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { query } from '../../database/db';
+import { apiSuccess, apiError } from '../../core/responses';
 
 const router = Router();
 
 // GET all career domains
-router.get('/domains', async (req, res) => {
+router.get('/domains', async (req: Request, res: Response) => {
   try {
     const result = await query(`
       SELECT
@@ -16,23 +17,15 @@ router.get('/domains', async (req, res) => {
       ORDER BY name
     `);
 
-    return res.status(200).json({
-      success: true,
-      data: result.rows
-    });
-  } catch (error) {
+    return apiSuccess(res, result.rows);
+  } catch (error: any) {
     console.error('[Career Domains Error]', error);
-
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch career domains'
-    });
+    return apiError(res, 'Failed to fetch career domains: ' + error.message, 500, 'SERVER_ERROR');
   }
 });
 
-
 // GET role details + required skills
-router.get('/roles/:id', async (req, res) => {
+router.get('/roles/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -49,10 +42,7 @@ router.get('/roles/:id', async (req, res) => {
     `, [id]);
 
     if (roleResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Role not found'
-      });
+      return apiError(res, 'Role not found', 404, 'NOT_FOUND');
     }
 
     const skillsResult = await query(`
@@ -66,21 +56,13 @@ router.get('/roles/:id', async (req, res) => {
       ORDER BY name
     `, [id]);
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        role: roleResult.rows[0],
-        skills: skillsResult.rows
-      }
+    return apiSuccess(res, {
+      role: roleResult.rows[0],
+      skills: skillsResult.rows
     });
-
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Career Role Error]', error);
-
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch career role'
-    });
+    return apiError(res, 'Failed to fetch career role: ' + error.message, 500, 'SERVER_ERROR');
   }
 });
 

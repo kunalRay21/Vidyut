@@ -406,7 +406,11 @@ async function seedQuestions() {
   console.log(`✅ ${inserted} assessment questions seeded successfully!`);
 }
 
-seedQuestions().catch((error) => {
-  console.error('❌ Assessment question seed failed:', error);
-  process.exit(1);
-});
+export { seedQuestions };
+
+if (require.main === module) {
+  seedQuestions().catch((error) => {
+    console.error('❌ Assessment question seed failed:', error);
+    process.exit(1);
+  });
+}
