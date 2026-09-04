@@ -50,6 +50,11 @@ async function request<T = any>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  const user = getStoredUser();
+  if (user?.student_profile_id && !headers['x-student-id']) {
+    headers['x-student-id'] = user.student_profile_id;
+  }
+
   const url = `${API_BASE}${endpoint}`;
 
   try {
@@ -267,6 +272,27 @@ export const opportunitiesApi = {
       method: 'POST',
       body: JSON.stringify(opportunityData),
     });
+  },
+};
+
+// ----------------------------------------------------
+// 8.1 Role 5: AI & Recommendation Engine
+// ----------------------------------------------------
+export const recommendationsApi = {
+  getOpportunities: async (params?: { refresh?: boolean; studentId?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.refresh) q.append('refresh', 'true');
+    if (params?.studentId) q.append('studentId', params.studentId);
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return await request<any>(`/api/v1/recommendations/opportunities${qs}`);
+  },
+
+  getResources: async (params?: { skillId?: string; studentId?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.skillId) q.append('skillId', params.skillId);
+    if (params?.studentId) q.append('studentId', params.studentId);
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return await request<any>(`/api/v1/recommendations/resources${qs}`);
   },
 };
 

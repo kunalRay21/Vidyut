@@ -159,6 +159,78 @@ export class PrismaRoadmapRepository implements RoadmapRepository {
       }
     });
 
+    if (milestones.length === 0) {
+      // Fallback 1: selectedRole's skills
+      const profile = await prisma.studentProfile.findUnique({
+        where: { id: studentId },
+        include: {
+          selectedRole: {
+            include: {
+              skills: {
+                include: {
+                  skillStates: {
+                    where: { studentId }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      const roleSkills = profile?.selectedRole?.skills;
+      if (roleSkills && roleSkills.length > 0) {
+        return roleSkills.map((skill, idx) => {
+          const skillState = skill.skillStates[0];
+          const currentProficiency = (skillState?.assessedLevel as ProficiencyLevel) ?? null;
+          const targetProficiency = (skillState?.targetLevel as ProficiencyLevel) ?? 'PROFICIENT';
+          let status: RoadmapSkillStatus = 'NOT_STARTED';
+          if (currentProficiency === 'PROFICIENT' || currentProficiency === 'EXPERT') {
+            status = 'COMPLETED';
+          } else if (currentProficiency) {
+            status = 'IN_PROGRESS';
+          }
+
+          return {
+            skillId: skill.id,
+            skillName: skill.name,
+            status,
+            sequence: idx + 1,
+            currentProficiency,
+            targetProficiency
+          };
+        });
+      }
+
+      // Fallback 2: student's existing skillStates
+      const states = await prisma.studentSkillState.findMany({
+        where: { studentId },
+        include: { skill: true }
+      });
+
+      if (states.length > 0) {
+        return states.map((s, idx) => {
+          const currentProficiency = (s.assessedLevel as ProficiencyLevel) ?? null;
+          const targetProficiency = (s.targetLevel as ProficiencyLevel) ?? 'PROFICIENT';
+          let status: RoadmapSkillStatus = 'NOT_STARTED';
+          if (currentProficiency === 'PROFICIENT' || currentProficiency === 'EXPERT') {
+            status = 'COMPLETED';
+          } else if (currentProficiency) {
+            status = 'IN_PROGRESS';
+          }
+
+          return {
+            skillId: s.skillId,
+            skillName: s.skill.name,
+            status,
+            sequence: idx + 1,
+            currentProficiency,
+            targetProficiency
+          };
+        });
+      }
+    }
+
     return milestones.map(milestone => {
       // Map existing milestone statuses to the expected RoadmapSkillStatus
       let status: RoadmapSkillStatus = 'NOT_STARTED';

@@ -4,7 +4,8 @@ import { RoadmapTimeline, Phase } from '../features/roadmap/RoadmapTimeline';
 import { DecisionPointModal } from '../features/roadmap/DecisionPointModal';
 import { EvidenceSubmitModal } from '../features/roadmap/EvidenceSubmitModal';
 import { FadeIn } from '../components/animations/FadeIn';
-import { roadmapApi, portfolioApi, getStoredUser } from '../services/api';
+import { roadmapApi, portfolioApi, recommendationsApi, getStoredUser } from '../services/api';
+import { BookOpen, ExternalLink, Sparkles } from 'lucide-react';
 
 const DEFAULT_PHASES: Phase[] = [
   {
@@ -57,14 +58,30 @@ export const RoadmapPage: React.FC = () => {
   const [displayedScore, setDisplayedScore] = useState(0);
   const [isGaugeLoaded, setIsGaugeLoaded] = useState(false);
   const [roleTitle, setRoleTitle] = useState('Machine Learning Engineer');
+  const [skillResources, setSkillResources] = useState<any[]>([]);
 
   // Modals state
   const [decisionPhase, setDecisionPhase] = useState<Phase | null>(null);
   const [evidenceMilestoneId, setEvidenceMilestoneId] = useState<string | null>(null);
 
-  // 1. Fetch dynamic roadmap from backend
+  // 1. Fetch dynamic roadmap and curated resources from backend
   useEffect(() => {
     let mounted = true;
+
+    async function loadResources() {
+      try {
+        const user = getStoredUser();
+        const studentId = user?.student_profile_id || user?.id || user?.student_id;
+        const res = await recommendationsApi.getResources({ studentId });
+        if (mounted && res.success && res.data?.skillResources) {
+          setSkillResources(res.data.skillResources);
+        }
+      } catch (err) {
+        console.warn('Learning resources load error:', err);
+      }
+    }
+
+    loadResources();
 
     async function loadRoadmap() {
       const user = getStoredUser();
@@ -281,6 +298,65 @@ export const RoadmapPage: React.FC = () => {
           />
         </div>
       </FadeIn>
+
+      {skillResources.length > 0 && (
+        <FadeIn delay={400}>
+          <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-6 md:p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#EAE3B3] pb-4">
+              <div className="flex items-center gap-2.5 text-indigo-950">
+                <Sparkles className="w-5 h-5 text-indigo-600 shrink-0" />
+                <h2 className="text-xl font-bold">Curated Learning Resources for Priority Gaps</h2>
+              </div>
+              <span className="self-start sm:self-auto text-xs bg-indigo-50 text-indigo-700 font-semibold px-3 py-1 rounded-full border border-indigo-200">
+                Role 5 Recommendation Engine
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {skillResources.map((sr: any) => (
+                <div key={sr.skillId} className="bg-white/80 border border-[#EAE3B3] rounded-xl p-4 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-gray-900 text-base">{sr.skillName}</h3>
+                    <span className="text-[11px] bg-amber-50 text-amber-800 font-bold px-2 py-0.5 rounded border border-amber-200">
+                      Target: {sr.targetProficiency || 'PROFICIENT'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {sr.resources?.slice(0, 3).map((res: any) => (
+                      <a
+                        key={res.id}
+                        href={res.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-between p-2.5 rounded-lg bg-[#FFFEF2] hover:bg-indigo-50 border border-gray-200 hover:border-indigo-200 transition-colors group"
+                      >
+                        <div className="flex items-center gap-2 overflow-hidden pr-2">
+                          <BookOpen className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 shrink-0" />
+                          <span className="text-xs font-medium text-gray-800 group-hover:text-indigo-900 truncate">
+                            {res.title}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {res.isFree && (
+                            <span className="text-[10px] bg-green-100 text-green-700 font-semibold px-1.5 py-0.5 rounded">
+                              Free
+                            </span>
+                          )}
+                          <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-indigo-600" />
+                        </div>
+                      </a>
+                    ))}
+                    {(!sr.resources || sr.resources.length === 0) && (
+                      <p className="text-xs text-gray-400 italic">No resources listed for this milestone yet.</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FadeIn>
+      )}
 
       <DecisionPointModal 
         isOpen={!!decisionPhase}

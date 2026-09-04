@@ -234,6 +234,8 @@ export async function initDatabaseSchema(): Promise<boolean> {
       last_seen_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS domain_id UUID REFERENCES domains(id) ON DELETE SET NULL;
+
     -- Opportunity Skill Tags Table (Owned by Member 5)
     CREATE TABLE IF NOT EXISTS opportunity_skill_tags (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

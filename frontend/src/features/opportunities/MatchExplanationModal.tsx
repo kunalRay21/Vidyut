@@ -32,6 +32,27 @@ export const MatchExplanationModal: React.FC<MatchExplanationModalProps> = ({ op
           <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg text-sm text-blue-900 mb-6 leading-relaxed">
             {opportunity.explanation.summary}
           </div>
+
+          {opportunity.scores && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+              <div className="bg-white/80 p-2.5 rounded-lg border border-gray-200 text-center">
+                <span className="text-[10px] uppercase font-bold text-gray-400 block">Skills</span>
+                <span className="text-base font-bold text-indigo-700">{Math.round(opportunity.scores.skillMatch * 100)}%</span>
+              </div>
+              <div className="bg-white/80 p-2.5 rounded-lg border border-gray-200 text-center">
+                <span className="text-[10px] uppercase font-bold text-gray-400 block">Domain</span>
+                <span className="text-base font-bold text-indigo-700">{Math.round(opportunity.scores.careerAlignment * 100)}%</span>
+              </div>
+              <div className="bg-white/80 p-2.5 rounded-lg border border-gray-200 text-center">
+                <span className="text-[10px] uppercase font-bold text-gray-400 block">Eligibility</span>
+                <span className="text-base font-bold text-indigo-700">{Math.round(opportunity.scores.eligibility * 100)}%</span>
+              </div>
+              <div className="bg-white/80 p-2.5 rounded-lg border border-gray-200 text-center">
+                <span className="text-[10px] uppercase font-bold text-gray-400 block">Interest</span>
+                <span className="text-base font-bold text-indigo-700">{Math.round(opportunity.scores.interest * 100)}%</span>
+              </div>
+            </div>
+          )}
           
           <div className="space-y-4">
             <div>

@@ -37,6 +37,37 @@ import {
   type OpportunityRepository,
 } from './recommendation.service';
 import type { ExplanationService } from './explanation.service';
+import { verifyToken } from '../../auth/jwt';
+import { prisma } from '../../database/prisma';
+
+async function resolveStudentId(req: Request): Promise<string | null> {
+  const directId =
+    (req.headers['x-student-id'] as string | undefined) ??
+    (req.query['studentId'] as string | undefined);
+
+  if (directId && directId.trim() !== '') {
+    return directId.trim();
+  }
+
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.split(' ')[1];
+      const decoded = verifyToken(token);
+      if (decoded && decoded.id) {
+        const profile = await prisma.studentProfile.findFirst({
+          where: { userId: decoded.id }
+        });
+        if (profile) return profile.id;
+        return decoded.id;
+      }
+    } catch {
+      // Ignore token decode failures
+    }
+  }
+
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // Response shape helpers
@@ -120,9 +151,7 @@ export function createRecommendationController(
   ): Promise<void> {
     try {
       // ── 1. Resolve authenticated student ID ──────────────────────────────
-      const studentId =
-        (req.headers['x-student-id'] as string | undefined) ??
-        (req.query['studentId'] as string | undefined);
+      const studentId = await resolveStudentId(req);
 
       if (!studentId || studentId.trim() === '') {
         errorResponse(res, 'Authentication required: student ID not found in request.', 401);
@@ -193,9 +222,7 @@ export function createRecommendationController(
     next: NextFunction
   ): Promise<void> {
     try {
-      const studentId =
-        (req.headers['x-student-id'] as string | undefined) ??
-        (req.query['studentId'] as string | undefined);
+      const studentId = await resolveStudentId(req);
 
       if (!studentId || studentId.trim() === '') {
         errorResponse(res, 'Authentication required: student ID not found in request.', 401);
