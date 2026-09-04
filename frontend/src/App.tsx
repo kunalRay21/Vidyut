@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, NavLink, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useParams } from 'react-router-dom';
 import { DashboardPage } from './pages/DashboardPage';
 import { RoadmapPage } from './pages/RoadmapPage';
 import { OpportunitiesPage } from './pages/OpportunitiesPage';
@@ -8,7 +8,7 @@ import { IndustryTalentPage } from './pages/IndustryTalentPage';
 import { InstitutionOnboardPage } from './pages/InstitutionOnboardPage';
 import { AssessmentQuizPage } from './pages/AssessmentQuizPage';
 import { FadeIn } from './components/animations/FadeIn';
-import { LineChart, Route as RouteIcon, GraduationCap, LogOut } from 'lucide-react';
+import { LineChart, Route as RouteIcon, GraduationCap } from 'lucide-react';
 
 import LoginForm from './features/onboarding/LoginForm';
 import RegisterForm from './features/onboarding/RegisterForm';
@@ -18,8 +18,9 @@ import QuizEngine from './features/onboarding/QuizEngine';
 
 import InstitutionLoginForm from './features/institution/InstitutionLoginForm';
 import InstitutionDashboardPage from './features/institution/InstitutionDashboardPage';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { Navbar } from './components/layout/Navbar';
 
 function QuizDispatcher() {
   const { id } = useParams<{ id: string }>();
@@ -363,182 +364,10 @@ function NotFoundPage() {
   );
 }
 
-function HeaderAuthControls() {
-  const { user, isAuthenticated, logout } = useAuth();
-
-  if (!isAuthenticated || !user) {
-    return (
-      <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
-        <Link to="/login" className="btn-saffron text-xs py-2 px-3.5">
-          Sign In
-        </Link>
-        <Link
-          to="/register"
-          className="text-xs py-2 px-3 rounded-lg border border-gray-300 bg-white hover:border-saffron hover:text-saffron font-medium text-gray-700 transition"
-        >
-          Register
-        </Link>
-      </div>
-    );
-  }
-
-  const roleConfig = {
-    STUDENT: {
-      badge: 'bg-saffron/10 text-saffron-700 border-saffron/30',
-      label: 'Student',
-      home: '/dashboard',
-    },
-    INDUSTRY: {
-      badge: 'bg-green-50 text-green-800 border-green-200',
-      label: 'Employer',
-      home: '/industry/talent',
-    },
-    INSTITUTION: {
-      badge: 'bg-blue-50 text-[#000080] border-blue-200',
-      label: 'College Admin',
-      home: '/institution/dashboard',
-    },
-    ADMIN: {
-      badge: 'bg-purple-50 text-purple-800 border-purple-200',
-      label: 'Admin',
-      home: '/dashboard',
-    },
-  }[user.role] || {
-    badge: 'bg-gray-100 text-gray-700 border-gray-200',
-    label: user.role,
-    home: '/dashboard',
-  };
-
-  const displayName = user.full_name || user.company_name || user.college_name || user.email.split('@')[0];
-
-  return (
-    <div className="flex items-center gap-3 border-l border-gray-200 pl-4">
-      <Link to={roleConfig.home} className="flex items-center gap-2 text-left group">
-        <div className="w-8 h-8 rounded-full bg-white border border-gray-300 shadow-2xs flex items-center justify-center font-bold text-xs text-gray-800 group-hover:border-saffron transition">
-          {displayName.charAt(0).toUpperCase()}
-        </div>
-        <div className="hidden lg:block leading-tight">
-          <p className="text-xs font-bold text-gray-900 group-hover:text-saffron transition max-w-[120px] truncate">
-            {displayName}
-          </p>
-          <span className={`inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded border ${roleConfig.badge}`}>
-            {roleConfig.label}
-          </span>
-        </div>
-      </Link>
-
-      <button
-        type="button"
-        onClick={logout}
-        title="Sign Out"
-        className="p-1.5 text-gray-500 hover:text-red-600 rounded-md hover:bg-red-50 transition cursor-pointer"
-      >
-        <LogOut className="w-4 h-4" />
-      </button>
-    </div>
-  );
-}
-
 function AppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FEFCE2] text-slate-900 selection:bg-saffron selection:text-gray-900">
-      {/* Top Gov Header */}
-      <header 
-        className="border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10 sticky top-0 shadow-sm"
-        style={{
-          background: 'linear-gradient(90deg, #FFCE99 0%, #FFF3CC 30%, #FEFFE3 50%, #D4F0D1 70%, #AAE2A8 100%)'
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-[#FFF3E0] flex items-center justify-center border border-[#FFE0B2] shadow-sm overflow-hidden">
-            <img src="/edu-logo.jpg" alt="Vidyut Education Logo" className="w-full h-full object-cover scale-[1.15]" />
-          </div>
-          <Link to="/">
-            <div className="flex items-center gap-2">
-              <span className="font-heading font-bold text-lg text-gray-900 tracking-tight">VIDYUT</span>
-              <span className="gov-badge text-[10px] py-0.5 px-2">SIH 2026</span>
-            </div>
-            <p className="text-[11px] text-gray-600 hidden sm:block">Adaptive Career & Skill Readiness Platform · Govt. of India</p>
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-6">
-          <nav className="hidden md:flex items-center gap-2 text-sm">
-            <NavLink 
-              to="/explore" 
-              className={({ isActive }) => 
-                `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
-                  isActive 
-                    ? 'text-gray-900 font-bold bg-saffron/5 underline decoration-saffron decoration-2 underline-offset-[6px]' 
-                    : 'text-gray-700 font-medium'
-                }`
-              }>
-              Explore
-            </NavLink>
-            <NavLink 
-              to="/dashboard" 
-              className={({ isActive }) => 
-                `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
-                  isActive 
-                    ? 'text-gray-900 font-bold bg-saffron/5 underline decoration-saffron decoration-2 underline-offset-[6px]' 
-                    : 'text-gray-700 font-medium'
-                }`
-              }>
-              Dashboard
-            </NavLink>
-            <NavLink 
-              to="/roadmap" 
-              className={({ isActive }) => 
-                `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
-                  isActive 
-                    ? 'text-gray-900 font-bold bg-saffron/5 underline decoration-saffron decoration-2 underline-offset-[6px]' 
-                    : 'text-gray-700 font-medium'
-                }`
-              }>
-              Roadmap
-            </NavLink>
-            <NavLink 
-              to="/opportunities" 
-              className={({ isActive }) => 
-                `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:bg-saffron/10 hover:text-saffron ${
-                  isActive 
-                    ? 'text-gray-900 font-bold bg-saffron/5 underline decoration-saffron decoration-2 underline-offset-[6px]' 
-                    : 'text-gray-700 font-medium'
-                }`
-              }>
-              Opportunities
-            </NavLink>
-
-            <div className="h-5 w-px bg-slate-300 mx-2" />
-            
-            <NavLink 
-              to="/industry/onboard" 
-              className={({ isActive }) => 
-                `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:text-saffron hover:underline hover:decoration-saffron/70 hover:decoration-2 hover:underline-offset-[6px] ${
-                  isActive 
-                    ? 'text-indiaGreen font-bold bg-indiaGreen/5 underline decoration-indiaGreen decoration-2 underline-offset-[6px]' 
-                    : 'text-[#B85C16] font-bold'
-                }`
-              }>
-              Employer Portal
-            </NavLink>
-
-            <NavLink 
-              to="/institution/dashboard" 
-              className={({ isActive }) => 
-                `px-3 py-2 rounded-md transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:text-[#000080] hover:underline hover:decoration-[#000080]/70 hover:decoration-2 hover:underline-offset-[6px] ${
-                  isActive 
-                    ? 'text-[#000080] font-bold bg-blue-50 underline decoration-[#000080] decoration-2 underline-offset-[6px]' 
-                    : 'text-[#000080] font-medium'
-                }`
-              }>
-              College Portal
-            </NavLink>
-          </nav>
-
-          <HeaderAuthControls />
-        </div>
-      </header>
+      <Navbar />
 
       {/* Routes */}
       <Routes>
