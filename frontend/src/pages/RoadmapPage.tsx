@@ -5,45 +5,67 @@ import { EvidenceSubmitModal } from '../features/roadmap/EvidenceSubmitModal';
 
 const INITIAL_PHASES: Phase[] = [
   {
+    id: "p1",
     phase_number: 1,
-    title: "Programming & Python Core",
-    description: "Master the foundational syntax, data structures, and object-oriented concepts necessary to build robust applications.",
-    milestones: [
-      { id: "m1-1", title: "Programming Fundamentals", status: "FAST_TRACKED" },
-      { id: "m1-2", title: "Python Language", status: "IN_PROGRESS" },
-      { id: "m1-3", title: "Object-Oriented Programming", status: "LOCKED" },
-    ]
+    title: "Programming Fundamentals",
+    description: "Build a strong foundation in programming by understanding the core concepts and logic required to write structured programs.",
+    learning_outcome: "Understand how programs are structured and develop the logical thinking required to solve programming problems.",
+    status: "FAST_TRACKED",
+    topics: ["Programming Basics", "Variables and Data Types", "Input and Output", "Operators", "Conditional Statements", "Loops", "Functions", "Basic Problem Solving", "Control Flow"]
   },
   {
+    id: "p2",
     phase_number: 2,
+    title: "Python Programming",
+    description: "Learn Python as a programming language and understand how to use its syntax, built-in features, and core programming concepts to write efficient programs.",
+    learning_outcome: "Write complete Python programs, work with different data structures, organize code using functions and modules, and handle common runtime errors.",
+    status: "IN_PROGRESS",
+    topics: ["Python Syntax", "Variables and Data Types in Python", "Lists, Tuples, Sets and Dictionaries", "Strings", "Conditional Statements", "Loops", "Functions", "Modules and Packages", "File Handling", "Exception Handling"]
+  },
+  {
+    id: "p3",
+    phase_number: 3,
+    title: "Object-Oriented Programming",
+    description: "Learn how to design larger and more structured applications using classes and objects.",
+    learning_outcome: "Understand how real-world entities can be represented in software and how object-oriented principles help build scalable and maintainable applications.",
+    status: "LOCKED",
+    topics: ["Classes and Objects", "Constructors", "Instance Variables", "Methods", "Encapsulation", "Inheritance", "Polymorphism", "Abstraction", "Method Overriding", "Composition"]
+  },
+  {
+    id: "p4",
+    phase_number: 4,
+    title: "Data Structures & Problem Solving",
+    description: "Learn how to organize data efficiently and select appropriate approaches for solving computational problems.",
+    learning_outcome: "Understand how data is stored and processed efficiently and improve your ability to solve programming problems systematically.",
+    status: "LOCKED",
+    topics: ["Arrays and Lists", "Stacks", "Queues", "Linked Lists", "Hashing", "Recursion", "Searching", "Sorting", "Basic Algorithmic Complexity"]
+  },
+  {
+    id: "p5",
+    phase_number: 5,
     title: "Mathematics Foundations",
     description: "Develop the mathematical intuition needed to understand machine learning algorithms under the hood.",
-    milestones: [
-      { id: "m2-1", title: "Linear Algebra", status: "LOCKED" },
-      { id: "m2-2", title: "Statistics & Probability", status: "LOCKED" },
-      { id: "m2-3", title: "Calculus Basics", status: "LOCKED" },
-    ]
+    learning_outcome: "Apply concepts of linear algebra, calculus, and probability to understand and implement machine learning models.",
+    status: "LOCKED",
+    topics: ["Linear Algebra", "Statistics & Probability", "Calculus Basics"]
   },
   {
-    phase_number: 3,
+    id: "p6",
+    phase_number: 6,
     title: "Data Handling",
     description: "Learn to query databases, clean messy datasets, and visualize insights effectively.",
-    milestones: [
-      { id: "m3-1", title: "SQL Fundamentals", status: "LOCKED" },
-      { id: "m3-2", title: "pandas / Data Manipulation", status: "LOCKED" },
-      { id: "m3-3", title: "Data Visualization", status: "LOCKED" },
-    ]
+    learning_outcome: "Extract data from relational databases, manipulate large datasets, and build informative visualizations.",
+    status: "LOCKED",
+    topics: ["SQL Fundamentals", "pandas / Data Manipulation", "Data Visualization"]
   },
   {
-    phase_number: 4,
+    id: "p7",
+    phase_number: 7,
     title: "Core Machine Learning",
     description: "Train, evaluate, and tune predictive models using industry-standard machine learning techniques.",
-    milestones: [
-      { id: "m4-1", title: "Machine Learning Fundamentals", status: "LOCKED" },
-      { id: "m4-2", title: "scikit-learn", status: "LOCKED" },
-      { id: "m4-3", title: "Feature Engineering", status: "LOCKED" },
-      { id: "m4-4", title: "Model Evaluation & Metrics", status: "LOCKED" },
-    ],
+    learning_outcome: "Build end-to-end machine learning pipelines to solve classification and regression problems.",
+    status: "LOCKED",
+    topics: ["Machine Learning Fundamentals", "scikit-learn", "Feature Engineering", "Model Evaluation & Metrics"],
     has_decision_point: true,
     decision_options: [
       { branch_id: "branch-tf", name: "TensorFlow" },
@@ -103,27 +125,23 @@ export const RoadmapPage: React.FC = () => {
   const handleDecisionSelect = (branchId: string) => {
     setPhases(prev => {
       const updated = [...prev];
-      const p4 = updated.find(p => p.phase_number === 4);
-      if (p4) {
-        p4.has_decision_point = false;
-        if (!p4.milestones) p4.milestones = [];
-        p4.milestones.push({ id: 'm-branch', title: `Specialization: ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'} Selected`, status: 'COMPLETED' });
+      const p7 = updated.find(p => p.phase_number === 7);
+      if (p7) {
+        p7.has_decision_point = false;
+        if (!p7.topics) p7.topics = [];
+        p7.topics.push(`Specialization: ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'} Selected`);
       }
       
       updated.push({
-        phase_number: 5,
+        id: "p8",
+        phase_number: 8,
         title: branchId === 'branch-pytorch' ? 'PyTorch Deep Learning' : 'TensorFlow Deep Learning',
-        milestones: [
-          { 
-            id: 'm5-1', 
-            title: branchId === 'branch-pytorch' ? 'PyTorch Tensors & Autograd' : 'TF Tensors & Keras', 
-            status: 'IN_PROGRESS' 
-          },
-          { 
-            id: 'm5-2', 
-            title: 'Build a CNN', 
-            status: 'LOCKED' 
-          }
+        description: `Learn to build deep neural networks using ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'}.`,
+        learning_outcome: `Develop, train, and deploy advanced neural network models using ${branchId === 'branch-pytorch' ? 'PyTorch' : 'TensorFlow'}.`,
+        status: 'IN_PROGRESS',
+        topics: [
+          branchId === 'branch-pytorch' ? 'PyTorch Tensors & Autograd' : 'TF Tensors & Keras',
+          'Build a CNN'
         ]
       });
       
@@ -151,7 +169,7 @@ export const RoadmapPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-6xl mx-auto p-6 md:px-12 space-y-8">
       <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
         <FadeIn delay={100}>
           <div>
