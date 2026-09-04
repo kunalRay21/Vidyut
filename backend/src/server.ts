@@ -6,6 +6,7 @@ import authRouter from './auth/router';
 import profileRouter from './core/profileRouter';
 import institutionRouter from './core/institutionRouter';
 import industryRouter from './core/industryRouter';
+import opportunitiesRouter from './modules/opportunities/router';
 
 dotenv.config();
 
@@ -35,11 +36,11 @@ app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/institution', institutionRouter);
 app.use('/api/v1/industry', industryRouter);
 
-// Module Routers (Scaffolded for Members 4, 5, 6 to mount their routes):
+// Module Routers
+app.use('/api/v1/opportunities', opportunitiesRouter); // Member 5 (Express TypeScript)
 // app.use('/api/v1/careers', skillGraphRouter);     // Member 4
 // app.use('/api/v1/assessments', assessmentRouter); // Member 4
 // app.use('/api/v1/roadmap', roadmapRouter);       // Member 4
-// app.use('/api/v1/opportunities', oppsRouter);    // Member 5
 // app.use('/api/v1/recommendations', recRouter);   // Member 6
 
 if (process.env.NODE_ENV !== 'test') {

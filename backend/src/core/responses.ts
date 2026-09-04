@@ -36,6 +36,10 @@ export function apiResponse<T = any>(
   return res.status(statusCode).json(envelope);
 }
 
+export function apiSuccess<T = any>(res: Response, data: T, statusCode = 200) {
+  return apiResponse(res, data, true, null, statusCode);
+}
+
 export function apiError(
   res: Response,
   message: string,

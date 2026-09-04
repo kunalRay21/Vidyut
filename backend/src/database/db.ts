@@ -78,6 +78,36 @@ export async function initDatabaseSchema(): Promise<boolean> {
       website VARCHAR(255),
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    -- Opportunities Table
+    CREATE TABLE IF NOT EXISTS opportunities (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      external_id VARCHAR(255),
+      source VARCHAR(50) NOT NULL DEFAULT 'DIRECT',
+      original_url TEXT,
+      title VARCHAR(255) NOT NULL,
+      organization VARCHAR(255) NOT NULL,
+      type VARCHAR(50) NOT NULL DEFAULT 'INTERNSHIP',
+      mode VARCHAR(50) NOT NULL DEFAULT 'REMOTE',
+      location VARCHAR(255),
+      deadline VARCHAR(100),
+      stipend VARCHAR(100),
+      description_raw TEXT,
+      eligibility_raw TEXT,
+      fingerprint VARCHAR(255) UNIQUE,
+      is_active BOOLEAN DEFAULT TRUE,
+      extracted_at TIMESTAMPTZ DEFAULT NOW(),
+      last_seen_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Opportunity Skill Tags Table
+    CREATE TABLE IF NOT EXISTS opportunity_skill_tags (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      opportunity_id UUID REFERENCES opportunities(id) ON DELETE CASCADE,
+      skill_id VARCHAR(100) NOT NULL,
+      min_proficiency VARCHAR(50) DEFAULT 'BEGINNER',
+      weight FLOAT DEFAULT 1.0
+    );
   `;
 
   try {
