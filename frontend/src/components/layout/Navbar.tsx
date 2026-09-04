@@ -1,58 +1,77 @@
-import React, { useState, useEffect } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Menu,
   X,
   LogOut,
+  ChevronDown,
   Compass,
   LayoutDashboard,
   Route as RouteIcon,
   Briefcase,
   Building2,
   GraduationCap,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth, UserRole } from '../../context/AuthContext';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
-  // Close mobile drawer automatically when route changes
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [portalsDropdownOpen, setPortalsDropdownOpen] = useState(false);
+
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const portalsMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close all menus on route change
   useEffect(() => {
     setMobileMenuOpen(false);
+    setProfileDropdownOpen(false);
+    setPortalsDropdownOpen(false);
   }, [location.pathname]);
 
-  const roleStyles: Record<UserRole, { badge: string; label: string; home: string }> = {
+  // Handle outside clicks to dismiss dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+      if (portalsMenuRef.current && !portalsMenuRef.current.contains(event.target as Node)) {
+        setPortalsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const roleMeta: Record<UserRole, { label: string; badgeColor: string; home: string }> = {
     STUDENT: {
-      badge: 'bg-saffron-50 text-saffron-800 border-saffron-200/80',
       label: 'Student',
+      badgeColor: 'bg-saffron/10 text-saffron-700 border-saffron/20',
       home: '/dashboard',
     },
     INDUSTRY: {
-      badge: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
       label: 'Employer',
+      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       home: '/industry/talent',
     },
     INSTITUTION: {
-      badge: 'bg-blue-50 text-[#000080] border-blue-200/80',
       label: 'College Admin',
+      badgeColor: 'bg-blue-50 text-[#000080] border-blue-200',
       home: '/institution/dashboard',
     },
     ADMIN: {
-      badge: 'bg-purple-50 text-purple-800 border-purple-200/80',
-      label: 'Admin',
+      label: 'System Admin',
+      badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
       home: '/dashboard',
     },
   };
 
-  const currentRoleConfig = user?.role
-    ? roleStyles[user.role]
-    : {
-        badge: 'bg-gray-100 text-gray-700 border-gray-200',
-        label: 'Guest',
-        home: '/dashboard',
-      };
+  const currentRole = user?.role ? roleMeta[user.role] : null;
 
   const displayName =
     user?.full_name ||
@@ -60,133 +79,247 @@ export const Navbar: React.FC = () => {
     user?.college_name ||
     (user?.email ? user.email.split('@')[0] : 'User');
 
-  const navItemClass = ({ isActive }: { isActive: boolean }) =>
-    `px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
-      isActive
-        ? 'bg-saffron-50/90 text-saffron-800 font-semibold shadow-2xs'
-        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
-    }`;
+  const avatarInitial = displayName.charAt(0).toUpperCase();
 
-  const portalItemClass = (activeColor: string) => ({ isActive }: { isActive: boolean }) =>
-    `px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
-      isActive
-        ? `${activeColor} font-semibold shadow-2xs`
-        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
-    }`;
+  const handleSignOut = () => {
+    logout();
+    setProfileDropdownOpen(false);
+    navigate('/');
+  };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200/70 transition-all">
-      {/* Subtle National Tricolor Micro-Ribbon */}
-      <div className="h-[2.5px] w-full bg-gradient-to-r from-saffron via-[#F4F4F4] to-indiaGreen opacity-90" />
+    <header className="sticky top-0 z-50 bg-[#FFFEFA]/90 backdrop-blur-md border-b border-gray-200/60 transition-all">
+      {/* Delicate national tricolor micro-line */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-saffron/80 via-white/50 to-indiaGreen/80" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-15">
-          {/* Logo & Platform Name */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-8 h-8 rounded-lg overflow-hidden border border-gray-200/80 shadow-2xs bg-white flex items-center justify-center shrink-0 group-hover:border-saffron/50 transition">
+        <div className="flex items-center justify-between h-16">
+          {/* Brand Logo & Name - Clean & Uncluttered */}
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg overflow-hidden border border-gray-200/80 shadow-2xs bg-white flex items-center justify-center shrink-0 group-hover:border-saffron/60 transition">
               <img
                 src="/edu-logo.jpg"
-                alt="Vidyut Logo"
+                alt="Vidyut Emblem"
                 className="w-full h-full object-cover scale-110"
                 onError={(e) => {
-                  // Graceful fallback if image is unavailable
                   (e.target as HTMLElement).style.display = 'none';
                 }}
               />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-heading font-extrabold text-base tracking-tight text-[#000080] group-hover:text-saffron-600 transition">
-                  VIDYUT
-                </span>
-                <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-gray-100 text-gray-600 border border-gray-200/70">
-                  SIH 2026
-                </span>
-              </div>
-              <p className="text-[10px] text-gray-500 hidden sm:block leading-none font-normal mt-0.5">
-                Adaptive Skill Intelligence · Govt. of India
-              </p>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-heading font-black text-lg tracking-tight text-[#000080] group-hover:text-saffron-600 transition">
+                VIDYUT
+              </span>
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-saffron animate-pulse" />
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Spacious & Sleek */}
           <nav className="hidden md:flex items-center gap-1">
-            <NavLink to="/explore" className={navItemClass}>
+            <NavLink
+              to="/explore"
+              className={({ isActive }) =>
+                `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'text-gray-950 font-semibold bg-black/[0.04]'
+                    : 'text-gray-600 hover:text-gray-950 hover:bg-black/[0.02]'
+                }`
+              }
+            >
               Explore
             </NavLink>
-            <NavLink to="/dashboard" className={navItemClass}>
+
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'text-gray-950 font-semibold bg-black/[0.04]'
+                    : 'text-gray-600 hover:text-gray-950 hover:bg-black/[0.02]'
+                }`
+              }
+            >
               Dashboard
             </NavLink>
-            <NavLink to="/roadmap" className={navItemClass}>
+
+            <NavLink
+              to="/roadmap"
+              className={({ isActive }) =>
+                `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'text-gray-950 font-semibold bg-black/[0.04]'
+                    : 'text-gray-600 hover:text-gray-950 hover:bg-black/[0.02]'
+                }`
+              }
+            >
               Roadmap
             </NavLink>
-            <NavLink to="/opportunities" className={navItemClass}>
+
+            <NavLink
+              to="/opportunities"
+              className={({ isActive }) =>
+                `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'text-gray-950 font-semibold bg-black/[0.04]'
+                    : 'text-gray-600 hover:text-gray-950 hover:bg-black/[0.02]'
+                }`
+              }
+            >
               Opportunities
             </NavLink>
 
-            <div className="h-4 w-px bg-gray-200 mx-2" />
+            {/* Portals Dropdown Trigger - Eliminates Horizontal Clutter */}
+            <div className="relative" ref={portalsMenuRef}>
+              <button
+                type="button"
+                onClick={() => setPortalsDropdownOpen((prev) => !prev)}
+                className={`px-3.5 py-1.5 rounded-full text-sm font-medium flex items-center gap-1 transition-colors cursor-pointer ${
+                  location.pathname.startsWith('/industry') || location.pathname.startsWith('/institution')
+                    ? 'text-gray-950 font-semibold bg-black/[0.04]'
+                    : 'text-gray-600 hover:text-gray-950 hover:bg-black/[0.02]'
+                }`}
+              >
+                <span>Portals</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${
+                    portalsDropdownOpen ? 'rotate-180 text-gray-700' : ''
+                  }`}
+                />
+              </button>
 
-            <NavLink
-              to={user?.role === 'INDUSTRY' ? '/industry/talent' : '/industry/onboard'}
-              className={portalItemClass('bg-amber-50 text-[#B85C16]')}
-            >
-              Employer Portal
-            </NavLink>
+              {portalsDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-64 rounded-2xl bg-white border border-gray-100 shadow-xl p-2.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                  <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    Ecosystem Portals
+                  </div>
 
-            <NavLink
-              to={user?.role === 'INSTITUTION' ? '/institution/dashboard' : '/institution/dashboard'}
-              className={portalItemClass('bg-blue-50 text-[#000080]')}
-            >
-              College Portal
-            </NavLink>
+                  <Link
+                    to={user?.role === 'INDUSTRY' ? '/industry/talent' : '/industry/onboard'}
+                    onClick={() => setPortalsDropdownOpen(false)}
+                    className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-amber-50/60 transition group"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-amber-100/70 text-[#B85C16] flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                      <Building2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 group-hover:text-[#B85C16] transition-colors">
+                        Employer Portal
+                      </p>
+                      <p className="text-xs text-gray-500 leading-snug">
+                        Hire verified talent & post internship opportunities
+                      </p>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to={user?.role === 'INSTITUTION' ? '/institution/dashboard' : '/institution/dashboard'}
+                    onClick={() => setPortalsDropdownOpen(false)}
+                    className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-blue-50/60 transition group mt-1"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-blue-100/70 text-[#000080] flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                      <GraduationCap className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 group-hover:text-[#000080] transition-colors">
+                        College Portal
+                      </p>
+                      <p className="text-xs text-gray-500 leading-snug">
+                        Curriculum analytics & student batch readiness
+                      </p>
+                    </div>
+                  </Link>
+                </div>
+              )}
+            </div>
           </nav>
 
-          {/* Desktop Auth Controls */}
+          {/* Desktop Right Side: Auth / Profile Dropdown */}
           <div className="hidden md:flex items-center gap-3">
             {!isAuthenticated || !user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Link
                   to="/login"
-                  className="text-xs font-semibold text-gray-700 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-100/70 transition"
+                  className="text-xs font-semibold text-gray-600 hover:text-gray-950 px-2 py-1.5 transition"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="btn-saffron text-xs font-semibold py-1.5 px-3.5 rounded-lg shadow-2xs"
+                  className="text-xs font-semibold px-4 py-2 rounded-full bg-saffron text-white hover:bg-saffron-600 shadow-2xs transition-all hover:shadow-sm"
                 >
-                  Register
+                  Get Started
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-2.5">
-                <Link
-                  to={currentRoleConfig.home}
-                  className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-100/70 transition group text-left"
-                >
-                  <div className="w-7 h-7 rounded-full bg-saffron-100 text-saffron-800 border border-saffron-200 flex items-center justify-center font-bold text-xs">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="leading-tight">
-                    <p className="text-xs font-bold text-gray-900 group-hover:text-saffron-600 transition max-w-[130px] truncate">
-                      {displayName}
-                    </p>
-                    <span
-                      className={`inline-block text-[9px] font-semibold px-1.5 py-0.2 rounded border ${currentRoleConfig.badge}`}
-                    >
-                      {currentRoleConfig.label}
-                    </span>
-                  </div>
-                </Link>
-
+              /* Sleek Floating Profile Trigger (eliminates cramped row) */
+              <div className="relative" ref={profileMenuRef}>
                 <button
                   type="button"
-                  onClick={logout}
-                  title="Sign Out"
-                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                  onClick={() => setProfileDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-2.5 pl-2 pr-2.5 py-1 rounded-full hover:bg-black/[0.03] transition-colors cursor-pointer border border-transparent hover:border-gray-200/80"
+                  aria-label="User profile menu"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded-full bg-saffron-100 text-saffron-800 border border-saffron-200/80 flex items-center justify-center font-bold text-xs shadow-2xs">
+                    {avatarInitial}
+                  </div>
+                  <span className="text-xs font-semibold text-gray-800 max-w-[110px] truncate">
+                    {displayName.split(' ')[0]}
+                  </span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${
+                      profileDropdownOpen ? 'rotate-180' : ''
+                    }`}
+                  />
                 </button>
+
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-60 rounded-2xl bg-white border border-gray-100 shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="px-3 py-2.5 border-b border-gray-100">
+                      <p className="text-xs font-bold text-gray-900 truncate">{displayName}</p>
+                      <p className="text-[11px] text-gray-500 truncate mt-0.5">{user.email}</p>
+                      {currentRole && (
+                        <div className="mt-2">
+                          <span
+                            className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full border ${currentRole.badgeColor}`}
+                          >
+                            {currentRole.label}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="py-1">
+                      <Link
+                        to={currentRole?.home || '/dashboard'}
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition"
+                      >
+                        <LayoutDashboard className="w-3.5 h-3.5 text-gray-500" />
+                        <span>My Portal Dashboard</span>
+                      </Link>
+
+                      <Link
+                        to="/explore"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition"
+                      >
+                        <Compass className="w-3.5 h-3.5 text-gray-500" />
+                        <span>Explore Skill Graphs</span>
+                      </Link>
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-1 mt-1">
+                      <button
+                        type="button"
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition cursor-pointer"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -194,17 +327,19 @@ export const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
             {isAuthenticated && user && (
-              <Link
-                to={currentRoleConfig.home}
-                className="w-7 h-7 rounded-full bg-saffron-100 text-saffron-800 border border-saffron-200 flex items-center justify-center font-bold text-xs"
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="w-7 h-7 rounded-full bg-saffron-100 text-saffron-800 border border-saffron-200 flex items-center justify-center font-bold text-xs shadow-2xs"
               >
-                {displayName.charAt(0).toUpperCase()}
-              </Link>
+                {avatarInitial}
+              </button>
             )}
+
             <button
               type="button"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition focus:outline-none cursor-pointer"
+              className="p-2 rounded-xl text-gray-600 hover:text-gray-950 hover:bg-black/[0.04] transition cursor-pointer"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -215,27 +350,30 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200/80 bg-white/95 backdrop-blur-md px-4 py-4 space-y-3 shadow-lg animate-in slide-in-from-top-2 duration-200">
-          {/* User Profile Info in Mobile */}
+        <div className="md:hidden border-t border-gray-100 bg-[#FFFEFA]/98 backdrop-blur-xl px-5 py-5 space-y-4 shadow-xl animate-in slide-in-from-top-2 duration-200">
+          {/* Authenticated user header card on mobile */}
           {isAuthenticated && user && (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200/70 mb-2">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-saffron-100 text-saffron-800 border border-saffron-200 flex items-center justify-center font-bold text-xs shrink-0">
-                  {displayName.charAt(0).toUpperCase()}
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-gray-100 shadow-xs">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-full bg-saffron-100 text-saffron-800 border border-saffron-200 flex items-center justify-center font-bold text-xs shrink-0">
+                  {avatarInitial}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-gray-900 truncate">{displayName}</p>
-                  <span
-                    className={`inline-block text-[9px] font-semibold px-1.5 py-0.2 rounded border mt-0.5 ${currentRoleConfig.badge}`}
-                  >
-                    {currentRoleConfig.label}
-                  </span>
+                  <p className="text-xs font-bold text-gray-950 truncate">{displayName}</p>
+                  {currentRole && (
+                    <span
+                      className={`inline-block text-[9px] font-semibold px-2 py-0.2 rounded-full border mt-0.5 ${currentRole.badgeColor}`}
+                    >
+                      {currentRole.label}
+                    </span>
+                  )}
                 </div>
               </div>
+
               <button
                 type="button"
-                onClick={logout}
-                className="text-xs font-semibold text-red-600 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition flex items-center gap-1 cursor-pointer shrink-0"
+                onClick={handleSignOut}
+                className="text-xs font-semibold text-red-600 hover:text-red-700 px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition flex items-center gap-1 cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Logout</span>
@@ -243,109 +381,134 @@ export const Navbar: React.FC = () => {
             </div>
           )}
 
-          {/* Student Links */}
+          {/* Student / Explorer Links */}
           <div className="space-y-1">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 pt-1 pb-1">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 py-1">
               Platform Features
             </p>
+
             <NavLink
               to="/explore"
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
                   isActive
-                    ? 'bg-saffron-50 text-saffron-800 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-100/70'
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
                 }`
               }
             >
-              <Compass className="w-4 h-4 text-saffron-600" />
-              <span>Explore Domains</span>
+              <div className="flex items-center gap-3">
+                <Compass className="w-4 h-4 text-saffron" />
+                <span>Explore Domains</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
+
             <NavLink
               to="/dashboard"
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
                   isActive
-                    ? 'bg-saffron-50 text-saffron-800 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-100/70'
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
                 }`
               }
             >
-              <LayoutDashboard className="w-4 h-4 text-saffron-600" />
-              <span>Student Dashboard</span>
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className="w-4 h-4 text-saffron" />
+                <span>Student Dashboard</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
+
             <NavLink
               to="/roadmap"
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
                   isActive
-                    ? 'bg-saffron-50 text-saffron-800 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-100/70'
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
                 }`
               }
             >
-              <RouteIcon className="w-4 h-4 text-indiaGreen" />
-              <span>Learning Roadmap</span>
+              <div className="flex items-center gap-3">
+                <RouteIcon className="w-4 h-4 text-indiaGreen" />
+                <span>Adaptive Roadmap</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
+
             <NavLink
               to="/opportunities"
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
                   isActive
-                    ? 'bg-saffron-50 text-saffron-800 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-100/70'
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
                 }`
               }
             >
-              <Briefcase className="w-4 h-4 text-[#B85C16]" />
-              <span>Opportunities</span>
+              <div className="flex items-center gap-3">
+                <Briefcase className="w-4 h-4 text-[#B85C16]" />
+                <span>Opportunities Hub</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
           </div>
 
-          <div className="border-t border-gray-100 pt-2 space-y-1">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 pt-1 pb-1">
+          {/* Ecosystem Portals */}
+          <div className="pt-2 border-t border-gray-100 space-y-1">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 py-1">
               Ecosystem Portals
             </p>
+
             <NavLink
               to={user?.role === 'INDUSTRY' ? '/industry/talent' : '/industry/onboard'}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
                   isActive
                     ? 'bg-amber-50 text-[#B85C16] font-semibold'
-                    : 'text-gray-700 hover:bg-gray-100/70'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
                 }`
               }
             >
-              <Building2 className="w-4 h-4 text-[#B85C16]" />
-              <span>Employer Portal</span>
+              <div className="flex items-center gap-3">
+                <Building2 className="w-4 h-4 text-[#B85C16]" />
+                <span>Employer Portal</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
+
             <NavLink
               to={user?.role === 'INSTITUTION' ? '/institution/dashboard' : '/institution/dashboard'}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
                   isActive
                     ? 'bg-blue-50 text-[#000080] font-semibold'
-                    : 'text-gray-700 hover:bg-gray-100/70'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
                 }`
               }
             >
-              <GraduationCap className="w-4 h-4 text-[#000080]" />
-              <span>College Portal</span>
+              <div className="flex items-center gap-3">
+                <GraduationCap className="w-4 h-4 text-[#000080]" />
+                <span>College Portal</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
           </div>
 
-          {/* Unauthenticated Actions in Mobile */}
+          {/* Guest CTAs */}
           {!isAuthenticated && (
-            <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
+            <div className="pt-3 border-t border-gray-100 grid grid-cols-2 gap-2.5">
               <Link
                 to="/login"
-                className="w-full text-center py-2 px-4 rounded-lg border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"
+                className="w-full text-center py-2.5 px-4 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
-                className="w-full btn-saffron text-center py-2 px-4 rounded-lg text-xs font-semibold shadow-2xs"
+                className="w-full text-center py-2.5 px-4 rounded-xl bg-saffron text-white text-xs font-semibold shadow-2xs hover:bg-saffron-600 transition"
               >
                 Register
               </Link>
