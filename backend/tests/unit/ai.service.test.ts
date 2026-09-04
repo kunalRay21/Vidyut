@@ -148,6 +148,13 @@ describe('CentralizedAIService', () => {
       expect(result.skills).toHaveLength(2);
     });
 
+    it('returns success:false if text exceeds 10,000 characters', async () => {
+      const longInput = { text: 'a'.repeat(10001) };
+      const result = await aiService.extractSkillsFromText(longInput);
+      expect(result.success).toBe(false);
+      expect(mockGenerateText).not.toHaveBeenCalled();
+    });
+
     it('returns empty skills correctly', async () => {
       mockGenerateText.mockResolvedValue(JSON.stringify({ skills: [] }));
       const result = await aiService.extractSkillsFromText(input);

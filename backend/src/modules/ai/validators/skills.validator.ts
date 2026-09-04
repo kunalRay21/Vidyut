@@ -6,5 +6,5 @@ export const AISkillExtractionSchema = z.object({
       mention: z.string().min(1).max(100),
       skillName: z.string().min(1).max(100),
     })
-  ).max(20),
+  ).max(10),
 });

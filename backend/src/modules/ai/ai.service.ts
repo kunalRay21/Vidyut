@@ -89,6 +89,11 @@ export class CentralizedAIService implements AIService {
   async extractSkillsFromText(
     input: SkillExtractionInput
   ): Promise<{ success: boolean; skills?: ExtractedSkill[] }> {
+    if (input.text.length > 10000) {
+      console.error('[AIService] Text length exceeds 10,000 characters.');
+      return { success: false };
+    }
+
     try {
       const prompt = buildSkillsPrompt(input);
       const rawResponse = await this.client.generateText(prompt, {
