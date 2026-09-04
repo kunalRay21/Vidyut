@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   Vidyut — Government of India (SIH 2026) Theme & Design Tokens
+   Vidyut ΓÇö Government of India (SIH 2026) Theme & Design Tokens
    Colors based on the Indian National Tricolor (Tiranga) & Ashoka Chakra:
      - Kesari (Saffron): #FF9933 (Courage, Energy, Action)
      - Satya (White/Light): #FFFFFF / #F8FAFC (Clarity, Truth, Peace)
@@ -67,7 +67,8 @@
     background-image: var(--tricolor-glow);
     background-repeat: no-repeat;
   }
-  h1, h2, h3, h4, h5, h6 {
+
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
     color: #FFFFFF;
@@ -175,6 +176,12 @@
     background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
     box-shadow: 0 6px 20px 0 rgba(30, 58, 138, 0.4);
     transform: translateY(-1px);
+  }
+
+  .gov-tricolor-banner {
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
   }
 }
 

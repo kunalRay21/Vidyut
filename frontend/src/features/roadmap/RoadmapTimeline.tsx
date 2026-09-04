@@ -38,7 +38,7 @@ const PhaseCard: React.FC<{
   index: number;
   onEvidenceClick: (id: string) => void;
   onDecisionClick: (p: Phase) => void;
-}> = ({ phase, index, onEvidenceClick, onDecisionClick }) => {
+}> = ({ phase, onEvidenceClick, onDecisionClick }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
