@@ -24,8 +24,6 @@ interface CourseTrack {
   roleId: string;
   title: string;
   category: string;
-  badge: string;
-  badgeType: 'saffron' | 'green' | 'blue';
   icon: React.ReactNode;
   description: string;
   technologies: string[];
@@ -39,8 +37,6 @@ const FEATURED_COURSES: CourseTrack[] = [
     roleId: 'role-backend',
     title: 'Modern Backend & Distributed Systems',
     category: 'Software Engineering',
-    badge: 'High Industry Demand',
-    badgeType: 'saffron',
     icon: <Database className="w-5 h-5 text-saffron-600" />,
     description: 'Design and deploy scalable microservices, relational databases, REST APIs, and containerized cloud services.',
     technologies: ['Python', 'SQL & PostgreSQL', 'Docker', 'REST API', 'FastAPI'],
@@ -52,8 +48,6 @@ const FEATURED_COURSES: CourseTrack[] = [
     roleId: 'role-ml',
     title: 'Machine Learning & Applied AI',
     category: 'Artificial Intelligence',
-    badge: 'High Growth Sector',
-    badgeType: 'green',
     icon: <Cpu className="w-5 h-5 text-indiaGreen" />,
     description: 'Build, evaluate, and deploy predictive models, computer vision systems, and automated data pipelines.',
     technologies: ['Python', 'NumPy & Pandas', 'Linear Algebra', 'Scikit-Learn', 'PyTorch'],
@@ -65,8 +59,6 @@ const FEATURED_COURSES: CourseTrack[] = [
     roleId: 'role-backend',
     title: 'Cloud Native & DevOps Engineering',
     category: 'Cloud Infrastructure',
-    badge: 'Enterprise Critical',
-    badgeType: 'blue',
     icon: <Cloud className="w-5 h-5 text-[#000080]" />,
     description: 'Architect resilient serverless and containerized systems, configure CI/CD pipelines, and manage cloud clusters.',
     technologies: ['Docker', 'Kubernetes', 'CI/CD Pipelines', 'AWS/GCP', 'Linux Shell'],
@@ -78,8 +70,6 @@ const FEATURED_COURSES: CourseTrack[] = [
     roleId: 'role-backend',
     title: 'Full-Stack Web Systems',
     category: 'Web Development',
-    badge: 'Rapid Employment',
-    badgeType: 'saffron',
     icon: <Code className="w-5 h-5 text-saffron-600" />,
     description: 'Build interactive frontends and connect them to secure authentication backends and persistent databases.',
     technologies: ['TypeScript', 'React.js', 'Node.js', 'Tailwind CSS', 'SQL'],
@@ -91,8 +81,6 @@ const FEATURED_COURSES: CourseTrack[] = [
     roleId: 'role-ml',
     title: 'Data Engineering & Big Data Analytics',
     category: 'Data Systems',
-    badge: 'High Starting Packages',
-    badgeType: 'green',
     icon: <Layers className="w-5 h-5 text-indiaGreen" />,
     description: 'Construct resilient data pipelines, optimize ETL workflows, and prepare large-scale datasets for analytical modeling.',
     technologies: ['Advanced SQL', 'Python', 'Data Warehousing', 'ETL Architecture', 'Kafka'],
@@ -104,8 +92,6 @@ const FEATURED_COURSES: CourseTrack[] = [
     roleId: 'role-backend',
     title: 'Cybersecurity & Secure Systems',
     category: 'Security & Defense',
-    badge: 'National Priority',
-    badgeType: 'blue',
     icon: <ShieldCheck className="w-5 h-5 text-[#000080]" />,
     description: 'Identify software vulnerabilities, implement cryptographic key exchange, and harden enterprise web applications.',
     technologies: ['Network Security', 'JWT & OAuth', 'OWASP Top 10', 'Linux Hardening', 'Cryptography'],
@@ -126,7 +112,7 @@ export const LandingPage: React.FC = () => {
   return (
     <div className="w-full bg-[#FAFAF9] text-gray-900 selection:bg-saffron/30 selection:text-gray-950">
       {/* =========================================================================
-          HERO SECTION (Tricolor Ambient Glow, Problem Statement Pill, Interactive Live Card)
+          HERO SECTION (Tricolor Ambient Glow, Interactive Live Card)
       ========================================================================== */}
       <section className="relative overflow-hidden pt-12 pb-20 md:pt-16 md:pb-28 border-b border-gray-200/60">
         {/* Soft Tricolor Ambient Backdrops */}
@@ -135,16 +121,9 @@ export const LandingPage: React.FC = () => {
         <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[600px] h-64 bg-blue-50/60 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
-          {/* SIH 2026 / National Scheme Pill */}
-          <FadeIn delay={100}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-saffron/30 bg-white/80 backdrop-blur-md text-saffron-700 text-xs font-bold uppercase tracking-wider mb-6 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-saffron animate-pulse" />
-              <span>Smart India Hackathon 2026 · Problem Statement 26044</span>
-            </div>
-          </FadeIn>
 
           {/* Main Hero Headline */}
-          <FadeIn delay={200}>
+          <FadeIn delay={100}>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold font-heading tracking-tight text-gray-950 max-w-5xl leading-[1.12]">
               Empowering India's Students with{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-saffron-600 via-[#000080] to-indiaGreen">
@@ -154,14 +133,14 @@ export const LandingPage: React.FC = () => {
           </FadeIn>
 
           {/* Subtitle */}
-          <FadeIn delay={300}>
+          <FadeIn delay={180}>
             <p className="text-gray-600 text-base sm:text-lg md:text-xl max-w-3xl mt-6 leading-relaxed">
               Standardized skill graphs, calibrated diagnostic evaluations, prerequisite-ordered learning roadmaps, and verified direct opportunity matching for students, colleges, and industry.
             </p>
           </FadeIn>
 
           {/* Action CTAs */}
-          <FadeIn delay={380}>
+          <FadeIn delay={260}>
             <div className="flex flex-wrap items-center justify-center gap-3.5 mt-8">
               <Link
                 to="/assessment/self"
@@ -190,7 +169,7 @@ export const LandingPage: React.FC = () => {
           </FadeIn>
 
           {/* Hero Live Stat Snapshot Strip */}
-          <FadeIn delay={450}>
+          <FadeIn delay={340}>
             <div className="w-full max-w-4xl mt-14 grid grid-cols-2 md:grid-cols-4 gap-3 text-left">
               <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-gray-200/70 shadow-2xs">
                 <div className="flex items-center gap-2 text-saffron-600 text-xs font-bold mb-1">
@@ -239,9 +218,6 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Minimal Header */}
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-saffron/10 text-saffron-700 text-xs font-bold uppercase tracking-wider mb-3">
-              The Mission · Problem Statement 26044
-            </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold font-heading text-gray-950 tracking-tight">
               Bridging the Academia–Industry Divergence
             </h2>
@@ -341,9 +317,6 @@ export const LandingPage: React.FC = () => {
           {/* Section Minimal Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-saffron/10 text-saffron-700 text-xs font-bold uppercase tracking-wider mb-2">
-                Curated Learning Tracks · Skill Graph Courses
-              </div>
               <h2 className="text-3xl sm:text-4xl font-extrabold font-heading text-gray-950 tracking-tight">
                 Explore Industry Career Courses
               </h2>
@@ -368,26 +341,12 @@ export const LandingPage: React.FC = () => {
                 <div className="bg-white border border-gray-200/80 rounded-2xl p-6 hover:border-saffron hover:shadow-md transition-all duration-300 h-full flex flex-col justify-between group">
                   <div>
                     {/* Minimal Card Header */}
-                    <div className="flex items-center justify-between gap-2 mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-xl bg-gray-50 border border-gray-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                          {course.icon}
-                        </div>
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          {course.category}
-                        </span>
+                    <div className="flex items-center gap-2.5 mb-4">
+                      <div className="w-9 h-9 rounded-xl bg-gray-50 border border-gray-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        {course.icon}
                       </div>
-
-                      <span
-                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
-                          course.badgeType === 'saffron'
-                            ? 'bg-amber-50 text-amber-800 border-amber-200'
-                            : course.badgeType === 'green'
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                            : 'bg-blue-50 text-blue-800 border-blue-200'
-                        }`}
-                      >
-                        {course.badge}
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {course.category}
                       </span>
                     </div>
 
@@ -445,9 +404,6 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Minimal Header */}
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indiaGreen/10 text-indiaGreen text-xs font-bold uppercase tracking-wider mb-3">
-              Architecture & Workflow · 4 Continuous Phases
-            </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold font-heading text-gray-950 tracking-tight">
               How the Vidyut Adaptive Engine Works
             </h2>
