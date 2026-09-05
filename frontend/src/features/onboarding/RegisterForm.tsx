@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { setStoredResume } from '../../services/api';
 import { readResumeFile, parseResumeText, ParsedResume } from '../../utils/resumeParser';
+import { CustomDropdown } from '../../components/common/CustomDropdown';
 
 export default function RegisterForm() {
   const { t } = useTranslation();
@@ -27,6 +28,7 @@ export default function RegisterForm() {
     password: '',
     institution: '',
     degree: '',
+    major: '',
     year_of_study: '',
     interests: '',
   });
@@ -41,7 +43,7 @@ export default function RegisterForm() {
   const [error, setError] = useState('');
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setForm({
       ...form,
@@ -102,6 +104,7 @@ export default function RegisterForm() {
       !form.password ||
       !form.institution ||
       !form.degree ||
+      !form.major ||
       !form.year_of_study
     ) {
       setError('Please fill all required fields.');
@@ -137,7 +140,7 @@ export default function RegisterForm() {
         password: form.password,
         full_name: form.full_name,
         institution: form.institution,
-        degree: form.degree,
+        degree: `${form.degree} ${form.major}`,
         year_of_study: Number(form.year_of_study),
         interests: parsedInterests,
         resume: resumePayload,
@@ -215,32 +218,46 @@ export default function RegisterForm() {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('auth.institutionLabel')} *
+            </label>
+            <input
+              type="text"
+              name="institution"
+              value={form.institution}
+              onChange={handleChange}
+              placeholder={t('auth.institutionPlaceholder')}
+              className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
+            />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('auth.institutionLabel')} *
+                Degree *
               </label>
-              <input
-                type="text"
-                name="institution"
-                value={form.institution}
-                onChange={handleChange}
-                placeholder={t('auth.institutionPlaceholder')}
-                className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
+              <CustomDropdown
+                name="degree"
+                value={form.degree}
+                onChange={(val) => setForm({ ...form, degree: val })}
+                options={['B.Tech', 'BCA', 'MBA', 'MCA', 'B.Sc', 'M.Tech', 'Other']}
+                placeholder="Select Degree"
+                className="w-full px-2.5 py-1.5 text-sm"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('auth.degreeLabel')} *
+                Major *
               </label>
-              <input
-                type="text"
-                name="degree"
-                value={form.degree}
-                onChange={handleChange}
-                placeholder={t('auth.degreePlaceholder')}
-                className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
+              <CustomDropdown
+                name="major"
+                value={form.major}
+                onChange={(val) => setForm({ ...form, major: val })}
+                options={['CSE', 'ECE', 'MECHANICAL', 'CIVIL', 'IT', 'EEE', 'Other']}
+                placeholder="Select Major"
+                className="w-full px-2.5 py-1.5 text-sm"
               />
             </div>
           </div>
@@ -266,13 +283,13 @@ export default function RegisterForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('auth.interestsLabel', 'Interests')}
               </label>
-              <input
-                type="text"
+              <CustomDropdown
                 name="interests"
                 value={form.interests}
-                onChange={handleChange}
-                placeholder="AI/ML, Backend, Cloud"
-                className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
+                onChange={(val) => setForm({ ...form, interests: val })}
+                options={['AI/ML', 'Backend', 'Frontend', 'Cloud', 'Data Science', 'Cyber Security', 'Other']}
+                placeholder="Select Interest"
+                className="w-full px-2.5 py-1.5 text-sm"
               />
             </div>
           </div>

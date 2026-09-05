@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import {
   Compass,
   Route as RouteIcon,
@@ -127,7 +127,22 @@ export const LandingPage: React.FC = () => {
           {/* Main Hero Headline */}
           <FadeIn delay={100}>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold font-heading tracking-tight text-gray-950 max-w-5xl leading-[1.12]">
-              {t('landing.hero.titlePrefix')}{' '}
+              <Trans
+                i18nKey="landing.hero.titlePrefix"
+                components={{
+                  1: (
+                    <span
+                      style={{
+                        background: 'linear-gradient(90deg, #e87817 0%, #d96b1c 25%, #9b6a2c 50%, #4f7a38 75%, #167a35 100%)',
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        color: 'transparent'
+                      }}
+                    />
+                  )
+                }}
+              />{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-saffron-600 via-[#000080] to-indiaGreen">
                 {t('landing.hero.titleHighlight')}
               </span>

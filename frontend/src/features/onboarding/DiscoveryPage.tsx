@@ -20,9 +20,12 @@ import {
   Target,
   CheckCircle2,
   FileText,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { FadeIn } from '../../components/animations/FadeIn';
 import { careersApi, getStoredResume, getStoredUser } from '../../services/api';
+import { CustomDropdown } from '../../components/common/CustomDropdown';
 
 export interface DAGNode {
   id: string;
@@ -201,10 +204,30 @@ export default function DiscoveryPage() {
   const [selectedDemand, setSelectedDemand] = useState('ALL');
   const [activeDagDomain, setActiveDagDomain] = useState<DomainItem | null>(null);
 
+  // Carousel State
+  const [visibleCards, setVisibleCards] = useState(3);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) setVisibleCards(3); // lg
+      else if (window.innerWidth >= 768) setVisibleCards(2); // md
+      else setVisibleCards(1); // sm
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Resume Personalization Filter
   const [storedResume, setStoredResume] = useState<any>(null);
   const [matchedRoleId, setMatchedRoleId] = useState<string | null>(null);
   const [resumeOnlyFilter, setResumeOnlyFilter] = useState<boolean>(true);
+
+  // Reset carousel when filters change
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [searchQuery, selectedCategory, selectedDemand, resumeOnlyFilter]);
 
   useEffect(() => {
     const resume = getStoredResume();
@@ -337,6 +360,174 @@ export default function DiscoveryPage() {
       default:
         return 'bg-gray-50 border-gray-200/80';
     }
+  };
+
+  // Group filtered domains into columns for the 2-row layout
+  const carouselColumns = useMemo(() => {
+    if (filteredDomains.length === 0) return [];
+    
+    // Calculate how many items should be in the top row.
+    // Minimum is visibleCards to fill left-to-right up to the viewport width first.
+    const topRowCount = Math.max(visibleCards, Math.ceil(filteredDomains.length / 2));
+    
+    const cols = [];
+    for (let i = 0; i < topRowCount; i++) {
+      const topItem = filteredDomains[i] || null;
+      const bottomItem = filteredDomains[i + topRowCount] || null;
+      
+      if (topItem || bottomItem) {
+        cols.push({ top: topItem, bottom: bottomItem });
+      }
+    }
+    return cols;
+  }, [filteredDomains, visibleCards]);
+
+  const maxIndex = Math.max(0, carouselColumns.length - visibleCards);
+
+  const renderDomainCard = (domain: DomainItem, idx: number) => {
+    if (!domain) return null;
+    const isResumeMatch = domain.roleId === matchedRoleId || domain.id === matchedRoleId;
+
+    return (
+      <FadeIn delay={100 + (idx % 6) * 60} className="h-full">
+        <div
+          className={`group relative bg-white border rounded-2xl p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col justify-between overflow-hidden ${
+            isResumeMatch
+              ? 'border-emerald-400/90 ring-2 ring-emerald-400/20 shadow-sm'
+              : 'border-gray-200/85 hover:border-saffron-500/70'
+          }`}
+        >
+          {/* Tricolor Accent Line on Hover */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-saffron via-[#000080] to-indiaGreen opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          <div>
+            {/* Resume Match Callout Badge */}
+            {isResumeMatch && (
+              <div className="mb-3.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100/70 border border-emerald-300 flex items-center justify-between shadow-2xs">
+                <span className="text-[11px] font-bold text-emerald-900 flex items-center gap-1.5">
+                  <Target className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Resume Match: {storedResume?.primaryMatch?.matchPercentage || 85}%</span>
+                </span>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-white px-2 py-0.5 rounded-md shadow-2xs border border-emerald-200">
+                  Top Fit
+                </span>
+              </div>
+            )}
+
+            {/* Card Header: Icon + Category + Demand Badge */}
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform ${getIconBgClass(
+                    domain.iconType
+                  )}`}
+                >
+                  {renderDomainIcon(domain.iconType)}
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
+                    {domain.category}
+                  </span>
+                  <h3 className="text-base font-bold text-gray-900 group-hover:text-[#000080] transition-colors leading-snug">
+                    {domain.name}
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            {/* Demand Pill */}
+            <div className="flex items-center gap-2 mb-3">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                  domain.demand_level === 'Critical Need'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : domain.demand_level === 'High Demand'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-blue-50 text-[#000080] border-blue-200'
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    domain.demand_level === 'Critical Need'
+                      ? 'bg-amber-500 animate-pulse'
+                      : domain.demand_level === 'High Demand'
+                      ? 'bg-emerald-500'
+                      : 'bg-blue-500'
+                  }`}
+                />
+                <span>{domain.demand_level}</span>
+              </span>
+
+              <span className="text-[11px] font-semibold text-gray-400 flex items-center gap-1">
+                <Briefcase className="w-3 h-3 text-gray-400" />
+                <span>{domain.openRolesCount}</span>
+              </span>
+            </div>
+
+            {/* Description */}
+            <p className="text-gray-600 text-xs sm:text-sm leading-relaxed min-h-[56px] line-clamp-3">
+              {domain.description}
+            </p>
+
+            {/* Metadata Specs Bar */}
+            <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-2 gap-2 text-[11px] text-gray-500">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-gray-400" />
+                <span>{domain.duration}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-gray-400" />
+                <span>{domain.dagNodes.length} Competency Nodes</span>
+              </div>
+            </div>
+
+            {/* Prerequisites Snippet */}
+            <div className="mt-3 p-2.5 rounded-lg bg-[#FAF9F6] border border-gray-200/60 text-[11px] text-gray-600">
+              <span className="font-semibold text-gray-800">{t('explorePage.prerequisites')}:</span>{' '}
+              <span>{domain.prerequisites}</span>
+            </div>
+
+            {/* Technologies Tags */}
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {domain.technologies.slice(0, 5).map((tech) => (
+                <span
+                  key={tech}
+                  className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-white text-gray-700 border border-gray-200/80 shadow-xs"
+                >
+                  {tech}
+                </span>
+              ))}
+              {domain.technologies.length > 5 && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-500">
+                  +{domain.technologies.length - 5}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Actions */}
+          <div className="mt-6 pt-4 border-t border-gray-100 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveDagDomain(domain)}
+              className="flex-1 py-2 px-3 rounded-xl border border-gray-200 text-gray-700 hover:text-[#000080] hover:border-[#000080]/40 hover:bg-blue-50/40 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <GitBranch className="w-3.5 h-3.5 text-gray-500" />
+              <span>{t('explorePage.previewDag')}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleAssessSkills(domain)}
+              className="flex-1 py-2 px-3 rounded-xl bg-saffron hover:bg-saffron-600 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer group/btn"
+            >
+              <span>{t('explorePage.assessSkills')}</span>
+              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" />
+            </button>
+          </div>
+        </div>
+      </FadeIn>
+    );
   };
 
   return (
@@ -562,16 +753,21 @@ export default function DiscoveryPage() {
                 <Filter className="w-3.5 h-3.5 text-gray-400" />
                 <span>Demand:</span>
               </span>
-              <select
-                value={selectedDemand}
-                onChange={(e) => setSelectedDemand(e.target.value)}
-                className="text-xs font-semibold px-3 py-2 rounded-xl border border-gray-200 bg-[#FAFAF9] text-gray-800 focus:outline-hidden focus:border-saffron cursor-pointer"
-              >
-                <option value="ALL">{t('explorePage.allDemand')}</option>
-                <option value="High Demand">High Demand</option>
-                <option value="Critical Need">Critical Need</option>
-                <option value="Growing">Growing</option>
-              </select>
+              <div className="w-44">
+                <CustomDropdown
+                  name="demand"
+                  value={selectedDemand}
+                  onChange={(val) => setSelectedDemand(val)}
+                  options={[
+                    { value: 'ALL', label: t('explorePage.allDemand') },
+                    'High Demand',
+                    'Critical Need',
+                    'Growing'
+                  ]}
+                  placeholder={t('explorePage.allDemand')}
+                  className="w-full px-3 py-1.5 text-xs font-semibold"
+                />
+              </div>
             </div>
           </div>
 
@@ -631,151 +827,57 @@ export default function DiscoveryPage() {
           </div>
         )}
 
-        {/* Career Domain Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDomains.map((domain, idx) => {
-            const isResumeMatch = domain.roleId === matchedRoleId || domain.id === matchedRoleId;
-
-            return (
-              <FadeIn key={domain.id} delay={100 + (idx % 6) * 60} className="h-full">
+        {/* Career Domain Cards Carousel */}
+        <div className="relative group/carousel">
+          <div className="overflow-hidden pb-4 px-1">
+            <div
+              className="flex items-stretch transition-transform duration-500 ease-out"
+              style={{ transform: `translateX(-${currentIndex * (100 / visibleCards)}%)` }}
+            >
+              {carouselColumns.map((col, idx) => (
                 <div
-                  className={`group relative bg-white border rounded-2xl p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col justify-between overflow-hidden ${
-                    isResumeMatch
-                      ? 'border-emerald-400/90 ring-2 ring-emerald-400/20 shadow-sm'
-                      : 'border-gray-200/85 hover:border-saffron-500/70'
-                  }`}
+                  key={idx}
+                  className="w-full md:w-1/2 lg:w-1/3 flex-shrink-0 px-3 flex flex-col gap-6"
                 >
-                  {/* Tricolor Accent Line on Hover */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-saffron via-[#000080] to-indiaGreen opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                  <div>
-                    {/* Resume Match Callout Badge */}
-                    {isResumeMatch && (
-                      <div className="mb-3.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100/70 border border-emerald-300 flex items-center justify-between shadow-2xs">
-                        <span className="text-[11px] font-bold text-emerald-900 flex items-center gap-1.5">
-                          <Target className="w-3.5 h-3.5 text-emerald-700" />
-                          <span>Resume Match: {storedResume?.primaryMatch?.matchPercentage || 85}%</span>
-                        </span>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-white px-2 py-0.5 rounded-md shadow-2xs border border-emerald-200">
-                          Top Fit
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Card Header: Icon + Category + Demand Badge */}
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform ${getIconBgClass(
-                            domain.iconType
-                          )}`}
-                        >
-                          {renderDomainIcon(domain.iconType)}
-                        </div>
-                        <div>
-                          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
-                            {domain.category}
-                          </span>
-                          <h3 className="text-base font-bold text-gray-900 group-hover:text-[#000080] transition-colors leading-snug">
-                            {domain.name}
-                          </h3>
-                        </div>
-                      </div>
+                  <div className="flex-1">
+                    {col.top ? renderDomainCard(col.top, idx * 2) : null}
+                  </div>
+                  {col.bottom ? (
+                    <div className="flex-1">
+                      {renderDomainCard(col.bottom, idx * 2 + 1)}
                     </div>
-
-                  {/* Demand Pill */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
-                        domain.demand_level === 'Critical Need'
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : domain.demand_level === 'High Demand'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-blue-50 text-[#000080] border-blue-200'
-                      }`}
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          domain.demand_level === 'Critical Need'
-                            ? 'bg-amber-500 animate-pulse'
-                            : domain.demand_level === 'High Demand'
-                            ? 'bg-emerald-500'
-                            : 'bg-blue-500'
-                        }`}
-                      />
-                      <span>{domain.demand_level}</span>
-                    </span>
-
-                    <span className="text-[11px] font-semibold text-gray-400 flex items-center gap-1">
-                      <Briefcase className="w-3 h-3 text-gray-400" />
-                      <span>{domain.openRolesCount}</span>
-                    </span>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-gray-600 text-xs sm:text-sm leading-relaxed min-h-[56px] line-clamp-3">
-                    {domain.description}
-                  </p>
-
-                  {/* Metadata Specs Bar */}
-                  <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-2 gap-2 text-[11px] text-gray-500">
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-gray-400" />
-                      <span>{domain.duration}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-gray-400" />
-                      <span>{domain.dagNodes.length} Competency Nodes</span>
-                    </div>
-                  </div>
-
-                  {/* Prerequisites Snippet */}
-                  <div className="mt-3 p-2.5 rounded-lg bg-[#FAF9F6] border border-gray-200/60 text-[11px] text-gray-600">
-                    <span className="font-semibold text-gray-800">{t('explorePage.prerequisites')}:</span>{' '}
-                    <span>{domain.prerequisites}</span>
-                  </div>
-
-                  {/* Technologies Tags */}
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {domain.technologies.slice(0, 5).map((tech) => (
-                      <span
-                        key={tech}
-                        className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-white text-gray-700 border border-gray-200/80 shadow-xs"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                    {domain.technologies.length > 5 && (
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-500">
-                        +{domain.technologies.length - 5}
-                      </span>
-                    )}
-                  </div>
+                  ) : (
+                    <div className="flex-1" />
+                  )}
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* Bottom Actions */}
-                <div className="mt-6 pt-4 border-t border-gray-100 flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveDagDomain(domain)}
-                    className="flex-1 py-2 px-3 rounded-xl border border-gray-200 text-gray-700 hover:text-[#000080] hover:border-[#000080]/40 hover:bg-blue-50/40 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <GitBranch className="w-3.5 h-3.5 text-gray-500" />
-                    <span>{t('explorePage.previewDag')}</span>
-                  </button>
+          {/* Navigation Arrows */}
+          {maxIndex > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setCurrentIndex(c => Math.max(0, c - 1))}
+                disabled={currentIndex === 0}
+                aria-label="Previous skills"
+                className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-600 hover:text-saffron hover:border-saffron hover:shadow-lg disabled:opacity-40 disabled:pointer-events-none transition-all z-10 cursor-pointer"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleAssessSkills(domain)}
-                    className="flex-1 py-2 px-3 rounded-xl bg-saffron hover:bg-saffron-600 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer group/btn"
-                  >
-                    <span>{t('explorePage.assessSkills')}</span>
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" />
-                  </button>
-                </div>
-              </div>
-            </FadeIn>
-          )})}
+              <button
+                type="button"
+                onClick={() => setCurrentIndex(c => Math.min(maxIndex, c + 1))}
+                disabled={currentIndex >= maxIndex}
+                aria-label="Next skills"
+                className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-600 hover:text-saffron hover:border-saffron hover:shadow-lg disabled:opacity-40 disabled:pointer-events-none transition-all z-10 cursor-pointer"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
         </div>
       </section>
 

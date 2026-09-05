@@ -68,7 +68,7 @@ export const HelpAssistant: React.FC = () => {
   const welcomeText = useMemo(() => {
     return t(
       'helpAssistant.welcomeMessage',
-      "Hi there! 👋 I'm your Vidyut Assistant. I can help guide you through your career roadmap, skill assessments, compatibility scores, and recommended learning resources. How can I help you today?"
+      "Hi there!  I'm Vira. I can help guide you through your career roadmap, skill assessments, compatibility scores, and recommended learning resources. How can I help you today?"
     );
   }, [t, currentLangCode]);
 
@@ -241,21 +241,28 @@ export const HelpAssistant: React.FC = () => {
     <>
       {/* Floating Action Button */}
       <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50">
+        <style>{`
+          @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+          }
+          .animate-gentle-float {
+            animation: gentleFloat 4s ease-in-out infinite;
+          }
+        `}</style>
         {!isOpen ? (
-          <button
-            onClick={() => setIsOpen(true)}
-            className="group relative flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white rounded-full shadow-xl shadow-amber-500/30 hover:shadow-2xl hover:shadow-amber-500/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 cursor-pointer border border-amber-400/40"
-            aria-label={t('helpAssistant.triggerLabel', 'Open Vidyut Help Assistant')}
-          >
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-            </span>
-            <span className="text-sm font-bold tracking-wide">
-              {t('helpAssistant.triggerLabel', 'Help Assistant')}
-            </span>
-            
-          </button>
+          <div className="animate-gentle-float">
+            <button
+              onClick={() => setIsOpen(true)}
+              className="group relative flex items-center justify-center gap-1.5 px-5 py-2 bg-gradient-to-br from-[#F59E3D] to-[#e87817] hover:from-[#e87817] hover:to-[#d96b1c] text-white rounded-full shadow-[0_10px_24px_rgba(245,158,61,0.45)] hover:shadow-[0_16px_32px_rgba(245,158,61,0.55)] transition-all duration-300 ease-out cursor-pointer border border-white/20 hover:-translate-y-1.5 whitespace-nowrap"
+              aria-label={t('helpAssistant.triggerLabel', 'Vira')}
+            >
+              <Sparkles className="w-4 h-4 text-white opacity-90 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="text-sm font-bold tracking-wide">
+                {t('helpAssistant.triggerLabel', 'Vira')}
+              </span>
+            </button>
+          </div>
         ) : null}
       </div>
 
@@ -271,16 +278,13 @@ export const HelpAssistant: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-extrabold tracking-tight font-heading">
-                    {t('helpAssistant.title', 'Vidyut Assistant')}
+                    {t('helpAssistant.title', 'Vira')}
                   </h3>
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     {t('helpAssistant.online', 'Online')}
                   </span>
                 </div>
-                <p className="text-[10.5px] text-slate-300 line-clamp-1">
-                  {t('helpAssistant.subtitle', 'Your smart guide for roadmaps, skills & opportunities')}
-                </p>
               </div>
             </div>
 
@@ -336,7 +340,7 @@ export const HelpAssistant: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                title={t('helpAssistant.close', 'Close Assistant')}
+                title={t('helpAssistant.close', 'Close')}
                 className="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800/80 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -457,7 +461,7 @@ export const HelpAssistant: React.FC = () => {
                     <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-600 flex items-center justify-center">
                       <Bot className="w-2.5 h-2.5" />
                     </div>
-                    <span>{t('helpAssistant.title', 'Vidyut Assistant')}</span>
+                    <span>{t('helpAssistant.title', 'Vira')}</span>
                   </div>
                 )}
 
