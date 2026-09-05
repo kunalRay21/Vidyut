@@ -6,7 +6,8 @@ export class AudioDetector {
   private source: MediaStreamAudioSourceNode | null = null;
   private timeData: Uint8Array | null = null;
   private freqData: Uint8Array | null = null;
-  private sustainedSpeechCounter: number = 0;
+  private speechStreakCounter: number = 0;
+  private noiseStreakCounter: number = 0;
   private isInitialized: boolean = false;
 
   public initialize(stream: MediaStream): boolean {
@@ -20,7 +21,7 @@ export class AudioDetector {
       this.audioContext = new AudioCtx();
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 512;
-      this.analyser.smoothingTimeConstant = 0.6;
+      this.analyser.smoothingTimeConstant = 0.3; // Low smoothing for rapid responsive volume spikes
 
       this.source = this.audioContext.createMediaStreamSource(stream);
       this.source.connect(this.analyser);
@@ -28,9 +29,10 @@ export class AudioDetector {
       this.timeData = new Uint8Array(this.analyser.frequencyBinCount);
       this.freqData = new Uint8Array(this.analyser.frequencyBinCount);
       this.isInitialized = true;
-      this.sustainedSpeechCounter = 0;
+      this.speechStreakCounter = 0;
+      this.noiseStreakCounter = 0;
 
-      // Ensure audioContext is active if suspended
+      // Ensure audioContext is actively running
       if (this.audioContext.state === 'suspended') {
         this.audioContext.resume().catch(() => {});
       }
@@ -43,6 +45,16 @@ export class AudioDetector {
     }
   }
 
+  public async resume(): Promise<void> {
+    if (this.audioContext && this.audioContext.state === 'suspended') {
+      try {
+        await this.audioContext.resume();
+      } catch (err) {
+        console.warn('[AudioDetector] AudioContext resume failed:', err);
+      }
+    }
+  }
+
   public analyzeAudio(): AudioDetectionResult {
     if (!this.isInitialized || !this.analyser || !this.timeData || !this.freqData) {
       return {
@@ -50,34 +62,47 @@ export class AudioDetector {
         peakFrequency: 0,
         isSustainedNoise: false,
         isSpeechLikely: false,
+        isTalking: false,
+        isBackgroundNoise: false,
       };
     }
 
     try {
-      // 1. Time-domain data for RMS Volume calculation
+      // Auto-resume suspended AudioContext if browser policy temporarily paused it
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        this.audioContext.resume().catch(() => {});
+      }
+
+      // 1. Time-Domain Signal Analysis (RMS + Peak Detection for lively response)
       this.analyser.getByteTimeDomainData(this.timeData as any);
       let sumSquares = 0;
+      let maxPeak = 0;
+
       for (let i = 0; i < this.timeData.length; i++) {
-        // Center around 128
-        const norm = (this.timeData[i] - 128) / 128;
+        const norm = Math.abs(this.timeData[i] - 128) / 128;
+        if (norm > maxPeak) maxPeak = norm;
         sumSquares += norm * norm;
       }
-      const rms = Math.sqrt(sumSquares / this.timeData.length);
-      // Scale to 0-100 visual volume
-      const volumeRms = Math.min(100, Math.round(rms * 280));
 
-      // 2. Frequency data for speech profile estimation
+      const rms = Math.sqrt(sumSquares / this.timeData.length);
+
+      // Perceptual sensitivity formula: detects whispers, normal speech, and background noise
+      // Converts raw audio energy into a visible, responsive 0-100% fluctuation scale
+      const combinedSignal = Math.max(rms * 2.2, maxPeak * 0.9);
+      const volumeRms = Math.min(100, Math.max(0, Math.round(Math.pow(combinedSignal, 0.72) * 135)));
+
+      // 2. Frequency Spectral Analysis (Speech vs Ambient Noise Separation)
       this.analyser.getByteFrequencyData(this.freqData as any);
       let maxEnergy = 0;
       let peakBin = 0;
 
-      // Sample rate usually 44100 or 48000. Bin size = sampleRate / fftSize (~86Hz-93Hz per bin)
       const sampleRate = this.audioContext?.sampleRate || 44100;
-      const binWidth = sampleRate / this.analyser.fftSize;
+      const binWidth = sampleRate / this.analyser.fftSize; // ~86 Hz per bin
 
-      // Human speech fundamental & formants are primarily between 150Hz and 3400Hz (bins ~2 to 38)
-      let speechEnergySum = 0;
-      let speechBinsCount = 0;
+      let vocalBandEnergy = 0;
+      let vocalBinsCount = 0;
+      let lowBandEnergy = 0;
+      let highBandEnergy = 0;
 
       for (let i = 0; i < this.freqData.length; i++) {
         const energy = this.freqData[i];
@@ -85,34 +110,55 @@ export class AudioDetector {
           maxEnergy = energy;
           peakBin = i;
         }
+
         const freq = i * binWidth;
-        if (freq >= 180 && freq <= 3200) {
-          speechEnergySum += energy;
-          speechBinsCount++;
+        if (freq >= 120 && freq <= 3200) {
+          // Human voice fundamental & vocal formants band
+          vocalBandEnergy += energy;
+          vocalBinsCount++;
+        } else if (freq < 120) {
+          lowBandEnergy += energy;
+        } else {
+          highBandEnergy += energy;
         }
       }
 
       const peakFrequency = Math.round(peakBin * binWidth);
-      const avgSpeechEnergy = speechBinsCount > 0 ? speechEnergySum / speechBinsCount : 0;
+      const avgVocalEnergy = vocalBinsCount > 0 ? vocalBandEnergy / vocalBinsCount : 0;
 
-      // Speech heuristic: volume above quiet background and concentrated in human vocal band
-      const isSpeechLikely = volumeRms > 22 && avgSpeechEnergy > 35;
+      // 3. Speech & Talking Classification
+      // Human voice exhibits concentrated power in vocal band and volume > 15%
+      const isSpeechLikely = volumeRms >= 14 && avgVocalEnergy >= 30;
 
-      // Sustained noise: speech or continuous noise over consecutive samples
-      if (volumeRms > 24) {
-        this.sustainedSpeechCounter++;
+      if (isSpeechLikely) {
+        this.speechStreakCounter++;
+        this.noiseStreakCounter = 0;
       } else {
-        this.sustainedSpeechCounter = Math.max(0, this.sustainedSpeechCounter - 1);
+        this.speechStreakCounter = Math.max(0, this.speechStreakCounter - 1);
       }
 
-      // If sustained across ~7 consecutive checks (~3.5 seconds at 2 checks/sec)
-      const isSustainedNoise = this.sustainedSpeechCounter >= 7;
+      // Candidate is talking if speech persists across multiple samples (~1.0 - 1.5s)
+      const isTalking = this.speechStreakCounter >= 3;
+
+      // 4. Background Noise Classification
+      // Ambient noise has general broadband energy without vocal formant concentration
+      const isNoiseActive = volumeRms >= 18 && !isSpeechLikely;
+      if (isNoiseActive) {
+        this.noiseStreakCounter++;
+      } else {
+        this.noiseStreakCounter = Math.max(0, this.noiseStreakCounter - 1);
+      }
+
+      const isBackgroundNoise = this.noiseStreakCounter >= 4;
+      const isSustainedNoise = isBackgroundNoise || this.speechStreakCounter >= 6;
 
       return {
         volumeRms,
         peakFrequency,
         isSustainedNoise,
         isSpeechLikely,
+        isTalking,
+        isBackgroundNoise,
       };
     } catch (err) {
       console.warn('[AudioDetector] Audio analysis error:', err);
@@ -121,12 +167,15 @@ export class AudioDetector {
         peakFrequency: 0,
         isSustainedNoise: false,
         isSpeechLikely: false,
+        isTalking: false,
+        isBackgroundNoise: false,
       };
     }
   }
 
-  public resetSustainedCounter(): void {
-    this.sustainedSpeechCounter = 0;
+  public resetCounters(): void {
+    this.speechStreakCounter = 0;
+    this.noiseStreakCounter = 0;
   }
 
   public destroy(): void {

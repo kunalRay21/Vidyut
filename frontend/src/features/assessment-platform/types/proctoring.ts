@@ -9,6 +9,8 @@ export type ProctoringEventType =
   | 'CANDIDATE_RETURNED'
   | 'LIGHTING_ANOMALY'
   | 'AUDIO_NOISE_SPIKE'
+  | 'CANDIDATE_TALKING'
+  | 'BACKGROUND_NOISE'
   | 'DEVICE_DISCONNECTED'
   | 'DEVICE_RESTORED'
   | 'PROCTORING_INITIALIZED';
@@ -34,6 +36,8 @@ export interface ProctoringStatus {
   audioLevel: number; // 0 to 100
   isLookingAway: boolean;
   lightingOk: boolean;
+  isTalking: boolean;
+  isQuiet: boolean;
   activeWarning: string | null;
 }
 
@@ -66,4 +70,6 @@ export interface AudioDetectionResult {
   peakFrequency: number;
   isSustainedNoise: boolean;
   isSpeechLikely: boolean;
+  isTalking: boolean;
+  isBackgroundNoise: boolean;
 }

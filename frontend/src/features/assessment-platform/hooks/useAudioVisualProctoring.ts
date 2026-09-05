@@ -38,6 +38,8 @@ export function useAudioVisualProctoring({
     audioLevel: 0,
     isLookingAway: false,
     lightingOk: true,
+    isTalking: false,
+    isQuiet: true,
     activeWarning: null,
   });
 
@@ -219,6 +221,7 @@ export function useAudioVisualProctoring({
       const audioInitSuccess = audioDet.initialize(mediaStream);
       if (audioInitSuccess) {
         audioDetectorRef.current = audioDet;
+        await audioDet.resume();
       }
 
       // Track disconnection events on tracks
@@ -326,7 +329,67 @@ export function useAudioVisualProctoring({
   }, [recordEvent, showWarning]);
 
   // ----------------------------------------------------------------------------
-  // Main Detection Loop (2.5 FPS / every 400ms for lightweight CPU footprint)
+  // 1. High-Frequency Real-Time Audio Monitoring Loop (60ms / ~16 FPS)
+  // Runs whenever media stream is active so voice fluctuation is fluid in preview & exam
+  // ----------------------------------------------------------------------------
+  useEffect(() => {
+    if (!stream) return;
+
+    let isSubscribed = true;
+
+    const audioInterval = setInterval(() => {
+      if (!isSubscribed || !audioDetectorRef.current) return;
+
+      const audioResult = audioDetectorRef.current.analyzeAudio();
+      const isQuiet = audioResult.volumeRms < 16 && !audioResult.isTalking;
+
+      setStatus((prev) => ({
+        ...prev,
+        audioLevel: audioResult.volumeRms,
+        isTalking: audioResult.isTalking,
+        isQuiet,
+      }));
+
+      // Active exam proctoring violation alerts for speech & background noise
+      if (isActive && consentState.isReady) {
+        if (audioResult.isTalking) {
+          recordEvent(
+            'CANDIDATE_TALKING',
+            'HIGH',
+            0.9,
+            'Candidate verbal communication or speech detected.',
+            { volume: audioResult.volumeRms, peakFrequency: audioResult.peakFrequency }
+          );
+          showWarning(
+            'Candidate speech detected: Talking or reading questions aloud is strictly prohibited!',
+            'TALKING_ALERT',
+            7000
+          );
+        } else if (audioResult.isBackgroundNoise) {
+          recordEvent(
+            'BACKGROUND_NOISE',
+            'MEDIUM',
+            0.82,
+            'Sustained ambient background noise detected.',
+            { volume: audioResult.volumeRms }
+          );
+          showWarning(
+            'Elevated background noise detected: Please maintain a quiet testing environment.',
+            'BACKGROUND_NOISE_ALERT',
+            9000
+          );
+        }
+      }
+    }, 60);
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(audioInterval);
+    };
+  }, [stream, isActive, consentState.isReady, recordEvent, showWarning]);
+
+  // ----------------------------------------------------------------------------
+  // 2. Vision & Face Analysis Loop (2.5 FPS / 400ms for lightweight CPU footprint)
   // ----------------------------------------------------------------------------
   useEffect(() => {
     if (!stream || !isActive || !consentState.isReady) return;
@@ -337,40 +400,13 @@ export function useAudioVisualProctoring({
       if (!isSubscribed) return;
 
       try {
-        // 1. Audio Processing
-        let audioVol = 0;
-        if (audioDetectorRef.current) {
-          const audioResult = audioDetectorRef.current.analyzeAudio();
-          audioVol = audioResult.volumeRms;
-
-          if (audioResult.isSustainedNoise) {
-            audioDetectorRef.current.resetSustainedCounter();
-            recordEvent(
-              'AUDIO_NOISE_SPIKE',
-              'LOW',
-              0.8,
-              'Sustained background speech or elevated audio detected.',
-              { peakFrequency: audioResult.peakFrequency, volumeRms: audioResult.volumeRms }
-            );
-            showWarning(
-              'Elevated background sound detected: Please maintain a quiet testing environment.',
-              'AUDIO_ALERT',
-              12000
-            );
-          }
-        }
-
-        // 2. Video & Vision Processing
         let visionRes: VisionDetectionResult | null = null;
         if (visionDetectorRef.current && videoElementRef.current) {
           visionRes = await visionDetectorRef.current.analyzeFrame(videoElementRef.current);
           setLatestVision(visionRes);
         }
 
-        if (!visionRes) {
-          setStatus((prev) => ({ ...prev, audioLevel: audioVol }));
-          return;
-        }
+        if (!visionRes) return;
 
         // 3. Multi-Signal Thresholding & False-Positive Mitigation
 
@@ -472,7 +508,6 @@ export function useAudioVisualProctoring({
           attentionOk: visionRes ? !visionRes.isLookingAway : true,
           isLookingAway: visionRes ? visionRes.isLookingAway : false,
           lightingOk: visionRes ? visionRes.lightingScore >= 15 : true,
-          audioLevel: audioVol,
         }));
       } catch (err) {
         console.warn('[Proctoring Engine] Cycle error:', err);

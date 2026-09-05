@@ -110,12 +110,24 @@ export const ProctoringVideoHUD: React.FC<ProctoringVideoHUDProps> = ({
                       }`}
                     />
                   </div>
-                  {/* Audio Level Overlay Bar */}
-                  <div className="absolute bottom-1 left-2 right-2 h-1 bg-black/40 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-400 transition-all duration-100"
-                      style={{ width: `${Math.min(100, Math.max(5, status.audioLevel))}%` }}
-                    />
+                  {/* Responsive Audio Level Overlay Bar */}
+                  <div className="absolute bottom-1.5 left-2 right-2 flex items-center gap-1.5 bg-black/70 backdrop-blur-xs px-2 py-0.5 rounded-md">
+                    <span className="text-[9px] font-mono text-slate-300 font-semibold">MIC</span>
+                    <div className="flex-1 h-1.5 bg-slate-700/80 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-75 ${
+                          status.audioLevel > 35
+                            ? 'bg-rose-500'
+                            : status.audioLevel > 18
+                            ? 'bg-amber-400'
+                            : 'bg-emerald-400'
+                        }`}
+                        style={{ width: `${Math.min(100, Math.max(3, status.audioLevel))}%` }}
+                      />
+                    </div>
+                    <span className="text-[9px] font-mono font-bold text-slate-200 min-w-[24px] text-right">
+                      {status.audioLevel}%
+                    </span>
                   </div>
                 </>
               ) : (
@@ -205,6 +217,37 @@ export const ProctoringVideoHUD: React.FC<ProctoringVideoHUDProps> = ({
               <span className="truncate">
                 {status.attentionOk ? 'Attention OK' : 'Attention Check'}
               </span>
+            </div>
+
+            {/* Voice / Silence Monitoring Badge (Spans full width) */}
+            <div
+              className={`col-span-2 px-2 py-1 rounded-lg border flex items-center justify-between transition-colors ${
+                status.isTalking
+                  ? 'bg-rose-950/60 border-rose-500/50 text-rose-200 animate-pulse'
+                  : !status.isQuiet
+                  ? 'bg-amber-950/50 border-amber-500/40 text-amber-200'
+                  : 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+              }`}
+            >
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    status.isTalking
+                      ? 'bg-rose-400 animate-ping'
+                      : !status.isQuiet
+                      ? 'bg-amber-400'
+                      : 'bg-emerald-400'
+                  }`}
+                />
+                <span className="font-semibold">
+                  {status.isTalking
+                    ? 'Voice Detected — Do Not Talk'
+                    : !status.isQuiet
+                    ? 'Ambient Noise Detected'
+                    : 'Silence Verified — Quiet'}
+                </span>
+              </div>
+              <span className="font-mono text-[9px] opacity-80">{status.audioLevel}%</span>
             </div>
           </div>
 

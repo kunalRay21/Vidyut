@@ -6,6 +6,8 @@ import {
   CheckCircle2,
   Eye,
   Volume2,
+  VolumeX,
+  AlertTriangle,
   Lock,
   Sparkles,
 } from 'lucide-react';
@@ -137,39 +139,86 @@ export const ProctoringConsentModal: React.FC<ProctoringConsentModalProps> = ({
               )}
             </div>
 
-            {/* Microphone Check & Live VU */}
+            {/* Microphone Check & Live Dynamic VU */}
             <div className="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Mic className="w-4 h-4 text-slate-600" />
-                  <span className="font-medium text-slate-800">Microphone</span>
+                  <span className="font-medium text-slate-800">Microphone Input</span>
                 </div>
                 {consentState.micGranted ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                    <CheckCircle2 className="w-3 h-3" /> Ready
+                    <CheckCircle2 className="w-3 h-3" /> Active
                   </span>
                 ) : (
                   <span className="text-[11px] font-medium text-slate-400">Required</span>
                 )}
               </div>
-              {/* Responsive Audio Volume Bar */}
+              {/* Responsive Real-Time Audio Equalizer Bar */}
               {consentState.micGranted && (
-                <div className="space-y-1 pt-1">
+                <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between text-[10px] text-slate-500">
                     <span className="flex items-center gap-1">
-                      <Volume2 className="w-3 h-3" /> Input level
+                      <Volume2 className="w-3 h-3" /> Real-time Level
                     </span>
-                    <span className="font-mono">{status.audioLevel}%</span>
+                    <span className="font-mono font-bold text-slate-700">{status.audioLevel}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 transition-all duration-100"
-                      style={{ width: `${Math.min(100, Math.max(4, status.audioLevel))}%` }}
-                    />
+                  {/* Visual 12-segment equalizer */}
+                  <div className="flex items-center gap-1 h-3 bg-slate-200/80 p-0.5 rounded-md">
+                    {Array.from({ length: 12 }).map((_, i) => {
+                      const segmentThreshold = (i + 1) * 8.3;
+                      const isLit = status.audioLevel >= segmentThreshold;
+                      const isHigh = i >= 8;
+                      const isMid = i >= 5;
+                      return (
+                        <div
+                          key={i}
+                          className={`flex-1 h-full rounded-xs transition-all duration-75 ${
+                            isLit
+                              ? isHigh
+                                ? 'bg-rose-500'
+                                : isMid
+                                ? 'bg-amber-400'
+                                : 'bg-emerald-500'
+                              : 'bg-slate-300/60'
+                          }`}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               )}
             </div>
+
+            {/* Room Silence & Background Noise Check */}
+            {consentState.micGranted && (
+              <div
+                className={`p-2.5 rounded-xl border transition-colors text-xs ${
+                  status.isQuiet
+                    ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
+                    : 'bg-amber-50/90 border-amber-300 text-amber-950 animate-pulse'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-semibold text-[11px]">
+                    {status.isQuiet ? (
+                      <VolumeX className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                    )}
+                    <span>Room Silence Check</span>
+                  </div>
+                  <span className="text-[10px] font-bold">
+                    {status.isQuiet ? 'Quiet & Verified' : status.isTalking ? 'Talking Detected' : 'Noise Detected'}
+                  </span>
+                </div>
+                <p className="text-[10px] mt-1 opacity-90 leading-tight">
+                  {status.isQuiet
+                    ? 'Environment is quiet. You must remain silent throughout the test.'
+                    : 'Sound or voice detected. Please ensure a quiet room and do not talk.'}
+                </p>
+              </div>
+            )}
 
             {/* Face & Attention Check */}
             <div className="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 flex items-center justify-between text-xs">
