@@ -5,7 +5,7 @@ import { ReadinessGauge } from '../features/dashboard/ReadinessGauge';
 import { SkillProgressCard } from '../features/dashboard/SkillProgressCard';
 import { DiscrepancyNotice } from '../features/dashboard/DiscrepancyNotice';
 import { FadeIn } from '../components/animations/FadeIn';
-import { profileApi, getStoredUser, setStoredUser, getStoredResume } from '../services/api';
+import { profileApi, getStoredUser, getStoredResume } from '../services/api';
 import {
   User,
   BookOpen,
@@ -14,12 +14,6 @@ import {
   Award,
   CheckCircle2,
   ArrowRight,
-  Database,
-  Cpu,
-  Cloud,
-  Code,
-  Layers,
-  ShieldCheck,
   Sparkles,
   PlayCircle,
   BarChart3,
@@ -27,106 +21,6 @@ import {
   Upload,
   Compass,
 } from 'lucide-react';
-
-export interface CourseTrack {
-  id: string;
-  roleId: string;
-  title: string;
-  category: string;
-  iconName: 'database' | 'cpu' | 'cloud' | 'code' | 'layers' | 'shield';
-  description: string;
-  technologies: string[];
-  prerequisites: string;
-  duration: string;
-  milestonesCount: number;
-}
-
-const ALL_COURSES: CourseTrack[] = [
-  {
-    id: 'course-backend',
-    roleId: 'bf9c3a6c-f0ec-4301-9e6b-c46d9fd50208',
-    title: 'Modern Backend & Distributed Systems',
-    category: 'Software Engineering',
-    iconName: 'database',
-    description: 'Design and deploy scalable microservices, relational databases, REST APIs, and containerized cloud services.',
-    technologies: ['Python', 'SQL & PostgreSQL', 'Docker', 'REST API', 'FastAPI'],
-    prerequisites: 'Programming Fundamentals, Basic OOP',
-    duration: '12 Weeks',
-    milestonesCount: 10,
-  },
-  {
-    id: 'course-ml',
-    roleId: 'role-ml',
-    title: 'Machine Learning & Applied AI',
-    category: 'Artificial Intelligence',
-    iconName: 'cpu',
-    description: 'Build, evaluate, and deploy predictive models, computer vision systems, and automated data pipelines.',
-    technologies: ['Python', 'NumPy & Pandas', 'Linear Algebra', 'Scikit-Learn', 'PyTorch'],
-    prerequisites: 'Calculus, Linear Algebra, Python',
-    duration: '14 Weeks',
-    milestonesCount: 9,
-  },
-  {
-    id: 'course-cloud',
-    roleId: 'role-cloud',
-    title: 'Cloud Native & DevOps Engineering',
-    category: 'Cloud Infrastructure',
-    iconName: 'cloud',
-    description: 'Architect resilient serverless and containerized systems, configure CI/CD pipelines, and manage cloud clusters.',
-    technologies: ['Docker', 'Kubernetes', 'CI/CD Pipelines', 'AWS/GCP', 'Linux Shell'],
-    prerequisites: 'Operating Systems, Networking, Git',
-    duration: '10 Weeks',
-    milestonesCount: 7,
-  },
-  {
-    id: 'course-fullstack',
-    roleId: 'role-fullstack',
-    title: 'Full-Stack Web Systems',
-    category: 'Web Development',
-    iconName: 'code',
-    description: 'Build interactive frontends and connect them to secure authentication backends and persistent databases.',
-    technologies: ['TypeScript', 'React.js', 'Node.js', 'Tailwind CSS', 'SQL'],
-    prerequisites: 'HTML/CSS, JavaScript Foundations',
-    duration: '12 Weeks',
-    milestonesCount: 8,
-  },
-  {
-    id: 'course-data',
-    roleId: 'role-data',
-    title: 'Data Engineering & Big Data Analytics',
-    category: 'Data Systems',
-    iconName: 'layers',
-    description: 'Construct resilient data pipelines, optimize ETL workflows, and prepare large-scale datasets for analytical modeling.',
-    technologies: ['Advanced SQL', 'Python', 'Data Warehousing', 'ETL Architecture', 'Kafka'],
-    prerequisites: 'Database Fundamentals, Python',
-    duration: '11 Weeks',
-    milestonesCount: 8,
-  },
-  {
-    id: 'course-security',
-    roleId: 'role-security',
-    title: 'Cybersecurity & Secure Systems',
-    category: 'Security & Defense',
-    iconName: 'shield',
-    description: 'Identify software vulnerabilities, implement cryptographic key exchange, and harden enterprise web applications.',
-    technologies: ['Network Security', 'JWT & OAuth', 'OWASP Top 10', 'Linux Hardening', 'Cryptography'],
-    prerequisites: 'Computer Networks, Operating Systems',
-    duration: '10 Weeks',
-    milestonesCount: 6,
-  },
-];
-
-const renderCourseIcon = (iconName: string) => {
-  switch (iconName) {
-    case 'database': return <Database className="w-5 h-5 text-saffron" />;
-    case 'cpu': return <Cpu className="w-5 h-5 text-emerald-600" />;
-    case 'cloud': return <Cloud className="w-5 h-5 text-[#000080]" />;
-    case 'code': return <Code className="w-5 h-5 text-purple-600" />;
-    case 'layers': return <Layers className="w-5 h-5 text-teal-600" />;
-    case 'shield': return <ShieldCheck className="w-5 h-5 text-blue-600" />;
-    default: return <BookOpen className="w-5 h-5 text-gray-600" />;
-  }
-};
 
 export const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
@@ -151,7 +45,6 @@ export const DashboardPage: React.FC = () => {
   const [latestAssessment, setLatestAssessment] = useState<any | null>(null);
   const [assessmentHistory, setAssessmentHistory] = useState<any[]>([]);
   const [courseProgressMap, setCourseProgressMap] = useState<Record<string, any>>({});
-  const [courseFilter, setCourseFilter] = useState<'ALL' | 'EVALUATED' | 'AVAILABLE'>('ALL');
   const [skillFilter, setSkillFilter] = useState<'ALL' | 'MASTERED' | 'DEVELOPING'>('ALL');
 
   // Load and synchronize dynamic live data
@@ -319,39 +212,6 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => {
     loadDashboardData();
   }, []);
-
-  // Handle switching active course track
-  const handleSwitchCourse = (course: CourseTrack) => {
-    const updated = {
-      ...getStoredUser(),
-      selected_role_id: course.roleId,
-      selected_role: course.title,
-    };
-    setStoredUser(updated);
-
-    setProfile((prev) => ({
-      ...prev,
-      selected_role: course.title,
-      selected_role_id: course.roleId,
-    }));
-
-    // Update backend asynchronously
-    profileApi.updateProfile({ selected_role_id: course.roleId }).catch(() => {});
-  };
-
-  // Start assessment for a specific course
-  const handleStartCourseAssessment = (course: CourseTrack) => {
-    handleSwitchCourse(course);
-    navigate('/assessment/quiz');
-  };
-
-  // Filter courses for multi-course hub
-  const filteredCourses = ALL_COURSES.filter((c) => {
-    const isEvaluated = !!courseProgressMap[c.roleId] || !!courseProgressMap[c.id] || (c.roleId === profile.selected_role_id && profile.readiness_pct > 0);
-    if (courseFilter === 'EVALUATED') return isEvaluated;
-    if (courseFilter === 'AVAILABLE') return !isEvaluated;
-    return true;
-  });
 
   // Filter skills
   const filteredSkills = profile.skills.filter((s) => {
@@ -680,209 +540,7 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Multi-Course Curriculum Hub (All Courses Student Can Take / Has Taken) */}
-      <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-200 pb-3">
-          <div>
-            <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight font-heading">
-              Curriculum Tracks & Enrolled Specializations
-            </h2>
-            <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
-              Empirically evaluate and calibrate your readiness across multiple engineering disciplines.
-            </p>
-          </div>
-
-          {/* Filter Pills */}
-          <div className="flex items-center gap-2 text-xs">
-            <button
-              onClick={() => setCourseFilter('ALL')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
-                courseFilter === 'ALL'
-                  ? 'bg-[#000080] text-white shadow-2xs'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              All Courses ({ALL_COURSES.length})
-            </button>
-            <button
-              onClick={() => setCourseFilter('EVALUATED')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
-                courseFilter === 'EVALUATED'
-                  ? 'bg-[#000080] text-white shadow-2xs'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              Evaluated
-            </button>
-            <button
-              onClick={() => setCourseFilter('AVAILABLE')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
-                courseFilter === 'AVAILABLE'
-                  ? 'bg-[#000080] text-white shadow-2xs'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              Available
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredCourses.map((course, idx) => {
-            const progressData = courseProgressMap[course.roleId] || courseProgressMap[course.id];
-            const isActive = course.roleId === profile.selected_role_id || course.title === profile.selected_role;
-            const isResumeMatch = !!storedResume?.primaryMatch && (
-              course.roleId === storedResume.primaryMatch.id ||
-              course.id.includes(storedResume.primaryMatch.id.replace('role-', '')) ||
-              course.title.toLowerCase().includes(storedResume.primaryMatch.title.toLowerCase().split(' ')[0])
-            );
-            const score = progressData?.readiness || progressData?.accuracy || (isActive ? profile.readiness_pct : 0);
-            const isEvaluated = !!progressData || (isActive && profile.readiness_pct > 0);
-
-            return (
-              <FadeIn key={course.id} delay={100 + idx * 50}>
-                <div
-                  className={`bg-white rounded-2xl border transition-all flex flex-col justify-between h-full p-5 shadow-xs hover:shadow-md ${
-                    isActive
-                      ? 'border-saffron ring-2 ring-saffron/20'
-                      : isResumeMatch
-                      ? 'border-emerald-300 ring-1 ring-emerald-300/40'
-                      : 'border-gray-200'
-                  }`}
-                >
-                  <div>
-                    {/* Header: Icon & Category */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
-                          {renderCourseIcon(course.iconName)}
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500">
-                            {course.category}
-                          </span>
-                          <h3 className="text-base font-bold text-gray-900 leading-snug">
-                            {course.title}
-                          </h3>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                        {isActive && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-saffron text-white shadow-2xs">
-                            Active
-                          </span>
-                        )}
-                        {isResumeMatch && !isActive && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-600 text-white shadow-2xs flex items-center gap-1">
-                            <Sparkles className="w-2.5 h-2.5" /> Resume Track ({storedResume?.primaryMatch?.matchPercentage}%)
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-gray-600 line-clamp-2 mb-4 leading-relaxed">
-                      {course.description}
-                    </p>
-
-                    {/* Technologies Pills */}
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {course.technologies.slice(0, 3).map((tech) => (
-                        <span
-                          key={tech}
-                          className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                      {course.technologies.length > 3 && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-400">
-                          +{course.technologies.length - 3}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Score / Progress Banner */}
-                    <div className="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="font-semibold text-gray-600">Calibration Status</span>
-                        {isEvaluated ? (
-                          <span className="font-bold text-emerald-800 font-mono">
-                            {score}% Ready
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-amber-700 font-medium">
-                            Not Calibrated
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-500 rounded-full ${
-                            score >= 70 ? 'bg-emerald-600' : score > 0 ? 'bg-saffron' : 'bg-gray-300'
-                          }`}
-                          style={{ width: `${score}%` }}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between text-[10px] text-gray-500 mt-1.5">
-                        <span>{course.duration}</span>
-                        <span>{course.milestonesCount} Milestones</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="pt-3 border-t border-gray-100 flex items-center gap-2">
-                    {isEvaluated ? (
-                      <>
-                        <button
-                          onClick={() => {
-                            handleSwitchCourse(course);
-                            navigate('/roadmap');
-                          }}
-                          className="flex-1 py-2 px-3 rounded-xl text-xs font-bold text-white bg-[#000080] hover:bg-[#1E3A8A] transition-colors inline-flex items-center justify-center gap-1 cursor-pointer shadow-xs"
-                        >
-                          <span>Roadmap</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleStartCourseAssessment(course)}
-                          className="py-2 px-3 rounded-xl text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors cursor-pointer"
-                          title="Retake diagnostic test for this track"
-                        >
-                          Retake
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => handleStartCourseAssessment(course)}
-                        className="w-full btn-saffron py-2 px-3 rounded-xl text-xs font-bold shadow-xs inline-flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <PlayCircle className="w-4 h-4" />
-                        <span>Start Diagnostic Test</span>
-                      </button>
-                    )}
-
-                    {!isActive && (
-                      <button
-                        onClick={() => handleSwitchCourse(course)}
-                        className="p-2 rounded-xl text-xs font-semibold text-gray-500 hover:text-[#000080] hover:bg-blue-50 border border-gray-200 transition-colors cursor-pointer"
-                        title="Set as active career track"
-                      >
-                        <Target className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </FadeIn>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 5. Verified Skill Matrix Section */}
+      {/* 4. Verified Skill Matrix Section */}
       <section className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-200 pb-3">
           <div>
