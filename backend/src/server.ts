@@ -22,6 +22,24 @@ import portfolioRouter from './modules/portfolio/router';
 // Help & Guided Assistant Router
 import helpRouter from './modules/help/router';
 
+// Skill Passport & Evidence Authenticity Router
+import { passportRouter } from './modules/passport/passport.router';
+
+// Career Simulator & Transferable Skill Intelligence Router
+import { simulatorRouter } from './modules/simulator/simulator.router';
+
+// Assessment -> Learning -> Reassessment Loop Router
+import { learningLoopRouter } from './modules/learning_loop/learning_loop.router';
+
+// Real-World Job Readiness Simulations Router
+import { simulationRouter } from './modules/simulations/simulation.router';
+
+// AI Usage & AI Fluency Engine Router
+import { aiFluencyRouter } from './modules/ai_fluency/ai_fluency.router';
+
+// Career Readiness Digital Twin & 12-Hour Prep Plan Router
+import { digitalTwinRouter } from './modules/digital_twin/digital_twin.router';
+
 dotenv.config();
 
 const app = express();
@@ -101,6 +119,12 @@ app.use('/api/v1/assessments', assessmentRouter);       // Member 4 (Assessment 
 app.use('/api/v1/roadmap', roadmapRouter);              // Member 4 (Adaptive Roadmap)
 app.use('/api/v1/portfolio', portfolioRouter);          // Member 4 (Portfolio & Evidence)
 app.use('/api/v1/help', helpRouter);                    // Vidyut Help Assistant
+app.use('/api/v1/passport', passportRouter);            // Skill Passport & Evidence Authenticity
+app.use('/api/v1/simulator', simulatorRouter);          // Career Simulator & Transferable Skill Engine
+app.use('/api/v1/learning-loop', learningLoopRouter);    // Assessment -> Learning -> Reassessment Loop
+app.use('/api/v1/job-simulations', simulationRouter);    // Real-World Job Readiness Simulations
+app.use('/api/v1/ai-fluency', aiFluencyRouter);          // AI Usage & AI Fluency Score
+app.use('/api/v1/digital-twin', digitalTwinRouter);      // Career Readiness Digital Twin & 12-Hour Prep Plan
 
 // ---------------------------------------------------------------------------
 // Generic error handler (must be last middleware)

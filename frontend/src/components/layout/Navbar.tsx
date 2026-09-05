@@ -14,6 +14,12 @@ import {
   GraduationCap,
   ArrowRight,
   User,
+  ShieldCheck,
+  RotateCcw,
+  Terminal,
+  Bot,
+  Brain,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth, UserRole } from '../../context/AuthContext';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
@@ -27,15 +33,18 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [portalsDropdownOpen, setPortalsDropdownOpen] = useState(false);
+  const [labsDropdownOpen, setLabsDropdownOpen] = useState(false);
 
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const portalsMenuRef = useRef<HTMLDivElement>(null);
+  const labsMenuRef = useRef<HTMLDivElement>(null);
 
   // Close all menus on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setProfileDropdownOpen(false);
     setPortalsDropdownOpen(false);
+    setLabsDropdownOpen(false);
   }, [location.pathname]);
 
   // Handle outside clicks to dismiss dropdowns
@@ -46,6 +55,9 @@ export const Navbar: React.FC = () => {
       }
       if (portalsMenuRef.current && !portalsMenuRef.current.contains(event.target as Node)) {
         setPortalsDropdownOpen(false);
+      }
+      if (labsMenuRef.current && !labsMenuRef.current.contains(event.target as Node)) {
+        setLabsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -173,6 +185,148 @@ export const Navbar: React.FC = () => {
             >
               {t('nav.opportunities')}
             </NavLink>
+
+            {/* Innovation Labs Dropdown Trigger */}
+            <div className="relative" ref={labsMenuRef}>
+              <button
+                type="button"
+                onClick={() => setLabsDropdownOpen((prev) => !prev)}
+                className={`px-3.5 py-1.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+                  location.pathname === '/passport' ||
+                  location.pathname === '/simulator' ||
+                  location.pathname === '/remediation' ||
+                  location.pathname === '/job-simulations' ||
+                  location.pathname === '/ai-fluency' ||
+                  location.pathname === '/digital-twin'
+                    ? 'text-gray-950 font-bold bg-white/70 shadow-2xs backdrop-blur-xs'
+                    : 'text-gray-700 hover:text-black hover:bg-white/40'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Innovation Labs</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-200 ${
+                    labsDropdownOpen ? 'rotate-180 text-gray-900' : ''
+                  }`}
+                />
+              </button>
+
+              {labsDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-72 rounded-2xl bg-white border border-gray-100 shadow-xl p-2.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                  <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    Continuous Career Intelligence
+                  </div>
+
+                  <Link
+                    to="/passport"
+                    onClick={() => setLabsDropdownOpen(false)}
+                    className="flex items-start gap-3 p-2 rounded-xl hover:bg-blue-50/60 transition group"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-blue-100/70 text-blue-700 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
+                        Skill Passport
+                      </p>
+                      <p className="text-[11px] text-gray-500 leading-tight">
+                        Verified student profile & evidence authenticity
+                      </p>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/simulator"
+                    onClick={() => setLabsDropdownOpen(false)}
+                    className="flex items-start gap-3 p-2 rounded-xl hover:bg-cyan-50/60 transition group mt-0.5"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-cyan-100/70 text-cyan-700 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                      <Compass className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 group-hover:text-cyan-700 transition-colors">
+                        Career Simulator
+                      </p>
+                      <p className="text-[11px] text-gray-500 leading-tight">
+                        What-if transition & transferable skill analysis
+                      </p>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/remediation"
+                    onClick={() => setLabsDropdownOpen(false)}
+                    className="flex items-start gap-3 p-2 rounded-xl hover:bg-emerald-50/60 transition group mt-0.5"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-emerald-100/70 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                      <RotateCcw className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">
+                        Skill Repair Loop
+                      </p>
+                      <p className="text-[11px] text-gray-500 leading-tight">
+                        Assessment → targeted remediation → re-test
+                      </p>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/job-simulations"
+                    onClick={() => setLabsDropdownOpen(false)}
+                    className="flex items-start gap-3 p-2 rounded-xl hover:bg-rose-50/60 transition group mt-0.5"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-rose-100/70 text-rose-600 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                      <Terminal className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 group-hover:text-rose-600 transition-colors">
+                        Job Simulations
+                      </p>
+                      <p className="text-[11px] text-gray-500 leading-tight">
+                        Interactive terminal & incident response
+                      </p>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/ai-fluency"
+                    onClick={() => setLabsDropdownOpen(false)}
+                    className="flex items-start gap-3 p-2 rounded-xl hover:bg-indigo-50/60 transition group mt-0.5"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-indigo-100/70 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 group-hover:text-indigo-700 transition-colors">
+                        AI Fluency Engine
+                      </p>
+                      <p className="text-[11px] text-gray-500 leading-tight">
+                        AI-assisted vs independent problem solving
+                      </p>
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/digital-twin"
+                    onClick={() => setLabsDropdownOpen(false)}
+                    className="flex items-start gap-3 p-2 rounded-xl hover:bg-teal-50/60 transition group mt-0.5"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-teal-100/70 text-teal-700 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                      <Brain className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-900 group-hover:text-teal-700 transition-colors">
+                        Career Digital Twin
+                      </p>
+                      <p className="text-[11px] text-gray-500 leading-tight">
+                        Explainable readiness & opportunity prep plans
+                      </p>
+                    </div>
+                  </Link>
+                </div>
+              )}
+            </div>
 
             {/* Portals Dropdown Trigger - Eliminates Horizontal Clutter */}
             <div className="relative" ref={portalsMenuRef}>
@@ -493,6 +647,116 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Briefcase className="w-4 h-4 text-[#B85C16]" />
                 <span>{t('nav.opportunities')}</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+            </NavLink>
+
+            {/* Innovation Labs Mobile Section */}
+            <div className="pt-2 border-t border-gray-100">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 py-1 flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 text-indigo-600" />
+                <span>Innovation Labs</span>
+              </p>
+            </div>
+
+            <NavLink
+              to="/passport"
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <span>Skill Passport</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+            </NavLink>
+
+            <NavLink
+              to="/simulator"
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <Compass className="w-4 h-4 text-cyan-600" />
+                <span>Career Simulator</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+            </NavLink>
+
+            <NavLink
+              to="/remediation"
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <RotateCcw className="w-4 h-4 text-emerald-600" />
+                <span>Skill Repair</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+            </NavLink>
+
+            <NavLink
+              to="/job-simulations"
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <Terminal className="w-4 h-4 text-rose-500" />
+                <span>Job Simulations</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+            </NavLink>
+
+            <NavLink
+              to="/ai-fluency"
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <Bot className="w-4 h-4 text-indigo-600" />
+                <span>AI Fluency</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+            </NavLink>
+
+            <NavLink
+              to="/digital-twin"
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <Brain className="w-4 h-4 text-teal-600" />
+                <span>Digital Twin</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>

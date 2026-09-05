@@ -91,25 +91,22 @@ export class PrismaProfileService implements ProfileService {
 
   async getSkillStates(studentId: string): Promise<StudentSkillState[]> {
     let states: any[] = [];
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId || '');
-    if (isUuid) {
-      try {
-        states = await prisma.studentSkillState.findMany({
-          where: { studentId }
+    try {
+      states = await prisma.studentSkillState.findMany({
+        where: { studentId }
+      });
+      if (states.length === 0) {
+        const prof = await prisma.studentProfile.findFirst({
+          where: { userId: studentId }
         });
-        if (states.length === 0) {
-          const prof = await prisma.studentProfile.findFirst({
-            where: { userId: studentId }
+        if (prof) {
+          states = await prisma.studentSkillState.findMany({
+            where: { studentId: prof.id }
           });
-          if (prof) {
-            states = await prisma.studentSkillState.findMany({
-              where: { studentId: prof.id }
-            });
-          }
         }
-      } catch {
-        // ignore
       }
+    } catch {
+      // ignore
     }
 
     if (states.length > 0) {
