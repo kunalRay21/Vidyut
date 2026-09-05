@@ -211,12 +211,12 @@ export const RoadmapPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 md:px-12 space-y-8">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 md:px-12 space-y-8">
       {/* Header with National GovTech identity */}
       <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-6">
-        <FadeIn delay={100}>
+        <FadeIn delay={100} className="flex-1 min-w-0">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron/10 text-saffron-700 text-xs font-bold uppercase tracking-wider mb-2.5 border border-saffron/30 shadow-2xs">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron/10 text-saffron-700 text-xs font-bold uppercase tracking-wider mb-2.5 border border-saffron/30 shadow-xs">
               <Compass className="w-3.5 h-3.5 text-saffron-600" />
               {t('roadmap.badge', 'AI-Driven Skill Acquisition DAG')}
             </div>
@@ -233,21 +233,21 @@ export const RoadmapPage: React.FC = () => {
 
             {/* Live Stats Strip */}
             {!isLoading && totalSkills > 0 && (
-              <div className="flex flex-wrap items-center gap-3 mt-4 pt-3 border-t border-[#EAE3B3]/60 text-xs">
-                <div className="flex items-center gap-1.5 font-bold text-gray-800 bg-white/80 px-3 py-1 rounded-lg border border-[#EAE3B3]">
+              <div className="flex flex-wrap items-center gap-2.5 mt-4 pt-3 border-t border-gray-200 text-xs">
+                <div className="flex items-center gap-1.5 font-bold text-gray-800 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-xs">
                   <Award className="w-4 h-4 text-[#000080]" />
                   <span>{totalSkills} Total Milestones</span>
                 </div>
-                <div className="flex items-center gap-1.5 font-semibold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200">
+                <div className="flex items-center gap-1.5 font-semibold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 shadow-xs">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                   <span>{completedSkills} Mastered</span>
                 </div>
-                <div className="flex items-center gap-1.5 font-semibold text-blue-800 bg-blue-50 px-3 py-1 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-1.5 font-semibold text-blue-800 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 shadow-xs">
                   <Clock className="w-4 h-4 text-blue-600" />
                   <span>{inProgressSkills} Active Focus</span>
                 </div>
                 {lockedSkills > 0 && (
-                  <div className="flex items-center gap-1.5 font-semibold text-gray-600 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-1.5 font-semibold text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 shadow-xs">
                     <Lock className="w-4 h-4 text-gray-400" />
                     <span>{lockedSkills} Prerequisite Locked</span>
                   </div>
@@ -258,13 +258,13 @@ export const RoadmapPage: React.FC = () => {
         </FadeIn>
 
         {/* Readiness Arc Gauge */}
-        <FadeIn delay={200}>
-          <div className="flex flex-col items-center relative bg-white/80 p-4 rounded-2xl border border-[#EAE3B3] shadow-xs">
-            <span className="block text-xs text-gray-500 font-bold mb-1 uppercase tracking-wider">
+        <FadeIn delay={200} className="shrink-0 w-full sm:w-auto">
+          <div className="flex flex-col items-center relative bg-white p-5 rounded-2xl border border-gray-200/90 shadow-sm">
+            <span className="block text-xs text-gray-500 font-bold mb-2 uppercase tracking-wider text-center">
               {t('roadmap.currentReadiness', 'Role Readiness Index')}
             </span>
             
-            <div className="relative w-48 h-26 flex justify-center items-end">
+            <div className="relative w-52 h-[120px] flex justify-center items-end">
               <svg className="absolute top-0 left-0 w-full h-full drop-shadow-sm" viewBox="0 0 200 120">
                 <defs>
                   <linearGradient id="roadmap-gauge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -301,7 +301,7 @@ export const RoadmapPage: React.FC = () => {
               </svg>
               
               {/* Percentage Text */}
-              <div className="absolute bottom-1.5 flex items-baseline justify-center">
+              <div className="absolute bottom-2 flex items-baseline justify-center">
                 <span className="text-4xl font-extrabold text-[#000080] leading-none tracking-tight">
                   {displayedScore}
                 </span>
@@ -311,7 +311,7 @@ export const RoadmapPage: React.FC = () => {
               </div>
             </div>
             
-            <span className="text-[11px] text-gray-500 font-medium mt-1">
+            <span className="text-[11px] text-gray-500 font-medium mt-1.5 text-center">
               of target competency benchmark
             </span>
           </div>
@@ -321,7 +321,7 @@ export const RoadmapPage: React.FC = () => {
       {/* Loading Skeleton State */}
       {isLoading && (
         <FadeIn delay={100}>
-          <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-8 space-y-6 animate-pulse">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-6 animate-pulse">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gray-200" />
               <div className="space-y-2 flex-1">
@@ -329,10 +329,10 @@ export const RoadmapPage: React.FC = () => {
                 <div className="h-6 bg-gray-200 rounded w-1/2" />
               </div>
             </div>
-            <div className="space-y-4 pl-12 border-l-2 border-dashed border-[#EAE3B3]">
-              <div className="h-24 bg-white/80 rounded-xl border border-[#EAE3B3]" />
-              <div className="h-24 bg-white/80 rounded-xl border border-[#EAE3B3]" />
-              <div className="h-24 bg-white/80 rounded-xl border border-[#EAE3B3]" />
+            <div className="space-y-4 pl-12 border-l-2 border-dashed border-gray-200">
+              <div className="h-24 bg-gray-50 rounded-xl border border-gray-200" />
+              <div className="h-24 bg-gray-50 rounded-xl border border-gray-200" />
+              <div className="h-24 bg-gray-50 rounded-xl border border-gray-200" />
             </div>
             <p className="text-center text-xs font-semibold text-gray-500 pt-2 flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-saffron" />
@@ -364,7 +364,7 @@ export const RoadmapPage: React.FC = () => {
       {/* Empty / Uncalibrated Prompt */}
       {!isLoading && !error && phases.length === 0 && (
         <FadeIn delay={100}>
-          <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-10 text-center space-y-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center space-y-4">
             <Compass className="w-12 h-12 text-[#000080] mx-auto opacity-70" />
             <h2 className="text-2xl font-bold text-gray-900">Unlock Your Personalized Roadmap</h2>
             <p className="text-sm text-gray-600 max-w-lg mx-auto">
@@ -383,7 +383,7 @@ export const RoadmapPage: React.FC = () => {
       {/* Live Roadmap Timeline */}
       {!isLoading && phases.length > 0 && (
         <FadeIn delay={300}>
-          <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-6 md:p-8">
+          <div className="bg-slate-50/60 rounded-3xl border border-slate-200/80 p-4 sm:p-6 md:p-8">
             <RoadmapTimeline 
               phases={phases} 
               onEvidenceClick={(id) => setEvidenceMilestoneId(id)} 
@@ -396,8 +396,8 @@ export const RoadmapPage: React.FC = () => {
       {/* Curated Learning Resources tailored to student gaps */}
       {skillResources.length > 0 && (
         <FadeIn delay={400}>
-          <div className="bg-[#FFFEF2] rounded-2xl shadow-sm border border-[#EAE3B3] p-6 md:p-8 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#EAE3B3] pb-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-gray-200 pb-4">
               <div className="flex items-center gap-2.5 text-indigo-950">
                 <Sparkles className="w-5 h-5 text-indigo-600 shrink-0" />
                 <h2 className="text-xl font-bold">Curated Learning Resources for Priority Gaps</h2>
@@ -409,7 +409,7 @@ export const RoadmapPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {skillResources.map((sr: any) => (
-                <div key={sr.skillId} className="bg-white/80 border border-[#EAE3B3] rounded-xl p-4 shadow-xs space-y-3">
+                <div key={sr.skillId} className="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-xs space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="font-bold text-gray-900 text-base">{sr.skillName}</h3>
                     <span className="text-[11px] bg-amber-50 text-amber-800 font-bold px-2 py-0.5 rounded border border-amber-200">
@@ -424,7 +424,7 @@ export const RoadmapPage: React.FC = () => {
                         href={res.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center justify-between p-2.5 rounded-lg bg-[#FFFEF2] hover:bg-indigo-50 border border-gray-200 hover:border-indigo-200 transition-colors group"
+                        className="flex items-center justify-between p-2.5 rounded-lg bg-white hover:bg-indigo-50/60 border border-gray-200 hover:border-indigo-200 transition-colors group"
                       >
                         <div className="flex items-center gap-2 overflow-hidden pr-2">
                           <BookOpen className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 shrink-0" />

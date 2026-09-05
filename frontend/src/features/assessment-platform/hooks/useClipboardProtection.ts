@@ -114,19 +114,6 @@ export function useClipboardProtection({ isActive = true }: UseClipboardProtecti
       }
     };
 
-    // 7. Polling DevTools Open Detection (Window Dimension delta method)
-    const checkDevTools = () => {
-      const widthThreshold = window.outerWidth - window.innerWidth > 160;
-      const heightThreshold = window.outerHeight - window.innerHeight > 160;
-      if (widthThreshold || heightThreshold) {
-        setIsDevToolsOpen(true);
-      } else {
-        setIsDevToolsOpen(false);
-      }
-    };
-
-    const devToolsInterval = setInterval(checkDevTools, 800);
-
     document.addEventListener('copy', handleCopy);
     document.addEventListener('cut', handleCut);
     document.addEventListener('paste', handlePaste);
@@ -135,7 +122,6 @@ export function useClipboardProtection({ isActive = true }: UseClipboardProtecti
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      clearInterval(devToolsInterval);
       document.removeEventListener('copy', handleCopy);
       document.removeEventListener('cut', handleCut);
       document.removeEventListener('paste', handlePaste);

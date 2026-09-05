@@ -25,6 +25,13 @@ export interface UserProfile {
   officer_name?: string;
   sector?: string;
   website?: string;
+  selected_role_id?: string;
+  readiness_pct?: number;
+  resume_filename?: string;
+  parsed_skills?: string[];
+  resume_matched_role?: string;
+  resume_match_score?: number;
+  resume_parsed_data?: any;
   [key: string]: any;
 }
 
@@ -44,6 +51,7 @@ export interface AuthContextType {
     degree: string;
     year_of_study: number;
     interests?: string[];
+    resume?: any;
   }) => Promise<{ success: boolean; error?: string }>;
   loginIndustry: (companyData: { companyName: string; sector: string; website?: string }) => void;
   loginInstitution: (institutionData: { collegeName: string; aisheCode?: string; officerName?: string }) => void;
@@ -173,6 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     degree: string;
     year_of_study: number;
     interests?: string[];
+    resume?: any;
   }): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
@@ -180,15 +189,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (res.success && res.data?.access_token) {
         const receivedToken = res.data.access_token;
+        const resUser = res.data?.user || {};
         const receivedUser: UserProfile = {
-          id: res.data?.user?.id || 'usr-reg-1',
-          student_profile_id: res.data?.user?.student_profile_id,
+          id: resUser.id || 'usr-reg-1',
+          student_profile_id: resUser.student_profile_id,
           email: data.email,
           role: 'STUDENT',
           full_name: data.full_name,
           institution: data.institution,
           degree: data.degree,
           year_of_study: data.year_of_study,
+          selected_role_id: resUser.selected_role_id || data.resume?.matched_role,
+          resume_filename: resUser.resume_filename || data.resume?.filename,
+          parsed_skills: resUser.parsed_skills || data.resume?.parsed_skills || [],
+          resume_matched_role: resUser.resume_matched_role || data.resume?.matched_role,
+          resume_match_score: resUser.resume_match_score || data.resume?.match_score,
+          resume_parsed_data: resUser.resume_parsed_data || data.resume?.parsed_data,
         };
 
         setStoredToken(receivedToken);

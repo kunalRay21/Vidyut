@@ -93,9 +93,15 @@ export function useSingleTabLock({ isActive }: UseSingleTabLockProps) {
     };
   }, [isActive]);
 
+  const takeOverTab = useCallback(() => {
+    setIsLockedByAnotherTab(false);
+    enforceSingleTab();
+  }, [enforceSingleTab]);
+
   return {
     isLockedByAnotherTab,
     otherTabsDetected,
     enforceSingleTab,
+    takeOverTab,
   };
 }

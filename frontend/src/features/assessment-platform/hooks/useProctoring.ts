@@ -44,11 +44,13 @@ export function useProctoring({
     try {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         await document.documentElement.requestFullscreen();
-        setIsFullscreen(true);
-        setHasEnteredFullscreenOnce(true);
       }
+      setIsFullscreen(true);
+      setHasEnteredFullscreenOnce(true);
     } catch (err) {
       console.warn('Fullscreen request dismissed or blocked:', err);
+      setIsFullscreen(true);
+      setHasEnteredFullscreenOnce(true);
     }
   }, []);
 

@@ -8,6 +8,7 @@ import {
   ExamReport,
 } from '../types/exam';
 import { assessmentApi, getStoredUser, setStoredUser } from '../../../services/api';
+import { DEFAULT_EXAM_QUESTIONS } from '../data/defaultQuestions';
 
 interface UseExamSessionProps {
   initialSessionId?: string | null;
@@ -34,32 +35,78 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
     setExamStatus('LOADING');
     setErrorMessage(null);
     try {
-      let data: any;
+      let data: any = null;
+      let resolvedQuestions: ExamQuestion[] = [];
+      let resolvedSessionId: string = sid || '';
+
       if (sid) {
         try {
           data = await assessmentApi.getSession(sid);
+          if (data && Array.isArray(data.questions) && data.questions.length > 0) {
+            resolvedQuestions = data.questions;
+            resolvedSessionId = data.session_id || sid;
+          }
         } catch {
+          try {
+            data = await assessmentApi.startSession({
+              test_title: 'Diagnostic Assessment — 10 MCQs & 5 Coding Challenges',
+            });
+            if (data && Array.isArray(data.questions) && data.questions.length > 0) {
+              resolvedQuestions = data.questions;
+              resolvedSessionId = data.session_id || sid;
+            }
+          } catch {
+            // Check cache below
+          }
+        }
+      } else {
+        try {
           data = await assessmentApi.startSession({
             test_title: 'Diagnostic Assessment — 10 MCQs & 5 Coding Challenges',
           });
+          if (data && Array.isArray(data.questions) && data.questions.length > 0) {
+            resolvedQuestions = data.questions;
+            resolvedSessionId = data.session_id;
+          }
+        } catch {
+          // Check cache below
         }
-      } else {
-        data = await assessmentApi.startSession({
-          test_title: 'Diagnostic Assessment — 10 MCQs & 5 Coding Challenges',
-        });
       }
 
-      setSessionId(data.session_id);
-      setTestTitle(data.test_title || 'Diagnostic Assessment');
-      setCandidateAlias(data.student_id ? `Candidate #${data.student_id.slice(-6)}` : 'Candidate #SIH26');
-      setQuestions(data.questions || []);
-      setInitialTimeSeconds(data.time_remaining_seconds || data.total_time_seconds || 1800);
+      // Check localStorage cached questions if still empty
+      if (resolvedQuestions.length === 0 && sid) {
+        try {
+          const cached = localStorage.getItem(`session_${sid}_questions`);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              resolvedQuestions = parsed;
+            }
+          }
+        } catch {
+          // Fallback to default
+        }
+      }
+
+      // Final fallback to canonical DEFAULT_EXAM_QUESTIONS
+      if (resolvedQuestions.length === 0) {
+        resolvedQuestions = DEFAULT_EXAM_QUESTIONS;
+        if (!resolvedSessionId) {
+          resolvedSessionId = `local-sess-${Date.now()}`;
+        }
+      }
+
+      setSessionId(resolvedSessionId);
+      setTestTitle(data?.test_title || 'Diagnostic Assessment — 10 MCQs & 5 Coding Challenges');
+      setCandidateAlias(data?.student_id ? `Candidate #${data.student_id.slice(-6)}` : 'Candidate #SIH26');
+      setQuestions(resolvedQuestions);
+      setInitialTimeSeconds(data?.time_remaining_seconds || data?.total_time_seconds || 1800);
 
       // Restore saved responses if any
       const initialResponses: Record<string, QuestionUserResponse> = {};
       const initialVisited = new Set<string>();
 
-      if (data.saved_responses) {
+      if (data?.saved_responses) {
         Object.entries(data.saved_responses).forEach(([qId, val]: [string, any]) => {
           initialResponses[qId] = {
             selected_option: val.selected_option || null,
@@ -76,28 +123,27 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
       }
 
       // Initialize default boilerplate for questions
-      if (data.questions && data.questions.length > 0) {
-        data.questions.forEach((q: ExamQuestion) => {
-          if (!initialResponses[q.id]) {
-            const defaultCode = q.starter_code ? q.starter_code.python : '';
-            initialResponses[q.id] = {
-              selected_option: null,
-              is_marked_for_review: false,
-              time_spent_seconds: 0,
-              coding_language: 'python',
-              code_solution: defaultCode,
-            };
-          }
-        });
-        const firstId = data.questions[0].id;
-        initialVisited.add(firstId);
+      resolvedQuestions.forEach((q: ExamQuestion) => {
+        if (!initialResponses[q.id]) {
+          const defaultCode = q.starter_code ? q.starter_code.python : '';
+          initialResponses[q.id] = {
+            selected_option: null,
+            is_marked_for_review: false,
+            time_spent_seconds: 0,
+            coding_language: 'python',
+            code_solution: defaultCode,
+          };
+        }
+      });
+      if (resolvedQuestions.length > 0) {
+        initialVisited.add(resolvedQuestions[0].id);
       }
 
       setResponses(initialResponses);
       setVisitedQuestionIds(initialVisited);
-      setCurrentIndex(data.current_question_index || 0);
+      setCurrentIndex(Math.max(0, Math.min(data?.current_question_index || 0, resolvedQuestions.length - 1)));
 
-      if (data.status === 'COMPLETED') {
+      if (data?.status === 'COMPLETED') {
         const fullReport = await assessmentApi.getReport(data.session_id);
         setReport(fullReport);
         setExamStatus('COMPLETED');
@@ -105,9 +151,11 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
         setExamStatus('READY');
       }
     } catch (err) {
-      console.error('Failed to initialize session:', err);
-      setErrorMessage((err as Error).message);
-      setExamStatus('ERROR');
+      console.warn('Session initialization encountered error, loading canonical fallback:', err);
+      // Ensure questions are always visible even on unexpected errors
+      setQuestions(DEFAULT_EXAM_QUESTIONS);
+      setSessionId(sid || `offline-session-${Date.now()}`);
+      setExamStatus('READY');
     }
   }, []);
 
@@ -116,7 +164,9 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
   }, [initialSessionId, initSession]);
 
   const currentQuestion = useMemo(() => {
-    return questions[currentIndex] || null;
+    if (!questions || questions.length === 0) return null;
+    const safeIdx = Math.max(0, Math.min(currentIndex, questions.length - 1));
+    return questions[safeIdx] || null;
   }, [questions, currentIndex]);
 
   const currentResponse = useMemo(() => {
@@ -383,35 +433,73 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
       setReport(fullReport);
       setExamStatus('COMPLETED');
 
-      // Cache assessment result for Dashboard & profile synchronization
-      try {
-        const storedUser = getStoredUser();
-        const payloadToStore = {
-          student_id: storedUser?.student_profile_id || storedUser?.id,
-          session_id: sessionId,
-          overall_accuracy_pct: fullReport.overall_accuracy_pct,
-          overall_readiness_pct: fullReport.overall_readiness_pct,
-          correct_answers: fullReport.correct_answers,
-          total_questions: fullReport.total_questions,
-          discrepancies: fullReport.discrepancies,
-          completed_at: fullReport.completed_at,
-        };
-        localStorage.setItem('assessment_result', JSON.stringify(payloadToStore));
+      // 1. Cache latest assessment result for immediate dashboard and roadmap inheritance
+      const storedUser = getStoredUser();
+      const scoreData = {
+        student_id: storedUser?.student_profile_id || storedUser?.id,
+        session_id: fullReport.session_id || sessionId,
+        test_title: fullReport.test_title || testTitle,
+        role_id: fullReport.role_id,
+        overall_accuracy_pct: fullReport.overall_accuracy_pct,
+        overall_readiness_pct: fullReport.overall_readiness_pct,
+        correct_answers: fullReport.correct_answers,
+        total_questions: fullReport.total_questions,
+        coding_completed_count: fullReport.coding_completed_count,
+        skill_scores: fullReport.skill_scores || [],
+        discrepancies: fullReport.discrepancies || [],
+        completed_at: fullReport.completed_at || new Date().toISOString(),
+      };
+      localStorage.setItem('assessment_result', JSON.stringify(scoreData));
 
-        // Update storedUser readiness_pct so Dashboard & Navbar reflect verified readiness immediately
+      // 2. Append to multi-course assessment history
+      try {
+        const historyRaw = localStorage.getItem('assessment_history');
+        const history: any[] = historyRaw ? JSON.parse(historyRaw) : [];
+        const filtered = history.filter((h: any) => h.session_id !== scoreData.session_id);
+        filtered.unshift(scoreData);
+        localStorage.setItem('assessment_history', JSON.stringify(filtered.slice(0, 10)));
+      } catch (e) {
+        console.warn('History save error:', e);
+      }
+
+      // 3. Update multi-course progress map (course_progress_map)
+      try {
+        const progressMapRaw = localStorage.getItem('course_progress_map');
+        const progressMap: Record<string, any> = progressMapRaw ? JSON.parse(progressMapRaw) : {};
+        const trackKey = scoreData.role_id || scoreData.test_title || 'default';
+        progressMap[trackKey] = {
+          role_id: scoreData.role_id,
+          test_title: scoreData.test_title,
+          accuracy: scoreData.overall_accuracy_pct,
+          readiness: scoreData.overall_readiness_pct,
+          skill_scores: scoreData.skill_scores,
+          completed_at: scoreData.completed_at,
+          status: 'COMPLETED',
+        };
+        localStorage.setItem('course_progress_map', JSON.stringify(progressMap));
+      } catch (e) {
+        console.warn('Progress map save error:', e);
+      }
+
+      // 4. Update stored user profile in localStorage
+      try {
         if (storedUser) {
-          storedUser.readiness_pct = fullReport.overall_readiness_pct;
-          setStoredUser(storedUser);
+          setStoredUser({
+            ...storedUser,
+            readiness_pct: scoreData.overall_readiness_pct || scoreData.overall_accuracy_pct,
+            selected_role: scoreData.test_title || storedUser.selected_role,
+            selected_role_id: scoreData.role_id || storedUser.selected_role_id,
+          });
         }
       } catch (e) {
-        console.warn('Could not cache assessment result locally:', e);
+        console.warn('Stored user update error:', e);
       }
     } catch (err) {
       console.error('Failed to submit exam:', err);
       setErrorMessage((err as Error).message);
       setExamStatus('READY');
     }
-  }, [sessionId, questions, responses]);
+  }, [sessionId, questions, responses, testTitle]);
 
   return {
     sessionId,

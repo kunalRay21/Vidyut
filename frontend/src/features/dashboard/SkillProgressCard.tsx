@@ -15,9 +15,9 @@ const LEVELS = ['FOUNDATION', 'DEVELOPING', 'PROFICIENT', 'ADVANCED'];
 
 export const SkillProgressCard: React.FC<SkillProgressCardProps> = ({ skill }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const [displayedProgress, setDisplayedProgress] = useState(0);
-  const [activeCheckpoints, setActiveCheckpoints] = useState<number>(0);
+  const [isVisible, setIsVisible] = useState(true);
+  const [displayedProgress, setDisplayedProgress] = useState(skill.progress || 0);
+  const [activeCheckpoints, setActiveCheckpoints] = useState<number>(skill.currentLevel || 1);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -88,9 +88,9 @@ export const SkillProgressCard: React.FC<SkillProgressCardProps> = ({ skill }) =
   return (
     <div 
       ref={cardRef}
-      className="group bg-[#FFFEF2] rounded-2xl border border-[#EAE3B3] p-8 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg flex flex-col w-full"
+      className="group bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-sm transition-all duration-300 hover:shadow-md flex flex-col w-full"
     >
-      <h3 className="text-xl font-bold text-gray-800 mb-8">{skill.name}</h3>
+      <h3 className="text-xl font-bold text-gray-800 mb-6">{skill.name}</h3>
 
       <div className="flex flex-col md:flex-row items-center gap-12 w-full md:px-4">
         {/* Circular Progress */}
@@ -100,7 +100,7 @@ export const SkillProgressCard: React.FC<SkillProgressCardProps> = ({ skill }) =
               cx={size / 2}
               cy={size / 2}
               r={radius}
-              stroke="#EAE3B3"
+              stroke="#E2E8F0"
               strokeWidth={strokeWidth}
               fill="transparent"
             />
@@ -125,7 +125,7 @@ export const SkillProgressCard: React.FC<SkillProgressCardProps> = ({ skill }) =
         {/* Checkpoints */}
         <div className="flex-1 w-full max-w-[500px] flex justify-between relative mt-8 md:mt-0">
         {/* Connecting Lines Background */}
-        <div className="absolute top-[14px] left-8 right-8 h-1 bg-[#EAE3B3] -z-10 rounded-full" />
+        <div className="absolute top-[14px] left-8 right-8 h-1 bg-slate-200 -z-10 rounded-full" />
         
         {/* Connecting Lines Foreground (Animated) */}
         <div className="absolute top-[14px] left-8 right-8 h-1 -z-10 rounded-full overflow-hidden">
@@ -145,9 +145,9 @@ export const SkillProgressCard: React.FC<SkillProgressCardProps> = ({ skill }) =
           const isCurrent = isActivated && checkpointNum === skill.currentLevel && skill.progress < 100;
           const isFullyCompleted = skill.progress === 100 && isActivated;
 
-          let bgColor = '#FFFEF2'; 
-          let borderColor = '#EAE3B3'; 
-          let textColor = '#9CA3AF'; // gray-400
+          let bgColor = '#F8FAFC'; 
+          let borderColor = '#CBD5E1'; 
+          let textColor = '#94A3B8';
           
           if (isCompleted || isFullyCompleted) {
             bgColor = accentColor;

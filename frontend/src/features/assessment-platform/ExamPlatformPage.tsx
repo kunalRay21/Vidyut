@@ -120,7 +120,7 @@ export const ExamPlatformPage: React.FC = () => {
   });
 
   // 7. Anti-Copy/Paste & Clipboard Protection (with DevTools / Inspect Mode Detection)
-  const { warningMessage: clipboardWarning, isDevToolsOpen } = useClipboardProtection({
+  const { warningMessage: clipboardWarning, isDevToolsOpen, setIsDevToolsOpen } = useClipboardProtection({
     isActive: examStatus === 'READY',
   });
 
@@ -129,6 +129,7 @@ export const ExamPlatformPage: React.FC = () => {
     isLockedByAnotherTab,
     otherTabsDetected,
     enforceSingleTab,
+    takeOverTab,
   } = useSingleTabLock({
     isActive: examStatus === 'READY',
   });
@@ -141,9 +142,9 @@ export const ExamPlatformPage: React.FC = () => {
   };
 
   // Handle entering fullscreen and locking other tabs
-  const handleEnterFullscreen = () => {
+  const handleEnterFullscreen = async () => {
     enforceSingleTab();
-    requestFullscreen();
+    await requestFullscreen();
   };
 
   const handleProceedFromConsent = () => {
@@ -168,14 +169,22 @@ export const ExamPlatformPage: React.FC = () => {
           Assessment Active in Another Tab
         </h2>
         <p className="text-xs text-slate-300 max-w-md mb-5 leading-relaxed">
-          Multiple tabs are strictly prohibited during the assessment. Only a single examination tab is allowed. Please close this tab and return to your active assessment window.
+          Multiple tabs are strictly prohibited during the assessment. Only a single examination tab is allowed. Please close other tabs or continue examination here.
         </p>
-        <button
-          onClick={() => window.close()}
-          className="btn-saffron text-xs py-2.5 px-5"
-        >
-          Close This Duplicate Tab
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={takeOverTab}
+            className="btn-saffron text-xs py-2.5 px-5"
+          >
+            Continue Assessment in This Tab
+          </button>
+          <button
+            onClick={() => window.close()}
+            className="px-4 py-2.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+          >
+            Close This Duplicate Tab
+          </button>
+        </div>
       </div>
     );
   }
@@ -282,37 +291,29 @@ export const ExamPlatformPage: React.FC = () => {
               {/* Scrollable Question Body (Copy Protected) */}
               <div className="flex-1 overflow-y-auto px-6 sm:px-12 py-8 custom-scrollbar select-none">
                 <div className="max-w-3xl mx-auto space-y-6 select-none">
-                  {isDevToolsOpen ? (
-                    <div className="p-16 text-center text-slate-500 font-mono text-xs select-none">
-                      [Protected Assessment Content — Inspect Mode Disabled]
-                    </div>
-                  ) : (
-                    <>
-                      <QuestionViewer
-                        question={currentQuestion}
-                        questionNumber={currentIndex + 1}
-                        totalQuestions={questions.length}
-                      />
+                    <QuestionViewer
+                      question={currentQuestion}
+                      questionNumber={currentIndex + 1}
+                      totalQuestions={questions.length}
+                    />
 
-                      {currentQuestion.section === 'CODING' ? (
-                        <CodingWorkspace
-                          question={currentQuestion}
-                          currentLanguage={currentResponse?.coding_language || 'python'}
-                          currentCode={currentResponse?.code_solution ?? ''}
-                          isSubmitted={currentResponse?.is_code_submitted}
-                          onLanguageChange={updateCodingLanguage}
-                          onCodeChange={updateCodeSolution}
-                          onSubmitCode={() => submitCodeSolution(currentQuestion.id)}
-                        />
-                      ) : (
-                        <OptionSelector
-                          question={currentQuestion}
-                          selectedOption={currentResponse?.selected_option || null}
-                          onSelectOption={selectOption}
-                        />
-                      )}
-                    </>
-                  )}
+                    {currentQuestion.section === 'CODING' ? (
+                      <CodingWorkspace
+                        question={currentQuestion}
+                        currentLanguage={currentResponse?.coding_language || 'python'}
+                        currentCode={currentResponse?.code_solution ?? ''}
+                        isSubmitted={currentResponse?.is_code_submitted}
+                        onLanguageChange={updateCodingLanguage}
+                        onCodeChange={updateCodeSolution}
+                        onSubmitCode={() => submitCodeSolution(currentQuestion.id)}
+                      />
+                    ) : (
+                      <OptionSelector
+                        question={currentQuestion}
+                        selectedOption={currentResponse?.selected_option || null}
+                        onSelectOption={selectOption}
+                      />
+                    )}
                 </div>
               </div>
 
@@ -398,10 +399,18 @@ export const ExamPlatformPage: React.FC = () => {
               Inspect Mode Restricted
             </h2>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Developer Tools and Element Inspection are strictly prohibited during this assessment. Question and answer details have been removed from the DOM to maintain proctoring integrity.
+              Developer Tools and Element Inspection are strictly prohibited during this assessment. Please keep developer tools closed.
             </p>
             <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs font-mono text-amber-800">
-              Close Developer Tools (F12) to restore examination content.
+              Developer Tools shortcuts are disabled.
+            </div>
+            <div className="pt-2">
+              <button
+                onClick={() => setIsDevToolsOpen(false)}
+                className="btn-saffron text-xs py-2.5 px-6 font-semibold"
+              >
+                Acknowledge & Resume Assessment
+              </button>
             </div>
           </div>
         </div>

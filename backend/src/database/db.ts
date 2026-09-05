@@ -315,6 +315,14 @@ export async function initDatabaseSchema(): Promise<boolean> {
       ADD COLUMN IF NOT EXISTS time_spent_seconds INTEGER DEFAULT 0,
       ADD COLUMN IF NOT EXISTS is_marked_for_review BOOLEAN DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS selected_options TEXT[] DEFAULT '{}';
+
+    ALTER TABLE student_profiles
+      ADD COLUMN IF NOT EXISTS resume_filename VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS resume_raw_text TEXT,
+      ADD COLUMN IF NOT EXISTS parsed_skills TEXT[] DEFAULT '{}',
+      ADD COLUMN IF NOT EXISTS resume_matched_role VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS resume_match_score FLOAT DEFAULT 0.0,
+      ADD COLUMN IF NOT EXISTS resume_parsed_data JSONB;
   `;
 
   try {

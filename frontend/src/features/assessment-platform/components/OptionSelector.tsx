@@ -13,12 +13,13 @@ export const OptionSelector: React.FC<OptionSelectorProps> = ({
   selectedOption,
   onSelectOption,
 }) => {
-  const options: { key: OptionKey; text: string; shortcutKey: string }[] = [
+  const rawOptions: { key: OptionKey; text: string; shortcutKey: string }[] = [
     { key: 'A', text: question.option_a || '', shortcutKey: '1' },
     { key: 'B', text: question.option_b || '', shortcutKey: '2' },
     { key: 'C', text: question.option_c || '', shortcutKey: '3' },
     { key: 'D', text: question.option_d || '', shortcutKey: '4' },
   ];
+  const options = rawOptions.filter(opt => Boolean(opt.text && opt.text.trim().length > 0));
 
   // Keyboard shortcut listener (1-4 or A-D)
   useEffect(() => {

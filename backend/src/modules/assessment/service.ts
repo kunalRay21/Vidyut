@@ -917,14 +917,16 @@ export class AssessmentService {
       });
     }
 
-    // Persist readiness score to profile in in-memory store
+    // Persist readiness score and selected role to profile in in-memory store
     const studentProf = memoryStore.profiles.get(session.student_id);
     if (studentProf) {
       studentProf.readiness_pct = overallReadinessPct;
+      if (session.role_id) studentProf.selected_role_id = session.role_id;
     } else {
       for (const p of memoryStore.profiles.values()) {
         if (p.user_id === session.student_id) {
           p.readiness_pct = overallReadinessPct;
+          if (session.role_id) p.selected_role_id = session.role_id;
         }
       }
     }
@@ -943,19 +945,25 @@ export class AssessmentService {
             updated_at = NOW()
           `,
           [session.student_id, score.skill_id, score.proficiency, score.accuracy_pct]
-        ).catch(() => {});
+        ).catch((e) => console.warn('[Assessment Submit] Skill state DB save notice:', e.message));
       }
 
       await query(
-        `UPDATE student_profiles SET readiness_pct = $1 WHERE id = $2 OR user_id = $2`,
-        [overallReadinessPct, session.student_id]
-      ).catch(() => {});
+        `UPDATE student_profiles
+         SET readiness_pct = $1,
+             selected_role_id = COALESCE($2, selected_role_id),
+             updated_at = NOW()
+         WHERE id = $3 OR user_id = $3`,
+        [overallReadinessPct, session.role_id || null, session.student_id]
+      ).catch((e) => console.warn('[Assessment Submit] Profile DB save notice:', e.message));
     } catch {
       // Offline fallback ignored
     }
 
     return {
       session_id: sessionId,
+      role_id: session.role_id,
+      test_title: session.test_title,
       total_questions: questions.length,
       mcq_correct: mcqCorrect,
       coding_solved: codingSolved,
@@ -964,6 +972,7 @@ export class AssessmentService {
       overall_readiness_pct: overallReadinessPct,
       skill_scores: skillScores,
       discrepancies: discrepancies,
+      completed_at: session.completed_at,
     };
   }
 

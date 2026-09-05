@@ -10,9 +10,13 @@ interface QuestionViewerProps {
 
 export const QuestionViewer: React.FC<QuestionViewerProps> = ({
   question,
+  questionNumber,
+  totalQuestions,
 }) => {
-  const getDifficultyBadge = (difficulty: string) => {
-    switch (difficulty) {
+  const difficulty = (question.difficulty || 'MEDIUM').toUpperCase();
+
+  const getDifficultyBadge = (diff: string) => {
+    switch (diff) {
       case 'EASY':
         return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'MEDIUM':
@@ -24,10 +28,16 @@ export const QuestionViewer: React.FC<QuestionViewerProps> = ({
     }
   };
 
+  const difficultyDisplay = difficulty.charAt(0) + difficulty.slice(1).toLowerCase();
+
   return (
     <div className="space-y-4 select-none">
       {/* Top Meta Bar */}
       <div className="flex flex-wrap items-center gap-2 select-none">
+        <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-300">
+          Question {questionNumber} of {totalQuestions}
+        </span>
+
         {question.skill_name && (
           <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-800 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
             {question.skill_name}
@@ -36,10 +46,10 @@ export const QuestionViewer: React.FC<QuestionViewerProps> = ({
 
         <span
           className={`text-[11px] font-medium px-2 py-0.5 rounded border ${getDifficultyBadge(
-            question.difficulty
+            difficulty
           )}`}
         >
-          {question.difficulty.charAt(0) + question.difficulty.slice(1).toLowerCase()}
+          {difficultyDisplay}
         </span>
 
         <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
@@ -51,6 +61,13 @@ export const QuestionViewer: React.FC<QuestionViewerProps> = ({
       <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug tracking-tight select-none">
         {question.question_text}
       </h2>
+
+      {/* Problem Description (if present) */}
+      {question.problem_description && (
+        <div className="text-xs sm:text-sm text-slate-700 whitespace-pre-line leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200 select-none">
+          {question.problem_description}
+        </div>
+      )}
 
       {/* Code Snippet Container (Copying disabled) */}
       {question.code_snippet && (

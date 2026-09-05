@@ -251,13 +251,10 @@ export const HelpAssistant: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
             </span>
-            <Sparkles className="w-5 h-5 text-amber-100 group-hover:rotate-12 transition-transform duration-300" />
             <span className="text-sm font-bold tracking-wide">
               {t('helpAssistant.triggerLabel', 'Help Assistant')}
             </span>
-            <span className="bg-amber-900/60 text-amber-200 text-[11px] px-2 py-0.5 rounded-full font-semibold border border-amber-400/30 hidden sm:inline">
-              {t('helpAssistant.badge', 'AI Guide')}
-            </span>
+            
           </button>
         ) : null}
       </div>

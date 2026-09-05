@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ExamReport } from '../types/exam';
 import {
   CheckCircle2,
@@ -10,6 +11,7 @@ import {
   ChevronUp,
   Award,
   BookOpen,
+  LayoutDashboard,
 } from 'lucide-react';
 import { CodeViewer } from './CodeViewer';
 
@@ -24,6 +26,7 @@ export const ResultAnalyticsView: React.FC<ResultAnalyticsViewProps> = ({
   onNavigateRoadmap,
   onRetake,
 }) => {
+  const navigate = useNavigate();
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
 
   const toggleExpand = (id: string) => {
@@ -102,11 +105,19 @@ export const ResultAnalyticsView: React.FC<ResultAnalyticsViewProps> = ({
             <span>Tab switches: {report.tab_switch_count}</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5 text-slate-600" />
+              <span>View Student Dashboard</span>
+            </button>
+
             {onRetake && (
               <button
                 onClick={onRetake}
-                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors"
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
               >
                 Retake Assessment
               </button>
@@ -114,7 +125,7 @@ export const ResultAnalyticsView: React.FC<ResultAnalyticsViewProps> = ({
 
             <button
               onClick={onNavigateRoadmap}
-              className="btn-saffron text-xs font-semibold py-2 px-5 flex items-center gap-2 shadow-xs"
+              className="btn-saffron text-xs font-semibold py-2 px-5 flex items-center gap-2 shadow-xs cursor-pointer"
             >
               <span>Continue to Adaptive Roadmap</span>
               <ArrowRight className="w-4 h-4" />
@@ -396,6 +407,30 @@ export const ResultAnalyticsView: React.FC<ResultAnalyticsViewProps> = ({
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Bottom Action Footer */}
+      <div className="gov-card p-6 bg-white border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+        <div>
+          <h3 className="font-bold text-slate-900 text-sm">Diagnostic Assessment Completed</h3>
+          <p className="text-xs text-slate-500">Your empirical skills and DAG milestones have been dynamically synchronized.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+          >
+            <LayoutDashboard className="w-3.5 h-3.5 text-slate-600" />
+            <span>Go to Student Dashboard</span>
+          </button>
+          <button
+            onClick={onNavigateRoadmap}
+            className="btn-saffron text-xs font-semibold py-2 px-5 flex items-center gap-2 shadow-xs cursor-pointer"
+          >
+            <span>Proceed to Learning Roadmap</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
