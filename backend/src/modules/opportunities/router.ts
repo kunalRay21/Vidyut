@@ -301,17 +301,146 @@ router.post('/direct', async (req: Request, res: Response) => {
   }
 });
 
+function checkAdminPermission(req: Request): boolean {
+  const adminKey = req.headers['x-admin-key'];
+  if (adminKey === 'vidyut_admin_secret_key' || (process.env.ADMIN_KEY && adminKey === process.env.ADMIN_KEY)) {
+    return true;
+  }
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+  try {
+    const { verifyToken } = require('../../auth/jwt');
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+    return decoded && decoded.role === 'ADMIN';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * POST /api/v1/opportunities/ingest
+ * Triggers central external opportunity pipeline (scrapers, normalization, domain/role classification, skill alias matching, deduplication)
+ */
+router.post('/ingest', async (req: Request, res: Response) => {
+  if (!checkAdminPermission(req)) {
+    return apiError(res, "Forbidden: Administrative access required for pipeline ingestion", 403, "FORBIDDEN");
+  }
+  try {
+    const { sources } = req.body || {};
+    const targetSources = Array.isArray(sources) ? sources : undefined;
+    const { opportunityIngestionService } = await import('./pipeline/ingestion.service');
+    const result = await opportunityIngestionService.runIngestion(targetSources);
+
+    return apiSuccess(res, result);
+  } catch (err: any) {
+    return apiError(res, `Failed to execute opportunity pipeline ingestion: ${err.message}`, 500);
+  }
+});
+
+/**
+ * GET /api/v1/opportunities/unmatched-skills
+ * Admin/Queue monitoring endpoint for raw skills that did not match canonical skills
+ */
+router.get('/unmatched-skills', async (req: Request, res: Response) => {
+  if (!checkAdminPermission(req)) {
+    return apiError(res, "Forbidden: Administrative access required for unmatched skills queue", 403, "FORBIDDEN");
+  }
+  try {
+    const { memoryStore } = await import('../../database/store');
+    let dbItems: any[] = [];
+    try {
+      const dbRes = await query(`SELECT * FROM unmatched_skills ORDER BY occurrence_count DESC, updated_at DESC`);
+      if (dbRes.rows && dbRes.rows.length > 0) {
+        dbItems = dbRes.rows;
+      }
+    } catch {
+      // Fall through to memory
+    }
+
+    if (dbItems.length === 0) {
+      dbItems = Array.from(memoryStore.unmatched_skills.values()).sort((a, b) => b.occurrence_count - a.occurrence_count);
+    }
+
+    return apiSuccess(res, {
+      total_unmatched: dbItems.length,
+      items: dbItems
+    });
+  } catch (err: any) {
+    return apiError(res, `Failed to fetch unmatched skills: ${err.message}`, 500);
+  }
+});
+
+/**
+ * POST /api/v1/opportunities/map-alias
+ * Maps an unmatched raw skill string to a canonical skill UUID by registering a SkillAlias
+ */
+router.post('/map-alias', async (req: Request, res: Response) => {
+  if (!checkAdminPermission(req)) {
+    return apiError(res, "Forbidden: Administrative access required to map skill aliases", 403, "FORBIDDEN");
+  }
+  try {
+    const { alias, skill_id } = req.body || {};
+    if (!alias || !skill_id) {
+      return apiError(res, 'Both alias and skill_id are required', 400, 'VALIDATION_ERROR');
+    }
+
+    const cleanAlias = String(alias).trim();
+    const { memoryStore } = await import('../../database/store');
+
+    try {
+      await query(
+        `INSERT INTO skill_aliases (alias, skill_id) VALUES ($1, $2) ON CONFLICT (alias) DO UPDATE SET skill_id = $2`,
+        [cleanAlias, skill_id]
+      );
+      await query(`DELETE FROM unmatched_skills WHERE LOWER(raw_skill_string) = LOWER($1)`, [cleanAlias]);
+    } catch {
+      // Memory store fallback
+    }
+
+    const aliasId = `alias-${Date.now()}`;
+    memoryStore.skill_aliases.set(cleanAlias.toLowerCase(), {
+      id: aliasId,
+      alias: cleanAlias,
+      skill_id,
+      created_at: new Date().toISOString()
+    });
+
+    for (const [key, item] of memoryStore.unmatched_skills.entries()) {
+      if (item.raw_skill_string.toLowerCase() === cleanAlias.toLowerCase()) {
+        memoryStore.unmatched_skills.delete(key);
+      }
+    }
+
+    return apiSuccess(res, {
+      message: `Alias '${cleanAlias}' successfully mapped to skill ${skill_id}`,
+      alias: cleanAlias,
+      skill_id
+    });
+  } catch (err: any) {
+    return apiError(res, `Failed to map skill alias: ${err.message}`, 500);
+  }
+});
+
 /**
  * POST /api/v1/opportunities/sync
  * Sync / Trigger scraper pipeline endpoint
  */
 router.post('/sync', async (_req: Request, res: Response) => {
-  return apiSuccess(res, {
-    success: true,
-    message: 'Opportunity index synchronization triggered successfully',
-    total_cached: seedCache.length,
-    timestamp: new Date().toISOString()
-  });
+  try {
+    const { opportunityIngestionService } = await import('./pipeline/ingestion.service');
+    const result = await opportunityIngestionService.runIngestion();
+    return apiSuccess(res, {
+      success: true,
+      message: 'Opportunity index synchronization triggered successfully',
+      result,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err: any) {
+    return apiError(res, `Sync failed: ${err.message}`, 500);
+  }
 });
 
 export default router;

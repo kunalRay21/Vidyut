@@ -49,6 +49,7 @@ export interface AuthContextType {
     full_name: string;
     institution: string;
     degree: string;
+    academic_branch_id?: string;
     year_of_study: number;
     interests?: string[];
     resume?: any;
@@ -179,6 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     full_name: string;
     institution: string;
     degree: string;
+    academic_branch_id?: string;
     year_of_study: number;
     interests?: string[];
     resume?: any;

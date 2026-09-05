@@ -40,6 +40,12 @@ import { aiFluencyRouter } from './modules/ai_fluency/ai_fluency.router';
 // Career Readiness Digital Twin & 12-Hour Prep Plan Router
 import { digitalTwinRouter } from './modules/digital_twin/digital_twin.router';
 
+// Phase 6 Demo Router
+import demoRouter from './modules/demo/router';
+import { checkDatabaseConnection } from './database/db';
+import { apiSuccess, apiError } from './core/responses';
+import { logger } from './core/logger';
+
 dotenv.config();
 
 const app = express();
@@ -101,9 +107,26 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'healthy' });
+app.get(['/health', '/api/v1/health'], async (_req: Request, res: Response) => {
+  const dbConnected = await checkDatabaseConnection();
+  const uptimeSeconds = Math.floor(process.uptime());
+
+  const healthData = {
+    status: dbConnected ? 'healthy' : 'degraded',
+    mode: dbConnected ? 'postgresql' : 'in-memory-fallback',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    uptime: `${uptimeSeconds}s`,
+    services: {
+      api: 'operational',
+      database: dbConnected ? 'connected' : 'disconnected (using in-memory fallback)',
+      redis: 'optional (in-memory caching active)'
+    }
+  };
+
+  return apiSuccess(res, healthData, 200);
 });
+
 // Core Routes (Owned by Team Leader)
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/profile', profileRouter);
@@ -125,16 +148,17 @@ app.use('/api/v1/learning-loop', learningLoopRouter);    // Assessment -> Learni
 app.use('/api/v1/job-simulations', simulationRouter);    // Real-World Job Readiness Simulations
 app.use('/api/v1/ai-fluency', aiFluencyRouter);          // AI Usage & AI Fluency Score
 app.use('/api/v1/digital-twin', digitalTwinRouter);      // Career Readiness Digital Twin & 12-Hour Prep Plan
+app.use('/api/v1/demo', demoRouter);                    // Phase 6 Demo & Simulation Router
 
 // ---------------------------------------------------------------------------
 // Generic error handler (must be last middleware)
 // ---------------------------------------------------------------------------
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('[Error]', err);
+  logger.error('Server', 'Unhandled server error', { error: err instanceof Error ? err.message : String(err) });
   const message =
     err instanceof Error ? err.message : 'An unexpected error occurred.';
-  res.status(500).json({ success: false, error: message });
+  return apiError(res, message, 500, 'INTERNAL_SERVER_ERROR');
 });
 
 // ---------------------------------------------------------------------------

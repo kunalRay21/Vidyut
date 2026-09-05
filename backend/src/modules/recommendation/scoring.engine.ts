@@ -242,11 +242,23 @@ export function computeCompatibilityScore(
     profile.yearOfStudy
   );
 
-  // ── Interest Score ─────────────────────────────────────────────────────
-  const interestScore = computeInterestScore(
+  // ── Interest & Academic Branch Score ───────────────────────────────────
+  let baseInterestScore = computeInterestScore(
     opportunity.domain?.name ?? null,
     profile.interests
   );
+
+  // Phase 2: Contextual academic branch relevance boost (ranking signal)
+  if (profile.academicBranchRelevanceMap && opportunity.domainId) {
+    const branchRel = profile.academicBranchRelevanceMap[opportunity.domainId];
+    if (branchRel === 'HIGH') {
+      baseInterestScore = Math.min(1.0, baseInterestScore + 0.2);
+    } else if (branchRel === 'LOW') {
+      baseInterestScore = Math.max(0.1, baseInterestScore - 0.1);
+    }
+  }
+
+  const interestScore = baseInterestScore;
 
   // ── Composite ──────────────────────────────────────────────────────────
   const total =

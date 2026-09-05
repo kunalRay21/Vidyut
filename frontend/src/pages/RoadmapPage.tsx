@@ -47,8 +47,10 @@ export const RoadmapPage: React.FC = () => {
   const [decisionPhase, setDecisionPhase] = useState<Phase | null>(null);
   const [evidenceMilestoneId, setEvidenceMilestoneId] = useState<string | null>(null);
 
+  const [nextBestSkill, setNextBestSkill] = useState<any>(null);
+
   // 1. Fetch dynamic roadmap and curated resources from backend
-  const loadRoadmap = async () => {
+  const loadRoadmap = async (regenerate = false) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -56,7 +58,10 @@ export const RoadmapPage: React.FC = () => {
       const studentId = user?.student_profile_id || user?.id || user?.student_id;
       const roleId = user?.selected_role_id;
 
-      const res = await roadmapApi.getRoadmap(studentId, roleId);
+      const res = regenerate
+        ? await roadmapApi.generateRoadmap(studentId, roleId)
+        : await roadmapApi.getRoadmap(studentId, roleId);
+
       if (res.success && res.data) {
         if (res.data.role_name) {
           setRoleTitle(res.data.role_name);
@@ -75,6 +80,9 @@ export const RoadmapPage: React.FC = () => {
         }
         if (res.data.locked_skills !== undefined) {
           setLockedSkills(res.data.locked_skills);
+        }
+        if (res.data.next_best_skill !== undefined) {
+          setNextBestSkill(res.data.next_best_skill);
         }
 
         const storedResume = getStoredResume();
@@ -335,14 +343,56 @@ export const RoadmapPage: React.FC = () => {
                   %
                 </span>
               </div>
+              </div>
+              
+              <span className="text-[11px] text-gray-500 font-medium mt-1">
+                of target competency benchmark
+              </span>
             </div>
-            
-            <span className="text-[11px] text-gray-500 font-medium mt-1.5 text-center">
-              of target competency benchmark
-            </span>
+          </FadeIn>
+        </header>
+
+      {/* Next Best Skill & Action Bar */}
+      {!isLoading && !error && (
+        <FadeIn delay={150}>
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between bg-gradient-to-r from-[#000080]/90 to-[#1e3a8a] text-white p-5 rounded-2xl shadow-sm gap-4 mb-6">
+            <div className="flex items-start gap-3.5 flex-1">
+              <div className="p-2.5 bg-saffron/20 border border-saffron/40 rounded-xl shrink-0 mt-0.5">
+                <Sparkles className="w-5 h-5 text-saffron-300 animate-pulse" />
+              </div>
+              <div>
+                <span className="text-[11px] uppercase tracking-wider font-extrabold text-saffron-300 block mb-0.5">
+                  RECOMMENDED NEXT BEST SKILL
+                </span>
+                {nextBestSkill ? (
+                  <>
+                    <h3 className="text-lg font-bold tracking-tight text-white">{nextBestSkill.name}</h3>
+                    <p className="text-xs text-blue-100 mt-1 max-w-xl">
+                      {nextBestSkill.reason || 'All prerequisites satisfied. Highly relevant to your target role.'}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-bold tracking-tight text-white">All Core Prerequisites Satisfied!</h3>
+                    <p className="text-xs text-blue-100 mt-1 max-w-xl">
+                      Great job! You have achieved benchmark proficiency across required skills for this role.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={() => loadRoadmap(true)}
+              disabled={isLoading}
+              className="self-start md:self-center inline-flex items-center gap-2 px-4 py-2 bg-saffron hover:bg-saffron-600 text-white font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer shrink-0"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              Regenerate Roadmap
+            </button>
           </div>
         </FadeIn>
-      </header>
+      )}
 
       {/* Resume Calibration Dependency Banner */}
       {!isLoading && (
@@ -451,7 +501,7 @@ export const RoadmapPage: React.FC = () => {
               <h3 className="font-bold text-base">Unable to Calibrate Real-time Roadmap</h3>
               <p className="text-sm text-amber-800 mt-1">{error}</p>
               <button
-                onClick={loadRoadmap}
+                onClick={() => loadRoadmap(false)}
                 className="mt-3 px-4 py-1.5 bg-white border border-amber-300 text-amber-900 font-semibold rounded-lg text-xs hover:bg-amber-100 transition cursor-pointer"
               >
                 Retry Connection

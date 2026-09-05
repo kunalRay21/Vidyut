@@ -151,6 +151,7 @@ export const authApi = {
     full_name: string;
     institution: string;
     degree: string;
+    academic_branch_id?: string;
     year_of_study: number;
     interests?: string[];
     resume?: {
@@ -173,6 +174,15 @@ export const authApi = {
 // 2. Career Domains & Roles
 // ----------------------------------------------------
 export const careersApi = {
+  getAcademicBranches: async () => {
+    return await request<any[]>('/api/v1/careers/academic-branches');
+  },
+
+  getPersonalizedDomains: async (studentId?: string) => {
+    const qs = studentId ? `?student_id=${encodeURIComponent(studentId)}` : '';
+    return await request<any[]>(`/api/v1/careers/personalized-domains${qs}`);
+  },
+
   getDomains: async () => {
     return await request('/api/v1/careers/domains');
   },
@@ -437,6 +447,13 @@ export const profileApi = {
       method: 'DELETE',
     });
   },
+
+  updateAcademicBranch: async (branchId: string) => {
+    return await request('/api/v1/profile/academic-branch', {
+      method: 'PUT',
+      body: JSON.stringify({ academic_branch_id: branchId }),
+    });
+  },
 };
 
 // ----------------------------------------------------
@@ -466,7 +483,23 @@ export const roadmapApi = {
       }),
     });
   },
+
+  generateRoadmap: async (studentId?: string, roleId?: string) => {
+    return await request<any>('/api/v1/roadmap/generate', {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId, role_id: roleId }),
+    });
+  },
+
+  getSkillGaps: async (studentId?: string, roleId?: string) => {
+    const params = new URLSearchParams();
+    if (studentId) params.append('student_id', studentId);
+    if (roleId) params.append('role_id', roleId);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return await request<any>(`/api/v1/roadmap/gaps${qs}`);
+  },
 };
+
 
 // ----------------------------------------------------
 // 7. Portfolio & Evidence

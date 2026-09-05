@@ -17,6 +17,7 @@ import { setStoredResume } from '../../services/api';
 import { parseResumeFile, parseResumeText, ParsedResume } from '../../utils/resumeParser';
 import { CustomDropdown } from '../../components/common/CustomDropdown';
 import { CareerQuizModal, CareerSuggestion } from './CareerQuizModal';
+import { careersApi } from '../../services/api';
 
 export default function RegisterForm() {
   const { t } = useTranslation();
@@ -24,6 +25,7 @@ export default function RegisterForm() {
   const { registerStudent } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [branches, setBranches] = useState<any[]>([]);
   const [form, setForm] = useState({
     full_name: '',
     email: '',
@@ -31,6 +33,7 @@ export default function RegisterForm() {
     institution: '',
     degree: '',
     major: '',
+    academic_branch_id: '',
     year_of_study: '',
     interests: '',
   });
@@ -45,6 +48,24 @@ export default function RegisterForm() {
   const [error, setError] = useState('');
   const [isCareerQuizOpen, setIsCareerQuizOpen] = useState(false);
   const [careerSuggestion, setCareerSuggestion] = useState<CareerSuggestion | null>(null);
+
+  React.useEffect(() => {
+    async function loadBranches() {
+      try {
+        const res = await careersApi.getAcademicBranches();
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setBranches(res.data);
+          const cseBranch = res.data.find((b: any) => b.code === 'CSE');
+          if (cseBranch) {
+            setForm((prev) => ({ ...prev, academic_branch_id: cseBranch.id }));
+          }
+        }
+      } catch (err) {
+        console.warn('Academic branch fetch error:', err);
+      }
+    }
+    loadBranches();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -158,6 +179,7 @@ export default function RegisterForm() {
         full_name: form.full_name.trim(),
         institution: form.institution.trim(),
         degree: `${form.degree.trim()} ${form.major.trim()}`.trim(),
+        academic_branch_id: form.academic_branch_id || undefined,
         year_of_study: Number(form.year_of_study),
         interests: parsedInterests,
         resume: resumePayload,
@@ -268,16 +290,40 @@ export default function RegisterForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Major *
+                Major / Branch *
               </label>
-              <CustomDropdown
-                name="major"
-                value={form.major}
-                onChange={(val) => setForm({ ...form, major: val })}
-                options={['CSE', 'ECE', 'MECHANICAL', 'CIVIL', 'IT', 'EEE', 'Other']}
-                placeholder="Select Major"
-                className="w-full px-2.5 py-1.5 text-sm"
-              />
+              {branches.length > 0 ? (
+                <select
+                  name="academic_branch_id"
+                  value={form.academic_branch_id}
+                  onChange={(e) => {
+                    const selId = e.target.value;
+                    const found = branches.find((b: any) => b.id === selId);
+                    setForm((prev) => ({
+                      ...prev,
+                      academic_branch_id: selId,
+                      major: found ? found.code : prev.major,
+                    }));
+                  }}
+                  className="w-full px-2.5 py-1.5 text-sm rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
+                >
+                  <option value="">Select Branch...</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} ({b.code})
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <CustomDropdown
+                  name="major"
+                  value={form.major}
+                  onChange={(val) => setForm({ ...form, major: val })}
+                  options={['CSE', 'ECE', 'MECHANICAL', 'CIVIL', 'IT', 'EEE', 'Other']}
+                  placeholder="Select Major"
+                  className="w-full px-2.5 py-1.5 text-sm"
+                />
+              )}
             </div>
           </div>
 

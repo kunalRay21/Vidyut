@@ -265,6 +265,10 @@ export interface StudentProfile {
    * Null when selectedDomainId is null.
    */
   selectedDomainName: string | null;
+  /** Academic branch ID (Phase 2) */
+  academicBranchId?: string | null;
+  /** Domain ID -> Relevance level map for academic branch (Phase 2) */
+  academicBranchRelevanceMap?: Record<string, string>;
 }
 
 /**
@@ -545,6 +549,8 @@ export async function generateRecommendations(
     selectedDomainId: profile.selectedDomainId,
     yearOfStudy: profile.yearOfStudy,
     interests: profile.interests,
+    academicBranchId: profile.academicBranchId,
+    academicBranchRelevanceMap: profile.academicBranchRelevanceMap,
   };
 
   // ── B. Fetch student skill states ───────────────────────────────────────

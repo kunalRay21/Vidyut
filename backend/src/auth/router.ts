@@ -10,12 +10,15 @@ import { ResumeParserService } from '../modules/resume/resumeService';
 
 const router = Router();
 
+import { resolveBranchFromDegreeText } from '../modules/careers/academicBranch.service';
+
 const RegisterSchema = z.object({
   email: z.string().trim().email('Valid email address required'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   full_name: z.string().trim().min(2, 'Full name required'),
   institution: z.string().trim().min(2, 'Institution / college name required'),
   degree: z.string().trim().min(2, 'Degree required (e.g. B.Tech CSE)'),
+  academic_branch_id: z.string().optional(),
   year_of_study: z.coerce.number().int().min(1).max(6),
   interests: z.array(z.string()).optional().default([]),
   resume: z.object({
@@ -44,12 +47,18 @@ router.post('/register', async (req: Request, res: Response) => {
     return apiError(res, userMsg, 400, 'VALIDATION_ERROR', parseResult.error.format());
   }
 
-  const { email, password, full_name, institution, degree, year_of_study, interests, resume } = parseResult.data;
+  const { email, password, full_name, institution, degree, academic_branch_id, year_of_study, interests, resume } = parseResult.data;
 
   try {
     const passwordHash = await hashPassword(password);
     const userId = randomUUID();
     const profileId = randomUUID();
+
+    let resolvedBranchId = academic_branch_id || null;
+    if (!resolvedBranchId) {
+      const autoMatched = await resolveBranchFromDegreeText(degree);
+      if (autoMatched) resolvedBranchId = autoMatched.id;
+    }
 
     let userRole: 'STUDENT' = 'STUDENT';
 
@@ -96,6 +105,7 @@ router.post('/register', async (req: Request, res: Response) => {
         full_name,
         institution,
         degree,
+        academic_branch_id: resolvedBranchId || undefined,
         year_of_study,
         interests,
         selected_role_id: selectedRoleId || undefined,
@@ -128,17 +138,18 @@ router.post('/register', async (req: Request, res: Response) => {
 
         await client.query(
           `INSERT INTO student_profiles (
-             id, user_id, full_name, institution, degree, year_of_study, interests,
+             id, user_id, full_name, institution, degree, academic_branch_id, year_of_study, interests,
              selected_role_id, resume_filename, resume_raw_text, parsed_skills,
              resume_matched_role, resume_match_score, resume_parsed_data
            )
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
           [
             profileId,
             userId,
             full_name,
             institution,
             degree,
+            resolvedBranchId,
             year_of_study,
             interests,
             dbRoleId,

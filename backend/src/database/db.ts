@@ -296,6 +296,29 @@ export async function initDatabaseSchema(): Promise<boolean> {
       UNIQUE(student_id, opportunity_id)
     );
 
+    -- Academic Branches Table (Phase 2)
+    CREATE TABLE IF NOT EXISTS academic_branches (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      code VARCHAR(50) UNIQUE NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      degree VARCHAR(100),
+      description TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    -- Academic Branch Domains Junction Table (Phase 2)
+    CREATE TABLE IF NOT EXISTS academic_branch_domains (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      academic_branch_id UUID NOT NULL REFERENCES academic_branches(id) ON DELETE CASCADE,
+      domain_id UUID NOT NULL REFERENCES domains(id) ON DELETE CASCADE,
+      relevance VARCHAR(50) NOT NULL DEFAULT 'MEDIUM',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(academic_branch_id, domain_id)
+    );
+
+    ALTER TABLE student_profiles
+      ADD COLUMN IF NOT EXISTS academic_branch_id UUID REFERENCES academic_branches(id) ON DELETE SET NULL;
+
     -- Assessment Platform Upgrade Additions (Safe non-destructive ALTERs)
     ALTER TABLE questions
       ADD COLUMN IF NOT EXISTS question_type VARCHAR(30) DEFAULT 'MCQ_SINGLE',
@@ -323,6 +346,26 @@ export async function initDatabaseSchema(): Promise<boolean> {
       ADD COLUMN IF NOT EXISTS resume_matched_role VARCHAR(100),
       ADD COLUMN IF NOT EXISTS resume_match_score FLOAT DEFAULT 0.0,
       ADD COLUMN IF NOT EXISTS resume_parsed_data JSONB;
+
+    -- Skill Aliases Table (Phase 3)
+    CREATE TABLE IF NOT EXISTS skill_aliases (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      alias VARCHAR(255) UNIQUE NOT NULL,
+      skill_id UUID NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    -- Unmatched Skills Queue Table (Phase 3)
+    CREATE TABLE IF NOT EXISTS unmatched_skills (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+      raw_skill_string VARCHAR(255) NOT NULL,
+      source VARCHAR(100) NOT NULL,
+      opportunity_title VARCHAR(255),
+      occurrence_count INTEGER NOT NULL DEFAULT 1,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(raw_skill_string, source)
+    );
   `;
 
   try {

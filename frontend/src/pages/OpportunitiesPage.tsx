@@ -78,6 +78,9 @@ export const OpportunitiesPage: React.FC = () => {
       const studentId = user?.student_profile_id || user?.student_id || user?.id || 'student-demo';
       const recRes = await recommendationsApi.getOpportunities({ refresh, studentId });
       if (recRes.success && recRes.data) {
+        // Engine responded successfully — mark AI as active regardless of result count
+        setIsAiPowered(true);
+
         const { readyNow = [], almostReady = [], aspirational = [] } = recRes.data;
 
         const mappedReady = readyNow.map(mapScoredOpportunity);
@@ -89,20 +92,17 @@ export const OpportunitiesPage: React.FC = () => {
           ALMOST_READY: mappedAlmost,
           ASPIRATIONAL: mappedAspirational,
         });
-        setIsAiPowered(true);
 
         // Auto-focus on best available segment
-        if (mappedReady.length > 0) {
-          setActiveTab('READY_NOW');
-        } else if (mappedAlmost.length > 0) {
-          setActiveTab('ALMOST_READY');
-        } else if (mappedAspirational.length > 0) {
-          setActiveTab('ASPIRATIONAL');
-        }
+        if (mappedReady.length > 0) setActiveTab('READY_NOW');
+        else if (mappedAlmost.length > 0) setActiveTab('ALMOST_READY');
+        else if (mappedAspirational.length > 0) setActiveTab('ASPIRATIONAL');
+
         return;
       }
 
       // 2. Fallback: Direct Opportunities endpoint
+      setIsAiPowered(false);
       const res = await opportunitiesApi.getOpportunities({ limit: 20 });
       if (res.success && res.data) {
         const items = Array.isArray(res.data) ? res.data : res.data.items || [];
@@ -130,14 +130,23 @@ export const OpportunitiesPage: React.FC = () => {
           if (ready.length > 0) setActiveTab('READY_NOW');
           else if (almost.length > 0) setActiveTab('ALMOST_READY');
           else if (aspirational.length > 0) setActiveTab('ASPIRATIONAL');
+          return;
         }
       }
+
+      setCategorizedOpps({
+        READY_NOW: [],
+        ALMOST_READY: [],
+        ASPIRATIONAL: [],
+      });
     } catch (err) {
       console.warn('Opportunities load error:', err);
+      setIsAiPowered(false);
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     setStoredResume(getStoredResume());
@@ -277,9 +286,18 @@ export const OpportunitiesPage: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="py-12 text-center">
-              <p className="text-gray-500 font-medium">No opportunities in this tier yet.</p>
-              <p className="text-sm text-gray-400 mt-2">Complete more milestones on your roadmap to unlock matches here.</p>
+          <div className="py-12 text-center">
+              {isAiPowered ? (
+                <>
+                  <p className="text-gray-500 font-medium">No opportunities in this tier yet.</p>
+                  <p className="text-sm text-gray-400 mt-2">Complete more milestones on your roadmap to unlock matches here.</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-500 font-medium">Recommendation engine is not active.</p>
+                  <p className="text-sm text-gray-400 mt-2">Please log in with a real account and complete the diagnostic assessment so the engine can score opportunities for your skill profile.</p>
+                </>
+              )}
             </div>
           )}
         </div>

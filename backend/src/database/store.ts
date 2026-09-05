@@ -7,12 +7,29 @@ export interface StoredUser {
   created_at: string;
 }
 
+export interface StoredAcademicBranch {
+  id: string;
+  code: string;
+  name: string;
+  degree?: string;
+  description?: string;
+  created_at?: string;
+}
+
+export interface StoredAcademicBranchDomain {
+  id: string;
+  academic_branch_id: string;
+  domain_id: string;
+  relevance: 'HIGH' | 'MEDIUM' | 'LOW' | string;
+}
+
 export interface StoredStudentProfile {
   id: string;
   user_id: string;
   full_name: string;
   institution: string;
   degree: string;
+  academic_branch_id?: string;
   year_of_study: number;
   interests: string[];
   selected_role_id?: string;
@@ -55,12 +72,33 @@ export interface StoredSkillState {
   updated_at?: string;
 }
 
+export interface StoredSkillAlias {
+  id: string;
+  alias: string;
+  skill_id: string;
+  created_at?: string;
+}
+
+export interface StoredUnmatchedSkill {
+  id: string;
+  raw_skill_string: string;
+  source: string;
+  opportunity_title?: string;
+  occurrence_count: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export const memoryStore = {
   users: new Map<string, StoredUser>(),
   profiles: new Map<string, StoredStudentProfile>(),
   institutions: new Map<string, StoredInstitution>(),
   companies: new Map<string, StoredCompany>(),
   skill_states: new Map<string, StoredSkillState>(),
+  academic_branches: new Map<string, StoredAcademicBranch>(),
+  academic_branch_domains: new Map<string, StoredAcademicBranchDomain>(),
+  skill_aliases: new Map<string, StoredSkillAlias>(),
+  unmatched_skills: new Map<string, StoredUnmatchedSkill>(),
 };
 
 // ==============================================================================

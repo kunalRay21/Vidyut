@@ -23,6 +23,16 @@ async function resolveStudentAndRole(req: Request): Promise<{ studentId: string;
       const decoded = verifyToken(token);
       if (decoded?.id) {
         if (!studentId) studentId = decoded.id;
+        if (decoded.role === 'STUDENT') {
+          const profileRes = await query<{ id: string; selected_role_id: string }>(
+            `SELECT id, selected_role_id FROM student_profiles WHERE user_id = $1 OR id = $1`,
+            [decoded.id]
+          ).catch(() => ({ rows: [] as any[] }));
+          if (profileRes.rows.length > 0) {
+            studentId = profileRes.rows[0].id;
+            if (!roleId && profileRes.rows[0].selected_role_id) roleId = profileRes.rows[0].selected_role_id;
+          }
+        }
       }
     } catch {
       // Fallback
@@ -126,6 +136,43 @@ router.get('/', async (req: Request, res: Response) => {
     return apiError(
       res,
       error.message || 'Failed to generate roadmap',
+      500,
+      'SERVER_ERROR'
+    );
+  }
+});
+
+// POST /api/v1/roadmap/generate
+router.post('/generate', async (req: Request, res: Response) => {
+  try {
+    const { studentId, roleId } = await resolveStudentAndRole(req);
+
+    const roadmap = await generatePersonalizedRoadmap(studentId, roleId);
+    return apiSuccess(res, roadmap);
+  } catch (error: any) {
+    console.error('[Roadmap Generate Error]', error);
+    return apiError(
+      res,
+      error.message || 'Failed to regenerate roadmap',
+      500,
+      'SERVER_ERROR'
+    );
+  }
+});
+
+// GET /api/v1/roadmap/gaps
+router.get('/gaps', async (req: Request, res: Response) => {
+  try {
+    const { studentId, roleId } = await resolveStudentAndRole(req);
+    const { analyzeSkillGaps } = await import('./service');
+    const gaps = await analyzeSkillGaps(studentId, roleId);
+
+    return apiSuccess(res, gaps);
+  } catch (error: any) {
+    console.error('[Roadmap Gaps Error]', error);
+    return apiError(
+      res,
+      error.message || 'Failed to analyze skill gaps',
       500,
       'SERVER_ERROR'
     );

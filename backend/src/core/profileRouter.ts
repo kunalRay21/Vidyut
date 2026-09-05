@@ -67,9 +67,10 @@ router.get('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
     if (isDbConnected()) {
       try {
         const resDb = await pool.query(
-          `SELECT sp.*, u.email 
+          `SELECT sp.*, u.email, ab.code as academic_branch_code, ab.name as academic_branch_name
            FROM student_profiles sp 
            JOIN users u ON sp.user_id = u.id 
+           LEFT JOIN academic_branches ab ON ab.id = sp.academic_branch_id
            WHERE sp.user_id = $1`,
           [userId]
         );
@@ -87,7 +88,13 @@ router.get('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
       profile = memoryStore.profiles.get(userId);
       if (profile) {
         const user = Array.from(memoryStore.users.values()).find(u => u.id === userId);
-        profile = { ...profile, email: user?.email };
+        const branch = profile.academic_branch_id ? memoryStore.academic_branches.get(profile.academic_branch_id) : null;
+        profile = {
+          ...profile,
+          email: user?.email,
+          academic_branch_code: branch?.code,
+          academic_branch_name: branch?.name,
+        };
       }
     }
 
@@ -98,6 +105,34 @@ router.get('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
     return apiSuccess(res, profile);
   } catch (err: any) {
     return apiError(res, 'Failed to fetch profile: ' + err.message, 500, 'SERVER_ERROR');
+  }
+});
+
+// PUT /api/v1/profile/academic-branch (Update Student Academic Branch - Phase 2)
+router.put('/academic-branch', authenticateJWT, requireRole(['STUDENT']), async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user!.id;
+  const { academic_branch_id } = req.body;
+
+  if (!academic_branch_id) {
+    return apiError(res, 'academic_branch_id is required', 400, 'BAD_REQUEST');
+  }
+
+  try {
+    try {
+      await pool.query(
+        `UPDATE student_profiles SET academic_branch_id = $1, updated_at = NOW() WHERE user_id = $2`,
+        [academic_branch_id, userId]
+      );
+    } catch {
+      const profile = memoryStore.profiles.get(userId);
+      if (profile) {
+        profile.academic_branch_id = academic_branch_id;
+      }
+    }
+
+    return apiSuccess(res, { message: 'Academic branch updated successfully', academic_branch_id });
+  } catch (err: any) {
+    return apiError(res, 'Failed to update academic branch: ' + err.message, 500, 'SERVER_ERROR');
   }
 });
 
@@ -288,14 +323,28 @@ router.get('/me/skills', async (req: Request, res: Response) => {
     }
 
     const totalSkills = skills.length;
+    let totalRatio = 0;
+    const levelValueMap: Record<string, number> = { AWARENESS: 1, BEGINNER: 2, INTERMEDIATE: 3, PROFICIENT: 4, EXPERT: 5 };
+    for (const s of skills) {
+      const cur = levelValueMap[s.assessed_level] || 1;
+      const tgt = levelValueMap[s.target_level] || 4;
+      totalRatio += Math.min(cur / tgt, 1.0);
+    }
+    let readinessPct = totalSkills === 0 ? 0 : Math.round((totalRatio / totalSkills) * 100);
     const completedSkills = skills.filter((s) => s.status === 'completed').length;
-    let readinessPct = totalSkills === 0 ? 0 : Math.round((completedSkills / totalSkills) * 100);
 
     // If profile has an assessed readiness_pct from an assessment, reflect that
     const memProf = memoryStore.profiles.get(studentId) ||
       Array.from(memoryStore.profiles.values()).find(p => p.user_id === studentId);
     if (memProf?.readiness_pct && memProf.readiness_pct > 0) {
       readinessPct = Math.max(readinessPct, Math.round(memProf.readiness_pct));
+    }
+
+    // Synchronize student_profiles DB
+    try {
+      await query(`UPDATE student_profiles SET readiness_pct = $1 WHERE id = $2`, [readinessPct, studentId]);
+    } catch {
+      // Non-blocking fallback
     }
 
     return apiSuccess(res, {
