@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DashboardPage } from './pages/DashboardPage';
 import { RoadmapPage } from './pages/RoadmapPage';
@@ -8,6 +8,7 @@ import { IndustryPostJobPage } from './pages/IndustryPostJobPage';
 import { IndustryTalentPage } from './pages/IndustryTalentPage';
 import { InstitutionOnboardPage } from './pages/InstitutionOnboardPage';
 import { LandingPage } from './pages/LandingPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 import LoginForm from './features/onboarding/LoginForm';
 import RegisterForm from './features/onboarding/RegisterForm';
@@ -49,6 +50,28 @@ function NotFoundPage() {
 
 function AppContent() {
   const { t } = useTranslation();
+  const location = useLocation();
+  const isAssessmentExamPage = location.pathname.startsWith('/assessment/quiz');
+
+  if (isAssessmentExamPage) {
+    return (
+      <div className="h-screen w-screen overflow-hidden bg-white text-slate-900 selection:bg-saffron selection:text-gray-900">
+        <Routes>
+          <Route path="/assessment/quiz/:id" element={
+            <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
+              <ExamPlatformPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/assessment/quiz" element={
+            <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
+              <ExamPlatformPage />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF9] text-slate-900 selection:bg-saffron selection:text-gray-900">
       <Navbar />
@@ -64,21 +87,18 @@ function AppContent() {
             <SelfAssessmentPage />
           </ProtectedRoute>
         } />
-        <Route path="/assessment/quiz/:id" element={
-          <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
-            <ExamPlatformPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/assessment/quiz" element={
-          <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
-            <ExamPlatformPage />
-          </ProtectedRoute>
-        } />
 
         <Route path="/dashboard" element={
           <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
             <div className="flex-1 bg-transparent text-gray-900 w-full">
               <DashboardPage />
+            </div>
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute allowedRoles={['STUDENT', 'ADMIN']}>
+            <div className="flex-1 bg-transparent text-gray-900 w-full">
+              <ProfilePage />
             </div>
           </ProtectedRoute>
         } />

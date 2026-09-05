@@ -29,10 +29,29 @@ export function setStoredUser(user: any) {
   localStorage.setItem('demo_user', JSON.stringify(user));
 }
 
+export function getStoredResume(): any | null {
+  const raw = localStorage.getItem('student_resume');
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredResume(resume: any) {
+  localStorage.setItem('student_resume', JSON.stringify(resume));
+}
+
+export function clearStoredResume() {
+  localStorage.removeItem('student_resume');
+}
+
 export function clearStoredAuth() {
   localStorage.removeItem('access_token');
   localStorage.removeItem('vidyut_user');
   localStorage.removeItem('demo_user');
+  localStorage.removeItem('student_resume');
   localStorage.removeItem('institution_token');
   localStorage.removeItem('industry_token');
   localStorage.removeItem('industry_company');
@@ -109,6 +128,14 @@ export const authApi = {
     degree: string;
     year_of_study: number;
     interests?: string[];
+    resume?: {
+      filename?: string;
+      raw_text?: string;
+      parsed_skills?: string[];
+      matched_role?: string;
+      match_score?: number;
+      parsed_data?: any;
+    };
   }) => {
     return await request('/api/v1/auth/register', {
       method: 'POST',
@@ -351,6 +378,26 @@ export const profileApi = {
     return await request('/api/v1/profile/me', {
       method: 'PUT',
       body: JSON.stringify(fields),
+    });
+  },
+
+  uploadResume: async (data: {
+    filename?: string;
+    raw_text?: string;
+    parsed_skills?: string[];
+    matched_role?: string;
+    match_score?: number;
+    parsed_data?: any;
+  }) => {
+    return await request('/api/v1/profile/me/resume', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteResume: async () => {
+    return await request('/api/v1/profile/me/resume', {
+      method: 'DELETE',
     });
   },
 };

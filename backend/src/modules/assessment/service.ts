@@ -851,16 +851,65 @@ export class AssessmentService {
       }
     }
 
+    const calculatedReadiness = Math.min(100, Math.round(overallAccuracyPct * 0.95 + 5));
+
+    // Persist evaluated skill states and readiness score
+    try {
+      const studentId = session.student_id;
+      if (studentId) {
+        // 1. Update in-memory skill states store
+        for (const score of skillScores) {
+          inMemorySkillStates.set(`${studentId}:${score.skill_id}`, {
+            student_id: studentId,
+            skill_id: score.skill_id,
+            assessed_level: score.proficiency,
+            accuracy: score.accuracy_pct,
+            updated_at: new Date().toISOString(),
+          });
+
+          // 2. Persist to PostgreSQL student_skill_states table
+          query(
+            `INSERT INTO student_skill_states (student_id, skill_id, assessed_level, accuracy)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (student_id, skill_id)
+             DO UPDATE SET assessed_level = EXCLUDED.assessed_level, accuracy = EXCLUDED.accuracy, updated_at = NOW()`,
+            [studentId, score.skill_id, score.proficiency, score.accuracy_pct]
+          ).catch((e) => console.warn('[Assessment Submit] Skill state DB save notice:', e.message));
+        }
+
+        // 3. Update student_profiles readiness_pct in PostgreSQL & memoryStore
+        query(
+          `UPDATE student_profiles
+           SET readiness_pct = $1,
+               selected_role_id = COALESCE($2, selected_role_id),
+               updated_at = NOW()
+           WHERE id = $3 OR user_id = $3`,
+          [calculatedReadiness, session.role_id || null, studentId]
+        ).catch((e) => console.warn('[Assessment Submit] Profile DB save notice:', e.message));
+
+        const memProf = memoryStore.profiles.get(studentId);
+        if (memProf) {
+          memProf.readiness_pct = calculatedReadiness;
+          if (session.role_id) memProf.selected_role_id = session.role_id;
+        }
+      }
+    } catch (persistErr) {
+      console.warn('[Assessment Submit] Persistence warning:', persistErr);
+    }
+
     return {
       session_id: sessionId,
+      role_id: session.role_id,
+      test_title: session.test_title,
       total_questions: questions.length,
       mcq_correct: mcqCorrect,
       coding_solved: codingSolved,
       effective_coding_counted: effectiveCodingPoints,
       overall_accuracy_pct: overallAccuracyPct,
-      overall_readiness_pct: Math.min(100, Math.round(overallAccuracyPct * 0.95 + 5)),
+      overall_readiness_pct: calculatedReadiness,
       skill_scores: skillScores,
       discrepancies: discrepancies,
+      completed_at: session.completed_at,
     };
   }
 

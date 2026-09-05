@@ -13,6 +13,7 @@ import {
   Building2,
   GraduationCap,
   ArrowRight,
+  User,
 } from 'lucide-react';
 import { useAuth, UserRole } from '../../context/AuthContext';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
@@ -306,6 +307,15 @@ export const Navbar: React.FC = () => {
                       </Link>
 
                       <Link
+                        to="/profile"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition"
+                      >
+                        <User className="w-3.5 h-3.5 text-gray-500" />
+                        <span>Profile & Resume</span>
+                      </Link>
+
+                      <Link
                         to="/explore"
                         onClick={() => setProfileDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition"
@@ -433,6 +443,25 @@ export const Navbar: React.FC = () => {
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
+
+            {isAuthenticated && (
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                    isActive
+                      ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                      : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                  }`
+                }
+              >
+                <div className="flex items-center gap-3">
+                  <User className="w-4 h-4 text-emerald-600" />
+                  <span>Profile & Resume</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+              </NavLink>
+            )}
 
             <NavLink
               to="/roadmap"

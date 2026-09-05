@@ -6,6 +6,8 @@ import { apiResponse, apiError } from '../core/responses';
 import { pool } from '../database/db';
 import { memoryStore } from '../database/store';
 
+import { ResumeParserService } from '../modules/resume/resumeService';
+
 const router = Router();
 
 const RegisterSchema = z.object({
@@ -16,6 +18,14 @@ const RegisterSchema = z.object({
   degree: z.string().min(2, 'Degree required (e.g. B.Tech CSE)'),
   year_of_study: z.number().int().min(1).max(5),
   interests: z.array(z.string()).optional().default([]),
+  resume: z.object({
+    filename: z.string().optional(),
+    raw_text: z.string().optional(),
+    parsed_skills: z.array(z.string()).optional(),
+    matched_role: z.string().optional(),
+    match_score: z.number().optional(),
+    parsed_data: z.any().optional(),
+  }).optional(),
 });
 
 const LoginSchema = z.object({
@@ -30,7 +40,7 @@ router.post('/register', async (req: Request, res: Response) => {
     return apiError(res, 'Validation error', 400, 'VALIDATION_ERROR', parseResult.error.format());
   }
 
-  const { email, password, full_name, institution, degree, year_of_study, interests } = parseResult.data;
+  const { email, password, full_name, institution, degree, year_of_study, interests, resume } = parseResult.data;
 
   try {
     const passwordHash = await hashPassword(password);
@@ -38,6 +48,29 @@ router.post('/register', async (req: Request, res: Response) => {
     const profileId = randomUUID();
 
     let userRole: 'STUDENT' = 'STUDENT';
+
+    // Parse resume if provided
+    let resumeFilename = resume?.filename || null;
+    let resumeRawText = resume?.raw_text || null;
+    let parsedSkills = resume?.parsed_skills || [];
+    let resumeMatchedRole = resume?.matched_role || null;
+    let resumeMatchScore = resume?.match_score || 0.0;
+    let resumeParsedData = resume?.parsed_data || null;
+
+    if (resumeRawText && (!resumeMatchedRole || parsedSkills.length === 0)) {
+      try {
+        const parsed = ResumeParserService.parse(resumeRawText, resumeFilename || 'Resume.pdf');
+        resumeFilename = parsed.fileName;
+        parsedSkills = parsed.extractedSkills;
+        resumeMatchedRole = parsed.primaryMatch.id;
+        resumeMatchScore = parsed.primaryMatch.matchPercentage;
+        resumeParsedData = parsed;
+      } catch (parseErr) {
+        console.warn('Resume parse warning on register:', parseErr);
+      }
+    }
+
+    const selectedRoleId = resumeMatchedRole || null;
 
     // Try PostgreSQL first
     try {
@@ -52,9 +85,28 @@ router.post('/register', async (req: Request, res: Response) => {
       );
 
       await pool.query(
-        `INSERT INTO student_profiles (id, user_id, full_name, institution, degree, year_of_study, interests)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [profileId, userId, full_name, institution, degree, year_of_study, interests]
+        `INSERT INTO student_profiles (
+           id, user_id, full_name, institution, degree, year_of_study, interests,
+           selected_role_id, resume_filename, resume_raw_text, parsed_skills,
+           resume_matched_role, resume_match_score, resume_parsed_data
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        [
+          profileId,
+          userId,
+          full_name,
+          institution,
+          degree,
+          year_of_study,
+          interests,
+          selectedRoleId,
+          resumeFilename,
+          resumeRawText,
+          parsedSkills,
+          resumeMatchedRole,
+          resumeMatchScore,
+          resumeParsedData ? JSON.stringify(resumeParsedData) : null
+        ]
       );
     } catch (dbErr: any) {
       // Fallback to in-memory store for offline development
@@ -78,7 +130,14 @@ router.post('/register', async (req: Request, res: Response) => {
         degree,
         year_of_study,
         interests,
-        readiness_pct: 0.0
+        selected_role_id: selectedRoleId || undefined,
+        readiness_pct: 0.0,
+        resume_filename: resumeFilename || undefined,
+        resume_raw_text: resumeRawText || undefined,
+        parsed_skills: parsedSkills,
+        resume_matched_role: resumeMatchedRole || undefined,
+        resume_match_score: resumeMatchScore,
+        resume_parsed_data: resumeParsedData,
       });
     }
 
@@ -98,7 +157,13 @@ router.post('/register', async (req: Request, res: Response) => {
         full_name,
         institution,
         degree,
-        year_of_study
+        year_of_study,
+        selected_role_id: selectedRoleId,
+        resume_filename: resumeFilename,
+        parsed_skills: parsedSkills,
+        resume_matched_role: resumeMatchedRole,
+        resume_match_score: resumeMatchScore,
+        resume_parsed_data: resumeParsedData,
       }
     }, true, null, 201);
   } catch (err: any) {
@@ -141,7 +206,7 @@ router.post('/login', async (req: Request, res: Response) => {
     if (user.role === 'STUDENT') {
       try {
         const profRes = await pool.query(
-          'SELECT id, full_name, institution, degree, year_of_study, selected_role_id, readiness_pct FROM student_profiles WHERE user_id = $1 LIMIT 1',
+          'SELECT id, full_name, institution, degree, year_of_study, selected_role_id, readiness_pct, resume_filename, parsed_skills, resume_matched_role, resume_match_score, resume_parsed_data FROM student_profiles WHERE user_id = $1 LIMIT 1',
           [user.id]
         );
         if (profRes.rows.length > 0) {
@@ -174,6 +239,11 @@ router.post('/login', async (req: Request, res: Response) => {
         year_of_study: studentProfile?.year_of_study,
         selected_role_id: studentProfile?.selected_role_id,
         readiness_pct: studentProfile?.readiness_pct,
+        resume_filename: studentProfile?.resume_filename,
+        parsed_skills: studentProfile?.parsed_skills,
+        resume_matched_role: studentProfile?.resume_matched_role,
+        resume_match_score: studentProfile?.resume_match_score,
+        resume_parsed_data: studentProfile?.resume_parsed_data,
       }
     });
   } catch (err: any) {
