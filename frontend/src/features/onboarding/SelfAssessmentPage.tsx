@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FadeIn } from '../../components/animations/FadeIn';
 import { skillGraphApi, assessmentApi, getStoredUser } from '../../services/api';
 
@@ -47,6 +48,58 @@ const DEFAULT_ROLES: RoleItem[] = [
       { id: 'skill-ml-fund', name: 'Machine Learning Fundamentals' },
     ],
   },
+  {
+    id: 'role-cloud',
+    name: 'Cloud Native & DevOps Engineer',
+    description: 'Deploy resilient containerized workloads, configure automated CI/CD pipelines, and maintain cloud infrastructure.',
+    skills: [
+      { id: 'skill-linux', name: 'Linux Administration & Shell Scripting' },
+      { id: 'skill-networking', name: 'Computer Networking & DNS Basics' },
+      { id: 'skill-docker', name: 'Container Orchestration with Docker' },
+      { id: 'skill-cicd', name: 'Automated CI/CD Pipelines' },
+      { id: 'skill-k8s', name: 'Kubernetes Cluster Management' },
+      { id: 'skill-terraform', name: 'Infrastructure as Code (Terraform)' },
+    ],
+  },
+  {
+    id: 'role-data',
+    name: 'Data Science & Big Data Engineer',
+    description: 'Extract transformative business intelligence, orchestrate reliable ETL data pipelines, and architect data analytics.',
+    skills: [
+      { id: 'skill-prob-stats', name: 'Probability & Descriptive Statistics' },
+      { id: 'skill-adv-sql', name: 'Advanced SQL & Window Functions' },
+      { id: 'skill-etl', name: 'Automated ETL Pipeline Engineering' },
+      { id: 'skill-data-viz', name: 'Data Visualization & Storytelling' },
+      { id: 'skill-spark', name: 'Distributed Processing with PySpark' },
+      { id: 'skill-kafka-stream', name: 'Real-Time Event Streaming (Kafka)' },
+    ],
+  },
+  {
+    id: 'role-fullstack',
+    name: 'Full-Stack Web Architect',
+    description: 'Build rich user interfaces with React and connect them to performant distributed backend services.',
+    skills: [
+      { id: 'skill-html-css', name: 'Semantic HTML5 & Modern CSS3' },
+      { id: 'skill-ts', name: 'TypeScript & Type Safety' },
+      { id: 'skill-react', name: 'React Component Architecture & Hooks' },
+      { id: 'skill-node-api', name: 'Backend API Integration (Node/Express)' },
+      { id: 'skill-nextjs', name: 'Server-Side Rendering (Next.js)' },
+      { id: 'skill-testing', name: 'Automated Testing & End-to-End' },
+    ],
+  },
+  {
+    id: 'role-security',
+    name: 'Cybersecurity & Defensive Specialist',
+    description: 'Analyze network vulnerabilities, implement zero-trust authentication protocols, and harden enterprise applications.',
+    skills: [
+      { id: 'skill-sec-net', name: 'Network Protocol & Packet Analysis' },
+      { id: 'skill-crypto', name: 'Applied Cryptography Fundamentals' },
+      { id: 'skill-owasp', name: 'Web Application Security (OWASP Top 10)' },
+      { id: 'skill-iam', name: 'Identity & Access Management (OAuth/JWT)' },
+      { id: 'skill-siem', name: 'Defensive SIEM & Threat Monitoring' },
+      { id: 'skill-zero-trust', name: 'Zero-Trust Architecture & Hardening' },
+    ],
+  },
 ];
 
 const ratingValues: Rating[] = [
@@ -63,14 +116,28 @@ const ratingLabels: Record<Rating, string> = {
   EXPERT: 'Expert',
 };
 
+export const getRoleTranslationKey = (roleId: string): string => {
+  if (roleId.includes('backend')) return 'backend';
+  if (roleId.includes('ml')) return 'ml';
+  if (roleId.includes('data')) return 'data';
+  if (roleId.includes('cloud')) return 'cloud';
+  if (roleId.includes('fullstack')) return 'fullstack';
+  if (roleId.includes('security')) return 'security';
+  return 'backend';
+};
+
 export default function SelfAssessmentPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const navState = location.state as { selectedDomainId?: string; domainName?: string } | null;
+
   const initialRole = DEFAULT_ROLES.find(
     (r) =>
       r.id === navState?.selectedDomainId ||
-      (navState?.domainName && r.name.toLowerCase().includes(navState.domainName.toLowerCase()))
+      (navState?.selectedDomainId && (r.id.includes(navState.selectedDomainId.replace('domain-', '').replace('role-', '')) || navState.selectedDomainId.includes(r.id.replace('role-', '')))) ||
+      (navState?.domainName && r.name.toLowerCase().includes(navState.domainName.toLowerCase())) ||
+      (navState?.domainName && navState.domainName.toLowerCase().includes(r.name.toLowerCase().split(' ')[0]))
   )?.id || DEFAULT_ROLES[0].id;
 
   const [roles, setRoles] = useState<RoleItem[]>(DEFAULT_ROLES);
@@ -189,15 +256,15 @@ export default function SelfAssessmentPage() {
       <FadeIn delay={100}>
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-saffron/10 text-saffron-600 text-xs font-bold uppercase tracking-wider mb-3 border border-saffron/30">
-            Step 1 · Self Assessment
+            {t('selfAssessment.stepBadge', 'Step 1 · Self Assessment')}
           </div>
 
           <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-[#000080]">
-            Evaluate Your Baseline Competencies
+            {t('selfAssessment.title', 'Evaluate Your Baseline Competencies')}
           </h1>
 
           <p className="text-gray-600 text-sm md:text-base mt-2 max-w-2xl mx-auto leading-relaxed">
-            Select your target career role and honestly rate your familiarity with each core skill. This baseline will be calibrated against an adaptive diagnostic quiz.
+            {t('selfAssessment.subtitle', 'Select your target career role and honestly rate your familiarity with each core skill. This baseline will be calibrated against an adaptive diagnostic quiz.')}
           </p>
         </div>
       </FadeIn>
@@ -207,7 +274,7 @@ export default function SelfAssessmentPage() {
         <FadeIn delay={150}>
           <div className="bg-[#FFFEF2] border border-[#EAE3B3] rounded-2xl p-6 shadow-sm">
             <label className="block text-sm font-bold text-gray-900 mb-2">
-              Select Your Target Career Role
+              {t('selfAssessment.selectRole', 'Select Your Target Career Role')}
             </label>
 
             <select
@@ -215,20 +282,23 @@ export default function SelfAssessmentPage() {
               onChange={handleRoleChange}
               className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
             >
-              {roles.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
+              {roles.map((role) => {
+                const key = getRoleTranslationKey(role.id);
+                return (
+                  <option key={role.id} value={role.id}>
+                    {t(`roles.${key}.name`, role.name)}
+                  </option>
+                );
+              })}
             </select>
 
             {currentRole && (
               <div className="mt-4 bg-white rounded-xl p-4 border border-[#EAE3B3]">
                 <h2 className="font-bold text-gray-900 text-base">
-                  {currentRole.name}
+                  {t(`roles.${getRoleTranslationKey(currentRole.id)}.name`, currentRole.name)}
                 </h2>
                 <p className="text-gray-600 text-xs mt-1">
-                  {currentRole.description}
+                  {t(`roles.${getRoleTranslationKey(currentRole.id)}.description`, currentRole.description)}
                 </p>
               </div>
             )}
@@ -241,10 +311,10 @@ export default function SelfAssessmentPage() {
             <div className="bg-[#FFFEF2] border border-[#EAE3B3] rounded-2xl p-6 shadow-sm">
               <div className="mb-6">
                 <h2 className="text-lg font-bold text-gray-900 font-heading">
-                  Rate Your Proficiency ({currentRole.skills.length} Skills Identified)
+                  {t('selfAssessment.rateProficiency', 'Rate Your Proficiency')} ({currentRole.skills.length})
                 </h2>
                 <p className="text-gray-500 text-xs mt-0.5">
-                  Select the level that best reflects your real-world capability today.
+                  {t('selfAssessment.rateSubtitle', 'Select the level that best reflects your real-world capability today.')}
                 </p>
               </div>
 
@@ -259,7 +329,9 @@ export default function SelfAssessmentPage() {
                         {skill.name}
                       </span>
                       <span className="text-xs font-bold text-saffron bg-saffron/10 px-2.5 py-0.5 rounded-full">
-                        {ratings[skill.id] ? ratingLabels[ratings[skill.id]] : 'Pending'}
+                        {ratings[skill.id]
+                          ? t(`selfAssessment.ratings.${ratings[skill.id].toLowerCase()}`, ratingLabels[ratings[skill.id]])
+                          : t('selfAssessment.pending', 'Pending')}
                       </span>
                     </div>
 
@@ -277,7 +349,7 @@ export default function SelfAssessmentPage() {
                                 : 'bg-white border border-gray-300 text-gray-700 hover:border-saffron'
                             }`}
                           >
-                            {ratingLabels[rating]}
+                            {t(`selfAssessment.ratings.${rating.toLowerCase()}`, ratingLabels[rating])}
                           </button>
                         );
                       })}
@@ -297,7 +369,9 @@ export default function SelfAssessmentPage() {
                 disabled={loading}
                 className="w-full mt-8 btn-saffron py-3.5 rounded-xl font-bold text-sm shadow-sm disabled:opacity-50 cursor-pointer"
               >
-                {loading ? 'Generating Calibrated Quiz from Skill Graph...' : 'Continue to Diagnostic Quiz →'}
+                {loading
+                  ? t('selfAssessment.generatingQuiz', 'Generating Calibrated Quiz from Skill Graph...')
+                  : t('selfAssessment.continueToQuiz', 'Continue to Diagnostic Quiz →')}
               </button>
             </div>
           </FadeIn>

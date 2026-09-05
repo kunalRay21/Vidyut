@@ -93,7 +93,7 @@ const DEFAULT_DOMAINS: DomainItem[] = [
   },
   {
     id: 'domain-data',
-    roleId: 'role-ml',
+    roleId: 'role-data',
     name: 'Data Science & Big Data Engineering',
     category: 'Data Science',
     description: 'Extract transformative business intelligence, orchestrate reliable ETL data pipelines, and architect high-capacity data lakes and warehouses.',
@@ -114,7 +114,7 @@ const DEFAULT_DOMAINS: DomainItem[] = [
   },
   {
     id: 'domain-cloud',
-    roleId: 'role-backend',
+    roleId: 'role-cloud',
     name: 'Cloud Native & DevOps Engineering',
     category: 'Cloud & DevOps',
     description: 'Deploy resilient containerized workloads, configure automated CI/CD deployment pipelines, and maintain hyper-scaler cloud infrastructure.',
@@ -135,7 +135,7 @@ const DEFAULT_DOMAINS: DomainItem[] = [
   },
   {
     id: 'domain-fullstack',
-    roleId: 'role-backend',
+    roleId: 'role-fullstack',
     name: 'Full-Stack Web Architecture',
     category: 'Full-Stack',
     description: 'Build rich, accessible user interfaces with modern React frameworks and connect them to secure, performant distributed backend services.',
@@ -156,7 +156,7 @@ const DEFAULT_DOMAINS: DomainItem[] = [
   },
   {
     id: 'domain-security',
-    roleId: 'role-backend',
+    roleId: 'role-security',
     name: 'Cybersecurity & Defensive Systems',
     category: 'Security',
     description: 'Analyze network vulnerabilities, implement zero-trust authentication protocols, and harden enterprise software applications against exploits.',

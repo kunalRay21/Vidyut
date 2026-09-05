@@ -209,6 +209,51 @@
     "noResults": "No engineering tracks match your filter",
     "clearFilters": "Reset Filters"
   },
+  "roles": {
+    "backend": {
+      "name": "Backend Developer",
+      "description": "Develops scalable APIs, databases and server-side applications."
+    },
+    "ml": {
+      "name": "Machine Learning Engineer",
+      "description": "Builds, evaluates and deploys machine learning and predictive models."
+    },
+    "data": {
+      "name": "Data Science & Big Data Engineer",
+      "description": "Constructs resilient data pipelines, ETL workflows, and large-scale data analytics."
+    },
+    "cloud": {
+      "name": "Cloud Native & DevOps Engineer",
+      "description": "Deploys resilient containerized workloads, CI/CD pipelines, and manages cloud infrastructure."
+    },
+    "fullstack": {
+      "name": "Full-Stack Web Architect",
+      "description": "Builds rich, accessible user interfaces with React and connects them to robust backend microservices."
+    },
+    "security": {
+      "name": "Cybersecurity & Defensive Specialist",
+      "description": "Identifies software vulnerabilities, implements zero-trust protocols, and hardens enterprise systems."
+    }
+  },
+  "selfAssessment": {
+    "stepBadge": "Step 1 · Self Assessment",
+    "title": "Self-Assessment Scorecard",
+    "subtitle": "Select your career role and evaluate your current baseline across foundational, core, and specialized skills.",
+    "selectRole": "Select Target Career Role",
+    "rateSkills": "Rate Your Skills",
+    "rateProficiency": "Rate Your Proficiency",
+    "rateSubtitle": "Select the level that best reflects your real-world capability today.",
+    "ratings": {
+      "beginner": "Beginner",
+      "average": "Average",
+      "good": "Good",
+      "expert": "Expert"
+    },
+    "pending": "Pending",
+    "continueToQuiz": "Continue to Diagnostic Quiz →",
+    "generatingQuiz": "Generating Calibrated Quiz from Skill Graph...",
+    "submit": "Submit Assessment & Generate Roadmap"
+  },
   "footer": {
     "text": "Vidyut — Smart India Hackathon 2026 · Ministry of Education & AICTE Initiative"
   }

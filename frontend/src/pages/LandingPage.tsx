@@ -57,7 +57,7 @@ const FEATURED_COURSES: CourseTrack[] = [
   },
   {
     id: 'course-cloud',
-    roleId: 'role-backend',
+    roleId: 'role-cloud',
     title: 'Cloud Native & DevOps Engineering',
     category: 'Cloud Infrastructure',
     icon: <Cloud className="w-5 h-5 text-[#000080]" />,
@@ -68,7 +68,7 @@ const FEATURED_COURSES: CourseTrack[] = [
   },
   {
     id: 'course-fullstack',
-    roleId: 'role-backend',
+    roleId: 'role-fullstack',
     title: 'Full-Stack Web Systems',
     category: 'Web Development',
     icon: <Code className="w-5 h-5 text-saffron-600" />,
@@ -79,7 +79,7 @@ const FEATURED_COURSES: CourseTrack[] = [
   },
   {
     id: 'course-data',
-    roleId: 'role-ml',
+    roleId: 'role-data',
     title: 'Data Engineering & Big Data Analytics',
     category: 'Data Systems',
     icon: <Layers className="w-5 h-5 text-indiaGreen" />,
@@ -90,7 +90,7 @@ const FEATURED_COURSES: CourseTrack[] = [
   },
   {
     id: 'course-security',
-    roleId: 'role-backend',
+    roleId: 'role-security',
     title: 'Cybersecurity & Secure Systems',
     category: 'Security & Defense',
     icon: <ShieldCheck className="w-5 h-5 text-[#000080]" />,
