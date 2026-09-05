@@ -254,6 +254,29 @@
     "generatingQuiz": "Generating Calibrated Quiz from Skill Graph...",
     "submit": "Submit Assessment & Generate Roadmap"
   },
+  "helpAssistant": {
+    "triggerLabel": "Help Assistant",
+    "badge": "AI Career Guide",
+    "title": "Vidyut Assistant",
+    "online": "Online",
+    "subtitle": "Your smart guide for roadmaps, skills & opportunities",
+    "welcomeMessage": "Hi there! 👋 I'm your Vidyut Assistant. I can help guide you through your career roadmap, skill assessments, compatibility scores, and recommended learning resources. How can I help you today?",
+    "allTopics": "All Topics",
+    "searchPlaceholder": "Search topics or ask a question...",
+    "inputPlaceholder": "Ask a question about Vidyut...",
+    "suggestedTopics": "Suggested Topics",
+    "noTopicsFound": "No topics found matching \"{{query}}\". Try searching for \"roadmap\", \"score\", or \"free\".",
+    "relatedTopics": "Related Topics & Next Steps:",
+    "suggestedQuestions": "Suggested Questions to Explore:",
+    "fallbackMessage": "I'm here to help you navigate Vidyut! I couldn't find an exact answer for that question, but here are the most relevant topics I can help you with right now:",
+    "resetChat": "Reset Conversation",
+    "close": "Close Assistant",
+    "copyAnswer": "Copy",
+    "copied": "Copied!",
+    "category": "Category",
+    "switchLanguage": "Language",
+    "clearSearch": "Clear search"
+  },
   "footer": {
     "text": "Vidyut — Smart India Hackathon 2026 · Ministry of Education & AICTE Initiative"
   }
