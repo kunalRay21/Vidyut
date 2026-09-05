@@ -18,6 +18,7 @@ import {
   RotateCcw,
   Terminal,
   Bot,
+  Brain,
 } from 'lucide-react';
 import { useAuth, UserRole } from '../../context/AuthContext';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
@@ -246,6 +247,20 @@ export const Navbar: React.FC = () => {
             >
               <Bot className="w-3.5 h-3.5 text-indigo-600" />
               <span>AI Fluency</span>
+            </NavLink>
+
+            <NavLink
+              to="/digital-twin"
+              className={({ isActive }) =>
+                `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  isActive
+                    ? 'text-gray-950 font-bold bg-white/70 shadow-2xs backdrop-blur-xs'
+                    : 'text-gray-700 hover:text-black hover:bg-white/40'
+                }`
+              }
+            >
+              <Brain className="w-3.5 h-3.5 text-teal-600" />
+              <span>Digital Twin</span>
             </NavLink>
 
             {/* Portals Dropdown Trigger - Eliminates Horizontal Clutter */}
@@ -652,6 +667,23 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Bot className="w-4 h-4 text-indigo-600" />
                 <span>AI Fluency</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+            </NavLink>
+
+            <NavLink
+              to="/digital-twin"
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <Brain className="w-4 h-4 text-teal-600" />
+                <span>Digital Twin</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>

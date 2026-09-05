@@ -9,6 +9,7 @@ import { CareerSimulatorPage } from './pages/CareerSimulatorPage';
 import { DiagnosticLoopPage } from './pages/DiagnosticLoopPage';
 import { JobSimulationPage } from './pages/JobSimulationPage';
 import { AIFluencyPage } from './pages/AIFluencyPage';
+import { DigitalTwinPage } from './pages/DigitalTwinPage';
 import { IndustryOnboardPage } from './pages/IndustryOnboardPage';
 import { IndustryPostJobPage } from './pages/IndustryPostJobPage';
 import { IndustryTalentPage } from './pages/IndustryTalentPage';
@@ -148,6 +149,11 @@ function AppContent() {
         <Route path="/ai-fluency" element={
           <div className="flex-1 bg-transparent text-gray-900 w-full">
             <AIFluencyPage />
+          </div>
+        } />
+        <Route path="/digital-twin" element={
+          <div className="flex-1 bg-transparent text-gray-900 w-full">
+            <DigitalTwinPage />
           </div>
         } />
 

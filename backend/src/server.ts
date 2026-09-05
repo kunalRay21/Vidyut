@@ -37,6 +37,9 @@ import { simulationRouter } from './modules/simulations/simulation.router';
 // AI Usage & AI Fluency Engine Router
 import { aiFluencyRouter } from './modules/ai_fluency/ai_fluency.router';
 
+// Career Readiness Digital Twin & 12-Hour Prep Plan Router
+import { digitalTwinRouter } from './modules/digital_twin/digital_twin.router';
+
 dotenv.config();
 
 const app = express();
@@ -121,6 +124,7 @@ app.use('/api/v1/simulator', simulatorRouter);          // Career Simulator & Tr
 app.use('/api/v1/learning-loop', learningLoopRouter);    // Assessment -> Learning -> Reassessment Loop
 app.use('/api/v1/job-simulations', simulationRouter);    // Real-World Job Readiness Simulations
 app.use('/api/v1/ai-fluency', aiFluencyRouter);          // AI Usage & AI Fluency Score
+app.use('/api/v1/digital-twin', digitalTwinRouter);      // Career Readiness Digital Twin & 12-Hour Prep Plan
 
 // ---------------------------------------------------------------------------
 // Generic error handler (must be last middleware)
