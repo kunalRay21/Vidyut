@@ -170,7 +170,7 @@ export const ProctoringVideoHUD: React.FC<ProctoringVideoHUDProps> = ({
                   status.micOk ? 'bg-emerald-400' : 'bg-rose-400'
                 }`}
               />
-              <span className="truncate">{status.micOk ? 'Microphone OK' : 'Mic Lost'}</span>
+              <span className="truncate">{status.micOk ? 'Mic OK' : 'Mic Lost'}</span>
             </div>
 
             {/* Face detected */}

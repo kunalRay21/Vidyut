@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useExamSession } from './hooks/useExamSession';
 import { useExamTimer } from './hooks/useExamTimer';
@@ -140,6 +140,13 @@ export const ExamPlatformPage: React.FC = () => {
     stopProctoringMonitoring();
     await submitExam();
   };
+
+  // Explicitly ensure camera and microphone streams stop when the test completes
+  useEffect(() => {
+    if (examStatus === 'COMPLETED') {
+      stopProctoringMonitoring();
+    }
+  }, [examStatus, stopProctoringMonitoring]);
 
   // Handle entering fullscreen and locking other tabs
   const handleEnterFullscreen = async () => {
