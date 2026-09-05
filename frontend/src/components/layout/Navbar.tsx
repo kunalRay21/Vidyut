@@ -14,6 +14,7 @@ import {
   GraduationCap,
   ArrowRight,
   User,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth, UserRole } from '../../context/AuthContext';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
@@ -172,6 +173,20 @@ export const Navbar: React.FC = () => {
               }
             >
               {t('nav.opportunities')}
+            </NavLink>
+
+            <NavLink
+              to="/passport"
+              className={({ isActive }) =>
+                `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  isActive
+                    ? 'text-gray-950 font-bold bg-white/70 shadow-2xs backdrop-blur-xs'
+                    : 'text-gray-700 hover:text-black hover:bg-white/40'
+                }`
+              }
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+              <span>Skill Passport</span>
             </NavLink>
 
             {/* Portals Dropdown Trigger - Eliminates Horizontal Clutter */}
@@ -493,6 +508,23 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Briefcase className="w-4 h-4 text-[#B85C16]" />
                 <span>{t('nav.opportunities')}</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+            </NavLink>
+
+            <NavLink
+              to="/passport"
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <span>Skill Passport</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>

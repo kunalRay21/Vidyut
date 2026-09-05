@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { DashboardPage } from './pages/DashboardPage';
 import { RoadmapPage } from './pages/RoadmapPage';
 import { OpportunitiesPage } from './pages/OpportunitiesPage';
+import { SkillPassportPage } from './pages/SkillPassportPage';
+import { PublicPassportVerifyPage } from './pages/PublicPassportVerifyPage';
 import { IndustryOnboardPage } from './pages/IndustryOnboardPage';
 import { IndustryPostJobPage } from './pages/IndustryPostJobPage';
 import { IndustryTalentPage } from './pages/IndustryTalentPage';
@@ -115,6 +117,14 @@ function AppContent() {
               <OpportunitiesPage />
             </div>
           </ProtectedRoute>
+        } />
+        <Route path="/passport" element={
+          <div className="flex-1 bg-transparent text-gray-900 w-full">
+            <SkillPassportPage />
+          </div>
+        } />
+        <Route path="/passport/verify/:token" element={
+          <PublicPassportVerifyPage />
         } />
 
         <Route path="/industry/onboard" element={
