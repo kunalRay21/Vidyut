@@ -568,6 +568,51 @@ export function parseResumeText(
 }
 
 /**
+ * Converts browser File to base64 string
+ */
+export async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Intelligent file-to-ParsedResume handler that leverages backend PDF extraction
+ */
+export async function parseResumeFile(file: File): Promise<ParsedResume> {
+  // 1. Text file: parse directly
+  if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+    const text = await readResumeFile(file);
+    return parseResumeText(text, file.name, file.size);
+  }
+
+  // 2. PDF or document: send base64 to backend pdf-parse endpoint
+  try {
+    const base64 = await fileToBase64(file);
+    const { profileApi } = await import('../services/api');
+    const res = await profileApi.parseResume({
+      filename: file.name,
+      file_base64: base64,
+    });
+    if (res.success && res.data && res.data.extractedSkills) {
+      return res.data as ParsedResume;
+    }
+  } catch (backendErr: any) {
+    console.warn('Backend parse failed, using client-side fallback:', backendErr);
+  }
+
+  // 3. Fallback to client-side extraction
+  const rawText = await readResumeFile(file);
+  return parseResumeText(rawText, file.name, file.size);
+}
+
+/**
  * Browser file text reader supporting .txt, .pdf, .docx, and fallback text decoding
  */
 export async function readResumeFile(file: File): Promise<string> {
@@ -575,7 +620,7 @@ export async function readResumeFile(file: File): Promise<string> {
     // If text file
     if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
       const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target?.result as string || '');
+      reader.onload = (e) => resolve((e.target?.result as string) || '');
       reader.onerror = (e) => reject(new Error('Failed to read text file: ' + e));
       reader.readAsText(file);
       return;
@@ -595,10 +640,8 @@ export async function readResumeFile(file: File): Promise<string> {
         let extractedString = '';
         let currentWord = '';
 
-        // Extract printable text chunks from the binary stream
         for (let i = 0; i < uint8.length; i++) {
           const charCode = uint8[i];
-          // Printable ASCII characters (space to ~) + tabs and newlines
           if ((charCode >= 32 && charCode <= 126) || charCode === 10 || charCode === 13 || charCode === 9) {
             currentWord += String.fromCharCode(charCode);
           } else {
@@ -612,14 +655,12 @@ export async function readResumeFile(file: File): Promise<string> {
           extractedString += currentWord;
         }
 
-        // Clean up common PDF formatting artifacts
         const cleaned = extractedString
           .replace(/[\\\/()[\]{}]/g, ' ')
           .replace(/\s+/g, ' ')
           .trim();
 
         if (cleaned.length < 50) {
-          // If binary extraction yielded very little, fallback to readable text
           resolve(`Resume content from ${file.name}. Technical skills: Python, SQL, Git, Linux, Web Development.`);
         } else {
           resolve(cleaned);

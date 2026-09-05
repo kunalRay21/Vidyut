@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { randomUUID } from 'crypto';
 import { hashPassword, comparePassword, generateAccessToken, generateRefreshToken, verifyToken } from './jwt';
 import { apiResponse, apiError } from '../core/responses';
-import { pool } from '../database/db';
+import { pool, isDbConnected } from '../database/db';
 import { memoryStore } from '../database/store';
 
 import { ResumeParserService } from '../modules/resume/resumeService';
@@ -11,12 +11,12 @@ import { ResumeParserService } from '../modules/resume/resumeService';
 const router = Router();
 
 const RegisterSchema = z.object({
-  email: z.string().email('Valid email address required'),
+  email: z.string().trim().email('Valid email address required'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  full_name: z.string().min(2, 'Full name required'),
-  institution: z.string().min(2, 'Institution / college name required'),
-  degree: z.string().min(2, 'Degree required (e.g. B.Tech CSE)'),
-  year_of_study: z.number().int().min(1).max(5),
+  full_name: z.string().trim().min(2, 'Full name required'),
+  institution: z.string().trim().min(2, 'Institution / college name required'),
+  degree: z.string().trim().min(2, 'Degree required (e.g. B.Tech CSE)'),
+  year_of_study: z.coerce.number().int().min(1).max(6),
   interests: z.array(z.string()).optional().default([]),
   resume: z.object({
     filename: z.string().optional(),
@@ -29,15 +29,19 @@ const RegisterSchema = z.object({
 });
 
 const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+  email: z.string().trim().email('Invalid email address format'),
+  password: z.string().min(1, 'Password is required'),
 });
 
 // POST /api/v1/auth/register (Student Registration)
 router.post('/register', async (req: Request, res: Response) => {
   const parseResult = RegisterSchema.safeParse(req.body);
   if (!parseResult.success) {
-    return apiError(res, 'Validation error', 400, 'VALIDATION_ERROR', parseResult.error.format());
+    const firstIssue = parseResult.error.issues[0];
+    const userMsg = firstIssue
+      ? `${firstIssue.path.join('.') || 'field'}: ${firstIssue.message}`
+      : 'Validation error';
+    return apiError(res, userMsg, 400, 'VALIDATION_ERROR', parseResult.error.format());
   }
 
   const { email, password, full_name, institution, degree, year_of_study, interests, resume } = parseResult.data;
@@ -72,48 +76,89 @@ router.post('/register', async (req: Request, res: Response) => {
 
     const selectedRoleId = resumeMatchedRole || null;
 
-    // Try PostgreSQL first
-    try {
-      const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-      if (existing.rows.length > 0) {
-        return apiError(res, 'An account with this email already exists', 409, 'CONFLICT');
-      }
-
-      await pool.query(
-        'INSERT INTO users (id, email, password_hash, role) VALUES ($1, $2, $3, $4)',
-        [userId, email, passwordHash, userRole]
-      );
-
-      await pool.query(
-        `INSERT INTO student_profiles (
-           id, user_id, full_name, institution, degree, year_of_study, interests,
-           selected_role_id, resume_filename, resume_raw_text, parsed_skills,
-           resume_matched_role, resume_match_score, resume_parsed_data
-         )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-        [
-          profileId,
-          userId,
-          full_name,
-          institution,
-          degree,
-          year_of_study,
-          interests,
-          selectedRoleId,
-          resumeFilename,
-          resumeRawText,
-          parsedSkills,
-          resumeMatchedRole,
-          resumeMatchScore,
-          resumeParsedData ? JSON.stringify(resumeParsedData) : null
-        ]
-      );
-    } catch (dbErr: any) {
-      // Fallback to in-memory store for offline development
+    if (!isDbConnected()) {
+      // Offline fast-path (memoryStore)
       if (memoryStore.users.has(email)) {
         return apiError(res, 'An account with this email already exists', 409, 'CONFLICT');
       }
 
+      memoryStore.users.set(email, {
+        id: userId,
+        email,
+        password_hash: passwordHash,
+        role: userRole,
+        created_at: new Date().toISOString()
+      });
+
+      memoryStore.profiles.set(userId, {
+        id: profileId,
+        user_id: userId,
+        full_name,
+        institution,
+        degree,
+        year_of_study,
+        interests,
+        selected_role_id: selectedRoleId || undefined,
+        readiness_pct: 0.0,
+        resume_filename: resumeFilename || undefined,
+        resume_raw_text: resumeRawText || undefined,
+        parsed_skills: parsedSkills,
+        resume_matched_role: resumeMatchedRole || undefined,
+        resume_match_score: resumeMatchScore,
+        resume_parsed_data: resumeParsedData,
+      });
+    } else {
+      // Connected to PostgreSQL: use transactional execution with safe UUID handling
+      const isUuid = selectedRoleId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(selectedRoleId);
+      const dbRoleId = isUuid ? selectedRoleId : null;
+
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const existing = await client.query('SELECT id FROM users WHERE email = $1', [email]);
+        if (existing.rows.length > 0) {
+          await client.query('ROLLBACK');
+          return apiError(res, 'An account with this email already exists', 409, 'CONFLICT');
+        }
+
+        await client.query(
+          'INSERT INTO users (id, email, password_hash, role) VALUES ($1, $2, $3, $4)',
+          [userId, email, passwordHash, userRole]
+        );
+
+        await client.query(
+          `INSERT INTO student_profiles (
+             id, user_id, full_name, institution, degree, year_of_study, interests,
+             selected_role_id, resume_filename, resume_raw_text, parsed_skills,
+             resume_matched_role, resume_match_score, resume_parsed_data
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+          [
+            profileId,
+            userId,
+            full_name,
+            institution,
+            degree,
+            year_of_study,
+            interests,
+            dbRoleId,
+            resumeFilename,
+            resumeRawText,
+            parsedSkills,
+            resumeMatchedRole,
+            resumeMatchScore,
+            resumeParsedData ? JSON.stringify(resumeParsedData) : null
+          ]
+        );
+        await client.query('COMMIT');
+      } catch (txErr: any) {
+        await client.query('ROLLBACK');
+        throw txErr;
+      } finally {
+        client.release();
+      }
+
+      // Also mirror in memoryStore
       memoryStore.users.set(email, {
         id: userId,
         email,
@@ -183,13 +228,16 @@ router.post('/login', async (req: Request, res: Response) => {
   try {
     let user: any = null;
 
-    try {
-      const resDb = await pool.query('SELECT id, email, password_hash, role FROM users WHERE email = $1', [email]);
-      if (resDb.rows.length > 0) {
-        user = resDb.rows[0];
+    if (isDbConnected()) {
+      try {
+        const resDb = await pool.query('SELECT id, email, password_hash, role FROM users WHERE email = $1', [email]);
+        if (resDb.rows.length > 0) {
+          user = resDb.rows[0];
+        }
+      } catch {
+        user = memoryStore.users.get(email);
       }
-    } catch {
-      // Offline fallback
+    } else {
       user = memoryStore.users.get(email);
     }
 
@@ -204,16 +252,18 @@ router.post('/login', async (req: Request, res: Response) => {
 
     let studentProfile: any = null;
     if (user.role === 'STUDENT') {
-      try {
-        const profRes = await pool.query(
-          'SELECT id, full_name, institution, degree, year_of_study, selected_role_id, readiness_pct, resume_filename, parsed_skills, resume_matched_role, resume_match_score, resume_parsed_data FROM student_profiles WHERE user_id = $1 LIMIT 1',
-          [user.id]
-        );
-        if (profRes.rows.length > 0) {
-          studentProfile = profRes.rows[0];
+      if (isDbConnected()) {
+        try {
+          const profRes = await pool.query(
+            'SELECT id, full_name, institution, degree, year_of_study, selected_role_id, readiness_pct, resume_filename, parsed_skills, resume_matched_role, resume_match_score, resume_parsed_data FROM student_profiles WHERE user_id = $1 LIMIT 1',
+            [user.id]
+          );
+          if (profRes.rows.length > 0) {
+            studentProfile = profRes.rows[0];
+          }
+        } catch {
+          studentProfile = memoryStore.profiles.get(user.id);
         }
-      } catch {
-        studentProfile = memoryStore.profiles.get(user.id);
       }
       if (!studentProfile) {
         studentProfile = memoryStore.profiles.get(user.id);

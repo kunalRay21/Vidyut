@@ -233,11 +233,11 @@ export function createRecommendationController(
     next: NextFunction
   ): Promise<void> {
     try {
-      const studentId = await resolveStudentId(req);
+      let studentId = await resolveStudentId(req);
 
       if (!studentId || studentId.trim() === '') {
-        errorResponse(res, 'Authentication required: student ID not found in request.', 401);
-        return;
+        // Fallback for public browsing: default student id
+        studentId = 'default-student';
       }
 
       if (!resourceService) {
@@ -255,5 +255,78 @@ export function createRecommendationController(
     }
   }
 
-  return { getOpportunityRecommendations, getResourceRecommendations };
+  /**
+   * GET /api/v1/recommendations/courses
+   *
+   * Query parameters:
+   *   roleId?: string (e.g. 'role-backend', 'role-ml', 'role-cloud', 'role-data', 'role-fullstack', 'role-security')
+   *   skill?: string
+   *   provider?: string
+   *   search?: string
+   *   freeOnly?: "true" | "false"
+   */
+  async function getCuratedCourses(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { RESOURCES_SEED } = await import('./seedResources');
+      const { roleId, skill, provider, search, freeOnly } = req.query;
+      let courses = [...RESOURCES_SEED];
+
+      // If roleId provided, filter by skills mapped to that role
+      if (roleId && typeof roleId === 'string' && roleId !== 'ALL') {
+        const { BACKEND_DOMAIN_TAXONOMY } = await import('../resume/resumeService');
+        const domain = BACKEND_DOMAIN_TAXONOMY[roleId];
+        if (domain) {
+          const roleSkillKeywords = [...domain.coreSkills, ...domain.secondarySkills].map(s => s.toLowerCase());
+          courses = courses.filter(c => {
+            const cSkill = c.skillName.toLowerCase();
+            return roleSkillKeywords.some(k => cSkill.includes(k) || k.includes(cSkill));
+          });
+        }
+      }
+
+      if (skill && typeof skill === 'string') {
+        const sLower = skill.toLowerCase();
+        courses = courses.filter(c => c.skillName.toLowerCase().includes(sLower));
+      }
+
+      if (provider && typeof provider === 'string' && provider !== 'ALL') {
+        const pLower = provider.toLowerCase();
+        courses = courses.filter(c => c.provider.toLowerCase().includes(pLower));
+      }
+
+      if (search && typeof search === 'string' && search.trim().length > 0) {
+        const q = search.toLowerCase().trim();
+        courses = courses.filter(c => 
+          c.title.toLowerCase().includes(q) ||
+          c.skillName.toLowerCase().includes(q) ||
+          c.provider.toLowerCase().includes(q)
+        );
+      }
+
+      if (freeOnly === 'true') {
+        courses = courses.filter(c => c.isFree);
+      }
+
+      successResponse(res, {
+        total: courses.length,
+        courses: courses.map((c, idx) => ({
+          id: `course-${idx + 1}`,
+          title: c.title,
+          url: c.url,
+          skillName: c.skillName,
+          type: c.type,
+          isFree: c.isFree,
+          provider: c.provider,
+        }))
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  return { getOpportunityRecommendations, getResourceRecommendations, getCuratedCourses };
 }

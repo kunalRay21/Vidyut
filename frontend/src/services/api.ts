@@ -388,8 +388,20 @@ export const profileApi = {
     matched_role?: string;
     match_score?: number;
     parsed_data?: any;
+    file_base64?: string;
   }) => {
     return await request('/api/v1/profile/me/resume', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  parseResume: async (data: {
+    filename?: string;
+    raw_text?: string;
+    file_base64?: string;
+  }) => {
+    return await request<any>('/api/v1/profile/parse-resume', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -504,6 +516,23 @@ export const recommendationsApi = {
     if (params?.studentId) q.append('studentId', params.studentId);
     const qs = q.toString() ? `?${q.toString()}` : '';
     return await request<any>(`/api/v1/recommendations/resources${qs}`);
+  },
+
+  getCourses: async (params?: {
+    roleId?: string;
+    skill?: string;
+    provider?: string;
+    search?: string;
+    freeOnly?: boolean;
+  }) => {
+    const q = new URLSearchParams();
+    if (params?.roleId) q.append('roleId', params.roleId);
+    if (params?.skill) q.append('skill', params.skill);
+    if (params?.provider) q.append('provider', params.provider);
+    if (params?.search) q.append('search', params.search);
+    if (params?.freeOnly) q.append('freeOnly', 'true');
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return await request<{ total: number; courses: any[] }>(`/api/v1/recommendations/courses${qs}`);
   },
 };
 

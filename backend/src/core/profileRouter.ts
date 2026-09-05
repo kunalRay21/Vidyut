@@ -2,10 +2,60 @@ import { Router, Request, Response } from 'express';
 import { authenticateJWT, AuthenticatedRequest, requireRole } from '../auth/middleware';
 import { verifyToken } from '../auth/jwt';
 import { apiResponse, apiSuccess, apiError } from './responses';
-import { pool, query } from '../database/db';
+import { pool, query, isDbConnected } from '../database/db';
 import { memoryStore, inMemorySkillStates } from '../database/store';
 
+async function extractPdfText(buffer: Buffer): Promise<string> {
+  try {
+    const pdfModule = await import('pdf-parse');
+    const PDFParseClass = (pdfModule as any).PDFParse || (pdfModule as any).default || pdfModule;
+    if (typeof PDFParseClass === 'function') {
+      try {
+        const parser = new (PDFParseClass as any)({ data: buffer });
+        if (parser && typeof parser.getText === 'function') {
+          const res = await parser.getText();
+          return res?.text || (typeof res === 'string' ? res : '');
+        }
+      } catch {
+        const res = await (PDFParseClass as any)(buffer);
+        return res?.text || (typeof res === 'string' ? res : '');
+      }
+    }
+  } catch (err: any) {
+    console.warn('PDF extraction warning:', err.message);
+  }
+  return '';
+}
+
 const router = Router();
+
+// POST /api/v1/profile/parse-resume (Public / Pre-registration / Profile Resume Parsing)
+router.post('/parse-resume', async (req: Request, res: Response) => {
+  try {
+    const { filename, raw_text, file_base64 } = req.body;
+    let textToParse = raw_text || '';
+
+    // If PDF base64 provided, parse with extractPdfText
+    if (file_base64) {
+      const cleanBase64 = file_base64.replace(/^data:application\/pdf;base64,/, '');
+      const buffer = Buffer.from(cleanBase64, 'base64');
+      const extracted = await extractPdfText(buffer);
+      if (extracted && extracted.trim().length > 0) {
+        textToParse = extracted;
+      }
+    }
+
+    if (!textToParse || textToParse.trim().length === 0) {
+      return apiError(res, 'Could not extract text from the provided file or text.', 400, 'PARSE_ERROR');
+    }
+
+    const { ResumeParserService } = await import('../modules/resume/resumeService');
+    const parsed = ResumeParserService.parse(textToParse, filename || 'Resume.pdf');
+    return apiSuccess(res, parsed);
+  } catch (err: any) {
+    return apiError(res, 'Resume parsing failed: ' + err.message, 500, 'SERVER_ERROR');
+  }
+});
 
 // GET /api/v1/profile/me (Student only)
 router.get('/me', authenticateJWT, requireRole(['STUDENT']), async (req: AuthenticatedRequest, res: Response) => {
@@ -14,19 +64,26 @@ router.get('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
   try {
     let profile: any = null;
 
-    try {
-      const resDb = await pool.query(
-        `SELECT sp.*, u.email 
-         FROM student_profiles sp 
-         JOIN users u ON sp.user_id = u.id 
-         WHERE sp.user_id = $1`,
-        [userId]
-      );
-      if (resDb.rows.length > 0) {
-        profile = resDb.rows[0];
+    if (isDbConnected()) {
+      try {
+        const resDb = await pool.query(
+          `SELECT sp.*, u.email 
+           FROM student_profiles sp 
+           JOIN users u ON sp.user_id = u.id 
+           WHERE sp.user_id = $1`,
+          [userId]
+        );
+        if (resDb.rows.length > 0) {
+          profile = resDb.rows[0];
+        }
+      } catch {
+        profile = memoryStore.profiles.get(userId);
+        if (profile) {
+          const user = Array.from(memoryStore.users.values()).find(u => u.id === userId);
+          profile = { ...profile, email: user?.email };
+        }
       }
-    } catch {
-      // In-memory fallback
+    } else {
       profile = memoryStore.profiles.get(userId);
       if (profile) {
         const user = Array.from(memoryStore.users.values()).find(u => u.id === userId);
@@ -195,35 +252,51 @@ router.put('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
   const { full_name, institution, degree, year_of_study, interests, selected_role_id } = req.body;
 
   try {
-    try {
-      const resDb = await pool.query(
-        `UPDATE student_profiles 
-         SET full_name = COALESCE($1, full_name),
-             institution = COALESCE($2, institution),
-             degree = COALESCE($3, degree),
-             year_of_study = COALESCE($4, year_of_study),
-             interests = COALESCE($5, interests),
-             selected_role_id = COALESCE($6, selected_role_id),
-             updated_at = NOW()
-         WHERE user_id = $7 
-         RETURNING *`,
-        [full_name, institution, degree, year_of_study, interests, selected_role_id, userId]
-      );
+    const isUuid = selected_role_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(selected_role_id);
+    const dbRoleId = isUuid ? selected_role_id : null;
 
-      if (resDb.rows.length > 0) {
-        return apiSuccess(res, resDb.rows[0]);
+    if (isDbConnected()) {
+      try {
+        const resDb = await pool.query(
+          `UPDATE student_profiles 
+           SET full_name = COALESCE($1, full_name),
+               institution = COALESCE($2, institution),
+               degree = COALESCE($3, degree),
+               year_of_study = COALESCE($4, year_of_study),
+               interests = COALESCE($5, interests),
+               selected_role_id = COALESCE($6, selected_role_id),
+               updated_at = NOW()
+           WHERE user_id = $7 
+           RETURNING *`,
+          [full_name, institution, degree, year_of_study, interests, dbRoleId, userId]
+        );
+
+        if (resDb.rows.length > 0) {
+          const profile = memoryStore.profiles.get(userId);
+          if (profile) {
+            if (full_name) profile.full_name = full_name;
+            if (institution) profile.institution = institution;
+            if (degree) profile.degree = degree;
+            if (year_of_study) profile.year_of_study = year_of_study;
+            if (interests) profile.interests = interests;
+            if (selected_role_id) profile.selected_role_id = selected_role_id;
+          }
+          return apiSuccess(res, resDb.rows[0]);
+        }
+      } catch (dbErr) {
+        console.warn('Postgres profile update failed, using memory store:', dbErr);
       }
-    } catch {
-      const profile = memoryStore.profiles.get(userId);
-      if (profile) {
-        if (full_name) profile.full_name = full_name;
-        if (institution) profile.institution = institution;
-        if (degree) profile.degree = degree;
-        if (year_of_study) profile.year_of_study = year_of_study;
-        if (interests) profile.interests = interests;
-        if (selected_role_id) profile.selected_role_id = selected_role_id;
-        return apiSuccess(res, profile);
-      }
+    }
+
+    const profile = memoryStore.profiles.get(userId);
+    if (profile) {
+      if (full_name) profile.full_name = full_name;
+      if (institution) profile.institution = institution;
+      if (degree) profile.degree = degree;
+      if (year_of_study) profile.year_of_study = year_of_study;
+      if (interests) profile.interests = interests;
+      if (selected_role_id) profile.selected_role_id = selected_role_id;
+      return apiSuccess(res, profile);
     }
 
     return apiError(res, 'Profile update failed', 400, 'UPDATE_FAILED');
@@ -235,7 +308,7 @@ router.put('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
 // POST /api/v1/profile/me/resume (Upload, parse & match resume)
 router.post('/me/resume', authenticateJWT, requireRole(['STUDENT']), async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user!.id;
-  const { filename, raw_text, parsed_skills, matched_role, match_score, parsed_data } = req.body;
+  const { filename, raw_text, parsed_skills, matched_role, match_score, parsed_data, file_base64 } = req.body;
 
   try {
     const { ResumeParserService } = await import('../modules/resume/resumeService');
@@ -246,6 +319,16 @@ router.post('/me/resume', authenticateJWT, requireRole(['STUDENT']), async (req:
     let roleMatched = matched_role || null;
     let score = typeof match_score === 'number' ? match_score : 0.0;
     let fullParsedData = parsed_data || null;
+
+    // If PDF base64 provided, parse with extractPdfText
+    if (file_base64 && (!resumeRawText || resumeRawText.trim().length === 0)) {
+      const cleanBase64 = file_base64.replace(/^data:application\/pdf;base64,/, '');
+      const buffer = Buffer.from(cleanBase64, 'base64');
+      const extracted = await extractPdfText(buffer);
+      if (extracted && extracted.trim().length > 0) {
+        resumeRawText = extracted;
+      }
+    }
 
     // If raw text provided or skills/role missing, parse through ResumeParserService
     if (resumeRawText && (!roleMatched || skillsList.length === 0 || !fullParsedData)) {
@@ -261,65 +344,84 @@ router.post('/me/resume', authenticateJWT, requireRole(['STUDENT']), async (req:
       }
     }
 
-    try {
-      const resDb = await pool.query(
-        `UPDATE student_profiles
-         SET resume_filename = $1,
-             resume_raw_text = $2,
-             parsed_skills = $3,
-             resume_matched_role = $4,
-             resume_match_score = $5,
-             resume_parsed_data = $6,
-             selected_role_id = COALESCE($4, selected_role_id),
-             updated_at = NOW()
-         WHERE user_id = $7
-         RETURNING *`,
-        [
-          resumeFilename,
-          resumeRawText,
-          skillsList,
-          roleMatched,
-          score,
-          fullParsedData ? JSON.stringify(fullParsedData) : null,
-          userId
-        ]
-      );
+    const isUuid = roleMatched && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(roleMatched);
+    const dbRoleId = isUuid ? roleMatched : null;
 
-      if (resDb.rows.length > 0) {
-        return apiSuccess(res, {
-          profile: resDb.rows[0],
-          resume: {
-            filename: resumeFilename,
-            parsed_skills: skillsList,
-            matched_role: roleMatched,
-            match_score: score,
-            parsed_data: fullParsedData
-          }
-        });
-      }
-    } catch {
-      // In-memory fallback
-      const profile = memoryStore.profiles.get(userId);
-      if (profile) {
-        profile.resume_filename = resumeFilename;
-        profile.resume_raw_text = resumeRawText;
-        profile.parsed_skills = skillsList;
-        profile.resume_matched_role = roleMatched || undefined;
-        profile.resume_match_score = score;
-        profile.resume_parsed_data = fullParsedData;
-        if (roleMatched) profile.selected_role_id = roleMatched;
+    if (isDbConnected()) {
+      try {
+        const resDb = await pool.query(
+          `UPDATE student_profiles
+           SET resume_filename = $1,
+               resume_raw_text = $2,
+               parsed_skills = $3,
+               resume_matched_role = $4,
+               resume_match_score = $5,
+               resume_parsed_data = $6,
+               selected_role_id = COALESCE($7, selected_role_id),
+               updated_at = NOW()
+           WHERE user_id = $8
+           RETURNING *`,
+          [
+            resumeFilename,
+            resumeRawText,
+            skillsList,
+            roleMatched,
+            score,
+            fullParsedData ? JSON.stringify(fullParsedData) : null,
+            dbRoleId,
+            userId
+          ]
+        );
 
-        return apiSuccess(res, {
-          profile,
-          resume: {
-            filename: resumeFilename,
-            parsed_skills: skillsList,
-            matched_role: roleMatched,
-            match_score: score,
-            parsed_data: fullParsedData
+        if (resDb.rows.length > 0) {
+          const profile = memoryStore.profiles.get(userId);
+          if (profile) {
+            profile.resume_filename = resumeFilename;
+            profile.resume_raw_text = resumeRawText;
+            profile.parsed_skills = skillsList;
+            profile.resume_matched_role = roleMatched || undefined;
+            profile.resume_match_score = score;
+            profile.resume_parsed_data = fullParsedData;
+            if (roleMatched) profile.selected_role_id = roleMatched;
           }
-        });
+
+          return apiSuccess(res, {
+            profile: resDb.rows[0],
+            resume: {
+              filename: resumeFilename,
+              parsed_skills: skillsList,
+              matched_role: roleMatched,
+              match_score: score,
+              parsed_data: fullParsedData
+            }
+          });
+        }
+      } catch (dbErr) {
+        console.warn('Postgres resume update failed, falling back to memoryStore:', dbErr);
       }
+    }
+
+    // In-memory fallback
+    const profile = memoryStore.profiles.get(userId);
+    if (profile) {
+      profile.resume_filename = resumeFilename;
+      profile.resume_raw_text = resumeRawText;
+      profile.parsed_skills = skillsList;
+      profile.resume_matched_role = roleMatched || undefined;
+      profile.resume_match_score = score;
+      profile.resume_parsed_data = fullParsedData;
+      if (roleMatched) profile.selected_role_id = roleMatched;
+
+      return apiSuccess(res, {
+        profile,
+        resume: {
+          filename: resumeFilename,
+          parsed_skills: skillsList,
+          matched_role: roleMatched,
+          match_score: score,
+          parsed_data: fullParsedData
+        }
+      });
     }
 
     return apiError(res, 'Student profile not found to attach resume', 404, 'NOT_FOUND');
@@ -333,29 +435,31 @@ router.delete('/me/resume', authenticateJWT, requireRole(['STUDENT']), async (re
   const userId = req.user!.id;
 
   try {
-    try {
-      await pool.query(
-        `UPDATE student_profiles
-         SET resume_filename = NULL,
-             resume_raw_text = NULL,
-             parsed_skills = '{}',
-             resume_matched_role = NULL,
-             resume_match_score = 0.0,
-             resume_parsed_data = NULL,
-             updated_at = NOW()
-         WHERE user_id = $1`,
-        [userId]
-      );
-    } catch {
-      const profile = memoryStore.profiles.get(userId);
-      if (profile) {
-        delete profile.resume_filename;
-        delete profile.resume_raw_text;
-        profile.parsed_skills = [];
-        delete profile.resume_matched_role;
-        profile.resume_match_score = 0.0;
-        delete profile.resume_parsed_data;
-      }
+    if (isDbConnected()) {
+      try {
+        await pool.query(
+          `UPDATE student_profiles
+           SET resume_filename = NULL,
+               resume_raw_text = NULL,
+               parsed_skills = '{}',
+               resume_matched_role = NULL,
+               resume_match_score = 0.0,
+               resume_parsed_data = NULL,
+               updated_at = NOW()
+           WHERE user_id = $1`,
+          [userId]
+        );
+      } catch {}
+    }
+
+    const profile = memoryStore.profiles.get(userId);
+    if (profile) {
+      delete profile.resume_filename;
+      delete profile.resume_raw_text;
+      profile.parsed_skills = [];
+      delete profile.resume_matched_role;
+      profile.resume_match_score = 0.0;
+      delete profile.resume_parsed_data;
     }
 
     return apiSuccess(res, { message: 'Resume cleared successfully' });

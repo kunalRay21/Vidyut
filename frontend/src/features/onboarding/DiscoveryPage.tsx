@@ -8,7 +8,6 @@ import {
   Server,
   BarChart3,
   Cloud,
-  Layers,
   ShieldCheck,
   Code,
   ArrowRight,
@@ -20,9 +19,12 @@ import {
   Target,
   CheckCircle2,
   FileText,
+  GraduationCap,
+  ExternalLink,
+  BookOpen,
 } from 'lucide-react';
 import { FadeIn } from '../../components/animations/FadeIn';
-import { careersApi, getStoredResume, getStoredUser } from '../../services/api';
+import { careersApi, recommendationsApi, getStoredResume, getStoredUser } from '../../services/api';
 
 export interface DAGNode {
   id: string;
@@ -206,6 +208,13 @@ export default function DiscoveryPage() {
   const [matchedRoleId, setMatchedRoleId] = useState<string | null>(null);
   const [resumeOnlyFilter, setResumeOnlyFilter] = useState<boolean>(true);
 
+  // Courses and Tab State
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'courses' | 'roadmaps'>('courses');
+  const [selectedProvider, setSelectedProvider] = useState<string>('ALL');
+  const [freeOnlyFilter, setFreeOnlyFilter] = useState<boolean>(false);
+
   useEffect(() => {
     const resume = getStoredResume();
     const user = getStoredUser();
@@ -218,6 +227,36 @@ export default function DiscoveryPage() {
       setMatchedRoleId(user.resume_matched_role || user.selected_role_id);
     }
   }, []);
+
+  // Fetch accredited courses whenever filters change
+  useEffect(() => {
+    let mounted = true;
+    async function loadCourses() {
+      setLoadingCourses(true);
+      try {
+        const targetRoleId = resumeOnlyFilter && matchedRoleId ? matchedRoleId : undefined;
+        const res = await recommendationsApi.getCourses({
+          roleId: targetRoleId,
+          provider: selectedProvider !== 'ALL' ? selectedProvider : undefined,
+          freeOnly: freeOnlyFilter,
+          search: searchQuery.trim() || undefined,
+        });
+
+        if (mounted && res.success && res.data?.courses) {
+          setCourses(res.data.courses);
+        }
+      } catch (e) {
+        console.warn('Failed to load courses:', e);
+      } finally {
+        if (mounted) setLoadingCourses(false);
+      }
+    }
+
+    loadCourses();
+    return () => {
+      mounted = false;
+    };
+  }, [matchedRoleId, resumeOnlyFilter, selectedProvider, freeOnlyFilter, searchQuery]);
 
   useEffect(() => {
     let mounted = true;
@@ -599,189 +638,351 @@ export default function DiscoveryPage() {
       </section>
 
       {/* =========================================================================
-          DOMAIN CARDS GRID
+          CONTENT SECTION: COURSES OR ROADMAPS
       ========================================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        {loading && (
-          <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-            <Sparkles className="w-4 h-4 animate-spin text-saffron mr-2" />
-            Syncing skill graph taxonomy with Vidyut core...
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && filteredDomains.length === 0 && (
-          <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-12 text-center max-w-xl mx-auto my-8">
-            <Search className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-gray-900">{t('explorePage.noResults')}</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Try adjusting your search terms or selecting a different category filter.
-            </p>
+        {/* View Mode Switcher */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-200">
+          <div className="inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200/80 self-start">
             <button
               type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory('ALL');
-                setSelectedDemand('ALL');
-              }}
-              className="mt-4 px-4 py-2 text-xs font-bold rounded-lg bg-saffron text-white hover:bg-saffron-600 transition"
+              onClick={() => setActiveTab('courses')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
+                activeTab === 'courses'
+                  ? 'bg-saffron text-white shadow-xs'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
-              {t('explorePage.clearFilters')}
+              <GraduationCap className="w-4 h-4" />
+              <span>Curated Courses & Materials ({courses.length})</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('roadmaps')}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
+                activeTab === 'roadmaps'
+                  ? 'bg-[#000080] text-white shadow-xs'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <GitBranch className="w-4 h-4" />
+              <span>Career Tracks & Milestones ({filteredDomains.length})</span>
+            </button>
+          </div>
+
+          {activeTab === 'courses' && (
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-gray-500">Provider:</span>
+                <select
+                  value={selectedProvider}
+                  onChange={(e) => setSelectedProvider(e.target.value)}
+                  className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-800 focus:outline-hidden focus:border-saffron cursor-pointer"
+                >
+                  <option value="ALL">All Curated Institutions</option>
+                  <option value="NPTEL">NPTEL / SWAYAM (IITs)</option>
+                  <option value="MIT">MIT OpenCourseWare</option>
+                  <option value="Stanford">Stanford Online</option>
+                  <option value="DeepLearning">DeepLearning.AI</option>
+                  <option value="freeCodeCamp">freeCodeCamp</option>
+                  <option value="3Blue1Brown">3Blue1Brown</option>
+                  <option value="Google">Google / Tech Docs</option>
+                </select>
+              </div>
+
+              <label className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 cursor-pointer bg-white px-2.5 py-1.5 rounded-lg border border-gray-200">
+                <input
+                  type="checkbox"
+                  checked={freeOnlyFilter}
+                  onChange={(e) => setFreeOnlyFilter(e.target.checked)}
+                  className="rounded text-saffron focus:ring-saffron"
+                />
+                <span>Free / Open-Access Only</span>
+              </label>
+            </div>
+          )}
+        </div>
+
+        {/* TAB 1: CURATED ACCREDITED COURSES */}
+        {activeTab === 'courses' && (
+          <div>
+            {loadingCourses && (
+              <div className="flex items-center justify-center py-16 text-sm text-gray-500">
+                <Sparkles className="w-5 h-5 animate-spin text-saffron mr-2" />
+                Filtering verified courses for your skill profile...
+              </div>
+            )}
+
+            {!loadingCourses && courses.length === 0 && (
+              <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-12 text-center max-w-xl mx-auto my-6">
+                <GraduationCap className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                <h3 className="text-base font-bold text-gray-900">No courses match your active filters</h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Try adjusting the provider filter or resetting your search terms.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedProvider('ALL');
+                    setFreeOnlyFilter(false);
+                    setSearchQuery('');
+                    setResumeOnlyFilter(false);
+                  }}
+                  className="mt-4 px-4 py-2 text-xs font-bold rounded-lg bg-saffron text-white hover:bg-saffron-600 transition cursor-pointer"
+                >
+                  View All 100+ Courses
+                </button>
+              </div>
+            )}
+
+            {!loadingCourses && courses.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {courses.map((course, idx) => (
+                  <FadeIn key={course.id || idx} delay={50 + (idx % 6) * 40} className="h-full">
+                    <div className="group relative bg-white border border-gray-200/90 hover:border-saffron-500/80 rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-200 h-full flex flex-col justify-between overflow-hidden">
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-saffron via-[#000080] to-indiaGreen opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <span className="text-[11px] font-bold text-[#000080] bg-blue-50/90 px-2.5 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
+                            <GraduationCap className="w-3.5 h-3.5 text-[#000080]" />
+                            <span className="truncate max-w-[180px]">{course.provider}</span>
+                          </span>
+                          {course.isFree && (
+                            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                              100% Free
+                            </span>
+                          )}
+                        </div>
+
+                        <h3 className="text-sm sm:text-base font-bold text-gray-900 group-hover:text-saffron-700 transition line-clamp-2 leading-snug">
+                          {course.title}
+                        </h3>
+
+                        <div className="flex flex-wrap items-center gap-2 mt-3.5 text-xs text-gray-500">
+                          <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200/80 px-2.5 py-0.5 rounded-md font-semibold text-[11px]">
+                            <BookOpen className="w-3 h-3 text-amber-700" />
+                            <span>Skill: {course.skillName}</span>
+                          </span>
+                          <span className="text-[11px] text-gray-400 capitalize bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+                            {course.type.toLowerCase()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-5 pt-3.5 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-medium text-gray-400">Verified Curriculum</span>
+                        <a
+                          href={course.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-saffron py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:shadow-xs transition cursor-pointer"
+                        >
+                          <span>Start Learning</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+                  </FadeIn>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Career Domain Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDomains.map((domain, idx) => {
-            const isResumeMatch = domain.roleId === matchedRoleId || domain.id === matchedRoleId;
+        {/* TAB 2: CAREER TRACKS & MILESTONE ROADMAPS */}
+        {activeTab === 'roadmaps' && (
+          <div>
+            {loading && (
+              <div className="flex items-center justify-center py-12 text-sm text-gray-500">
+                <Sparkles className="w-4 h-4 animate-spin text-saffron mr-2" />
+                Syncing skill graph taxonomy with Vidyut core...
+              </div>
+            )}
 
-            return (
-              <FadeIn key={domain.id} delay={100 + (idx % 6) * 60} className="h-full">
-                <div
-                  className={`group relative bg-white border rounded-2xl p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col justify-between overflow-hidden ${
-                    isResumeMatch
-                      ? 'border-emerald-400/90 ring-2 ring-emerald-400/20 shadow-sm'
-                      : 'border-gray-200/85 hover:border-saffron-500/70'
-                  }`}
+            {!loading && filteredDomains.length === 0 && (
+              <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-12 text-center max-w-xl mx-auto my-8">
+                <Search className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                <h3 className="text-base font-bold text-gray-900">{t('explorePage.noResults')}</h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Try adjusting your search terms or selecting a different category filter.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedCategory('ALL');
+                    setSelectedDemand('ALL');
+                  }}
+                  className="mt-4 px-4 py-2 text-xs font-bold rounded-lg bg-saffron text-white hover:bg-saffron-600 transition"
                 >
-                  {/* Tricolor Accent Line on Hover */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-saffron via-[#000080] to-indiaGreen opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  {t('explorePage.clearFilters')}
+                </button>
+              </div>
+            )}
 
-                  <div>
-                    {/* Resume Match Callout Badge */}
-                    {isResumeMatch && (
-                      <div className="mb-3.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100/70 border border-emerald-300 flex items-center justify-between shadow-2xs">
-                        <span className="text-[11px] font-bold text-emerald-900 flex items-center gap-1.5">
-                          <Target className="w-3.5 h-3.5 text-emerald-700" />
-                          <span>Resume Match: {storedResume?.primaryMatch?.matchPercentage || 85}%</span>
-                        </span>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-white px-2 py-0.5 rounded-md shadow-2xs border border-emerald-200">
-                          Top Fit
-                        </span>
-                      </div>
-                    )}
+            {/* Career Domain Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredDomains.map((domain, idx) => {
+                const isResumeMatch = domain.roleId === matchedRoleId || domain.id === matchedRoleId;
 
-                    {/* Card Header: Icon + Category + Demand Badge */}
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform ${getIconBgClass(
-                            domain.iconType
-                          )}`}
-                        >
-                          {renderDomainIcon(domain.iconType)}
-                        </div>
-                        <div>
-                          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
-                            {domain.category}
-                          </span>
-                          <h3 className="text-base font-bold text-gray-900 group-hover:text-[#000080] transition-colors leading-snug">
-                            {domain.name}
-                          </h3>
-                        </div>
-                      </div>
-                    </div>
-
-                  {/* Demand Pill */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
-                        domain.demand_level === 'Critical Need'
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : domain.demand_level === 'High Demand'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-blue-50 text-[#000080] border-blue-200'
+                return (
+                  <FadeIn key={domain.id} delay={100 + (idx % 6) * 60} className="h-full">
+                    <div
+                      className={`group relative bg-white border rounded-2xl p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col justify-between overflow-hidden ${
+                        isResumeMatch
+                          ? 'border-emerald-400/90 ring-2 ring-emerald-400/20 shadow-sm'
+                          : 'border-gray-200/85 hover:border-saffron-500/70'
                       }`}
                     >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          domain.demand_level === 'Critical Need'
-                            ? 'bg-amber-500 animate-pulse'
-                            : domain.demand_level === 'High Demand'
-                            ? 'bg-emerald-500'
-                            : 'bg-blue-500'
-                        }`}
-                      />
-                      <span>{domain.demand_level}</span>
-                    </span>
+                      {/* Tricolor Accent Line on Hover */}
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-saffron via-[#000080] to-indiaGreen opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                    <span className="text-[11px] font-semibold text-gray-400 flex items-center gap-1">
-                      <Briefcase className="w-3 h-3 text-gray-400" />
-                      <span>{domain.openRolesCount}</span>
-                    </span>
-                  </div>
+                      <div>
+                        {/* Resume Match Callout Badge */}
+                        {isResumeMatch && (
+                          <div className="mb-3.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100/70 border border-emerald-300 flex items-center justify-between shadow-2xs">
+                            <span className="text-[11px] font-bold text-emerald-900 flex items-center gap-1.5">
+                              <Target className="w-3.5 h-3.5 text-emerald-700" />
+                              <span>Resume Match: {storedResume?.primaryMatch?.matchPercentage || 85}%</span>
+                            </span>
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-white px-2 py-0.5 rounded-md shadow-2xs border border-emerald-200">
+                              Top Fit
+                            </span>
+                          </div>
+                        )}
 
-                  {/* Description */}
-                  <p className="text-gray-600 text-xs sm:text-sm leading-relaxed min-h-[56px] line-clamp-3">
-                    {domain.description}
-                  </p>
+                        {/* Card Header: Icon + Category + Demand Badge */}
+                        <div className="flex items-start justify-between gap-3 mb-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform ${getIconBgClass(
+                                domain.iconType
+                              )}`}
+                            >
+                              {renderDomainIcon(domain.iconType)}
+                            </div>
+                            <div>
+                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
+                                {domain.category}
+                              </span>
+                              <h3 className="text-base font-bold text-gray-900 group-hover:text-[#000080] transition-colors leading-snug">
+                                {domain.name}
+                              </h3>
+                            </div>
+                          </div>
+                        </div>
 
-                  {/* Metadata Specs Bar */}
-                  <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-2 gap-2 text-[11px] text-gray-500">
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-gray-400" />
-                      <span>{domain.duration}</span>
+                        {/* Demand Pill */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                              domain.demand_level === 'Critical Need'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : domain.demand_level === 'High Demand'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-blue-50 text-[#000080] border-blue-200'
+                            }`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                domain.demand_level === 'Critical Need'
+                                  ? 'bg-amber-500 animate-pulse'
+                                  : domain.demand_level === 'High Demand'
+                                  ? 'bg-emerald-500'
+                                  : 'bg-blue-500'
+                              }`}
+                            />
+                            <span>{domain.demand_level}</span>
+                          </span>
+
+                          <span className="text-[11px] font-semibold text-gray-400 flex items-center gap-1">
+                            <Briefcase className="w-3 h-3 text-gray-400" />
+                            <span>{domain.openRolesCount}</span>
+                          </span>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed mb-4">
+                          {domain.description}
+                        </p>
+
+                        {/* Prerequisites */}
+                        <div className="mb-4 bg-[#FAF9F6] border border-gray-200/60 rounded-xl p-2.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
+                            {t('explorePage.prerequisites')}
+                          </span>
+                          <span className="text-xs font-semibold text-gray-700 block truncate">
+                            {domain.prerequisites}
+                          </span>
+                        </div>
+
+                        {/* Key Technologies Tags */}
+                        <div className="mb-5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-2">
+                            {t('explorePage.keyTechnologies')}
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {domain.technologies.slice(0, 4).map((tech) => (
+                              <span
+                                key={tech}
+                                className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 border border-gray-200/60"
+                              >
+                                {tech}
+                              </span>
+                            ))}
+                            {domain.technologies.length > 4 && (
+                              <span className="text-[11px] font-medium text-gray-400 self-center">
+                                +{domain.technologies.length - 4}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card Footer: Metadata + Interactive Actions */}
+                      <div className="pt-4 border-t border-gray-100 flex flex-col gap-3">
+                        <div className="flex items-center justify-between text-xs text-gray-500 font-medium">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 text-gray-400" />
+                            <span>{domain.duration}</span>
+                          </span>
+                          <span className="text-[11px] font-bold text-[#000080] bg-blue-50 px-2 py-0.5 rounded-md">
+                            {domain.dagNodes.length} DAG Nodes
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setActiveDagDomain(domain)}
+                            className="py-2 px-3 rounded-xl border border-gray-200 hover:border-saffron text-gray-700 hover:text-saffron-700 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer bg-white"
+                          >
+                            <GitBranch className="w-3.5 h-3.5" />
+                            <span>Preview DAG</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleAssessSkills(domain)}
+                            className="flex-1 py-2 px-3 rounded-xl bg-saffron hover:bg-saffron-600 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer group/btn"
+                          >
+                            <span>{t('explorePage.assessSkills')}</span>
+                            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-gray-400" />
-                      <span>{domain.dagNodes.length} Competency Nodes</span>
-                    </div>
-                  </div>
-
-                  {/* Prerequisites Snippet */}
-                  <div className="mt-3 p-2.5 rounded-lg bg-[#FAF9F6] border border-gray-200/60 text-[11px] text-gray-600">
-                    <span className="font-semibold text-gray-800">{t('explorePage.prerequisites')}:</span>{' '}
-                    <span>{domain.prerequisites}</span>
-                  </div>
-
-                  {/* Technologies Tags */}
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {domain.technologies.slice(0, 5).map((tech) => (
-                      <span
-                        key={tech}
-                        className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-white text-gray-700 border border-gray-200/80 shadow-xs"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                    {domain.technologies.length > 5 && (
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-500">
-                        +{domain.technologies.length - 5}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Bottom Actions */}
-                <div className="mt-6 pt-4 border-t border-gray-100 flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveDagDomain(domain)}
-                    className="flex-1 py-2 px-3 rounded-xl border border-gray-200 text-gray-700 hover:text-[#000080] hover:border-[#000080]/40 hover:bg-blue-50/40 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <GitBranch className="w-3.5 h-3.5 text-gray-500" />
-                    <span>{t('explorePage.previewDag')}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAssessSkills(domain)}
-                    className="flex-1 py-2 px-3 rounded-xl bg-saffron hover:bg-saffron-600 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer group/btn"
-                  >
-                    <span>{t('explorePage.assessSkills')}</span>
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" />
-                  </button>
-                </div>
-              </div>
-            </FadeIn>
-          )})}
-        </div>
+                  </FadeIn>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* =========================================================================
-          INTERACTIVE SKILL DAG PREVIEW MODAL
-      ========================================================================== */}
+          INTERACTIVE SKILL DAG PREVIEW MODAL */}
       {activeDagDomain && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in"

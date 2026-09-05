@@ -25,7 +25,7 @@ export interface BackendParsedResume {
   summary: string;
 }
 
-const BACKEND_DOMAIN_TAXONOMY: Record<
+export const BACKEND_DOMAIN_TAXONOMY: Record<
   string,
   {
     id: string;

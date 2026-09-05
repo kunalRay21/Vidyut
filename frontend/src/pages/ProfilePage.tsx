@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { profileApi, getStoredResume, setStoredResume, clearStoredResume, setStoredUser } from '../services/api';
-import { readResumeFile, parseResumeText, ParsedResume, DOMAIN_TAXONOMY } from '../utils/resumeParser';
+import { parseResumeFile, parseResumeText, fileToBase64, ParsedResume, DOMAIN_TAXONOMY } from '../utils/resumeParser';
 import { FadeIn } from '../components/animations/FadeIn';
 
 export function ProfilePage() {
@@ -170,12 +170,16 @@ export function ProfilePage() {
     setResumeError('');
 
     try {
-      const rawText = await readResumeFile(file);
-      const parsed = parseResumeText(rawText, file.name, file.size);
+      const parsed = await parseResumeFile(file);
 
       // Save locally
       setParsedResume(parsed);
       setStoredResume(parsed);
+
+      let fileBase64 = '';
+      try {
+        fileBase64 = await fileToBase64(file);
+      } catch {}
 
       // Save to backend
       await profileApi.uploadResume({
@@ -185,6 +189,7 @@ export function ProfilePage() {
         matched_role: parsed.primaryMatch.id,
         match_score: parsed.primaryMatch.matchPercentage,
         parsed_data: parsed,
+        file_base64: fileBase64,
       });
 
       // Update stored user

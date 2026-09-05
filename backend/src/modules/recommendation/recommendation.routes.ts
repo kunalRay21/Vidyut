@@ -76,5 +76,14 @@ export function createRecommendationRouter(
    */
   router.get('/resources', controller.getResourceRecommendations);
 
+  /**
+   * GET /courses
+   * Full path: GET /api/v1/recommendations/courses
+   *
+   * Returns curated accredited courses & learning resources
+   * filtered by roleId, skill, provider, search, and freeOnly.
+   */
+  router.get('/courses', controller.getCuratedCourses);
+
   return router;
 }

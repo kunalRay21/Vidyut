@@ -1,6 +1,6 @@
 import { query } from '../../database/db';
 
-interface ResourceSeedItem {
+export interface ResourceSeedItem {
   skillName: string;
   title: string;
   url: string;
@@ -9,7 +9,7 @@ interface ResourceSeedItem {
   provider: string;
 }
 
-const RESOURCES_SEED: ResourceSeedItem[] = [
+export const RESOURCES_SEED: ResourceSeedItem[] = [
   // =========================================================================
   // 1. MATHEMATICS & THEORETICAL FOUNDATIONS
   // =========================================================================

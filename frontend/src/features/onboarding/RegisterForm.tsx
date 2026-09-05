@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { setStoredResume } from '../../services/api';
-import { readResumeFile, parseResumeText, ParsedResume } from '../../utils/resumeParser';
+import { parseResumeFile, parseResumeText, ParsedResume } from '../../utils/resumeParser';
 
 export default function RegisterForm() {
   const { t } = useTranslation();
@@ -52,15 +52,14 @@ export default function RegisterForm() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    processResumeFile(file);
+    await processResumeFile(file);
   };
 
   const processResumeFile = async (file: File) => {
     setResumeError('');
     setParsingResume(true);
     try {
-      const text = await readResumeFile(file);
-      const parsed = parseResumeText(text, file.name, file.size);
+      const parsed = await parseResumeFile(file);
       setParsedResume(parsed);
     } catch (err: any) {
       setResumeError(err.message || 'Failed to parse resume file.');
@@ -97,14 +96,19 @@ export default function RegisterForm() {
     e.preventDefault();
 
     if (
-      !form.full_name ||
-      !form.email ||
+      !form.full_name.trim() ||
+      !form.email.trim() ||
       !form.password ||
-      !form.institution ||
-      !form.degree ||
+      !form.institution.trim() ||
+      !form.degree.trim() ||
       !form.year_of_study
     ) {
       setError('Please fill all required fields.');
+      return;
+    }
+
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters.');
       return;
     }
 
@@ -133,11 +137,11 @@ export default function RegisterForm() {
       }
 
       const res = await registerStudent({
-        email: form.email,
+        email: form.email.trim(),
         password: form.password,
-        full_name: form.full_name,
-        institution: form.institution,
-        degree: form.degree,
+        full_name: form.full_name.trim(),
+        institution: form.institution.trim(),
+        degree: form.degree.trim(),
         year_of_study: Number(form.year_of_study),
         interests: parsedInterests,
         resume: resumePayload,
@@ -211,8 +215,10 @@ export default function RegisterForm() {
               value={form.password}
               onChange={handleChange}
               placeholder={t('auth.passwordPlaceholder')}
+              minLength={6}
               className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
             />
+            <p className="text-xs text-gray-500 mt-1">At least 6 characters required</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
