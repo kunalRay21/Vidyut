@@ -449,16 +449,17 @@ export const Navbar: React.FC = () => {
                         </div>
                       )}
                     </div>
-
                     <div className="py-1">
-                      <Link
-                        to={currentRole?.home || '/dashboard'}
-                        onClick={() => setProfileDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition"
-                      >
-                        <LayoutDashboard className="w-3.5 h-3.5 text-gray-500" />
-                        <span>My Portal Dashboard</span>
-                      </Link>
+                      {user?.role !== 'INDUSTRY' && user?.role !== 'INSTITUTION' && (
+                        <Link
+                          to={currentRole?.home || '/dashboard'}
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition"
+                        >
+                          <LayoutDashboard className="w-3.5 h-3.5 text-gray-500" />
+                          <span>My Portal Dashboard</span>
+                        </Link>
+                      )}
 
                       <Link
                         to="/profile"
@@ -469,14 +470,16 @@ export const Navbar: React.FC = () => {
                         <span>Profile & Resume</span>
                       </Link>
 
-                      <Link
-                        to="/explore"
-                        onClick={() => setProfileDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition"
-                      >
-                        <Compass className="w-3.5 h-3.5 text-gray-500" />
-                        <span>Explore Skill Graphs</span>
-                      </Link>
+                      {user?.role !== 'INDUSTRY' && user?.role !== 'INSTITUTION' && (
+                        <Link
+                          to="/explore"
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition"
+                        >
+                          <Compass className="w-3.5 h-3.5 text-gray-500" />
+                          <span>Explore Skill Graphs</span>
+                        </Link>
+                      )}
                     </div>
 
                     <div className="border-t border-gray-100 pt-1 mt-1">

@@ -87,7 +87,32 @@ async function request<T = any>(
       headers,
     });
 
-    const json = await res.json();
+    const text = await res.text();
+    
+    // Handle empty responses
+    if (!text) {
+      if (!res.ok) {
+        return {
+          success: false,
+          data: null as any,
+          error: { message: `Request failed with status ${res.status}` },
+        };
+      }
+      return { success: true, data: {} as any };
+    }
+
+    let json: any;
+    try {
+      json = JSON.parse(text);
+    } catch (e: any) {
+      // If the response is not valid JSON, it's likely an error HTML page or plain text error from a proxy
+      return {
+        success: false,
+        data: null as any,
+        error: { message: res.ok ? 'Invalid JSON response from server' : `Server error (${res.status}): ${text.slice(0, 100)}...` },
+      };
+    }
+
     if (!res.ok || json.success === false) {
       return {
         success: false,

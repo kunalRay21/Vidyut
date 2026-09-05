@@ -24,7 +24,7 @@
   },
   "landing": {
     "hero": {
-      "titlePrefix": "Empowering India's Students with",
+      "titlePrefix": "Empowering <1>India's</1> Students with",
       "titleHighlight": "Adaptive Skill Intelligence",
       "subtitle": "Standardized skill graphs, calibrated diagnostic evaluations, prerequisite-ordered learning roadmaps, and verified direct opportunity matching for students, colleges, and industry.",
       "startDiagnostic": "Start Diagnostic Assessment",
@@ -255,12 +255,12 @@
     "submit": "Submit Assessment & Generate Roadmap"
   },
   "helpAssistant": {
-    "triggerLabel": "Help Assistant",
-    "badge": "AI Career Guide",
-    "title": "Vidyut Assistant",
+    "triggerLabel": "Vira",
+    "badge": "Vira",
+    "title": "Vira",
     "online": "Online",
-    "subtitle": "Your smart guide for roadmaps, skills & opportunities",
-    "welcomeMessage": "Hi there! 👋 I'm your Vidyut Assistant. I can help guide you through your career roadmap, skill assessments, compatibility scores, and recommended learning resources. How can I help you today?",
+    "subtitle": "",
+    "welcomeMessage": "Hi there! 👋 I'm Vira. I can help guide you through your career roadmap, skill assessments, compatibility scores, and recommended learning resources. How can I help you today?",
     "allTopics": "All Topics",
     "searchPlaceholder": "Search topics or ask a question...",
     "inputPlaceholder": "Ask a question about Vidyut...",
