@@ -115,12 +115,13 @@ export class SimulatorService {
         id: studentId,
         user_id: studentId,
         full_name: 'Priya Sharma',
-        college_name: 'Vidyut Institute of Technology',
+        institution: 'Vidyut Institute of Technology',
         degree: 'B.Tech',
         year_of_study: 3,
         selected_role_id: targetRoleId,
         resume_matched_role: newRoleName,
         interests: ['Full-Stack Development', 'AI/ML'],
+        readiness_pct: 68,
       });
     }
 
