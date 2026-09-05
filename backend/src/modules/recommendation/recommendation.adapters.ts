@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../../database/prisma';
 import { memoryStore } from '../../database/store';
@@ -132,55 +134,106 @@ export class PrismaProfileService implements ProfileService {
  */
 export class PrismaOpportunityRepository implements OpportunityRepository {
   async findAllActive(): Promise<ScoringOpportunity[]> {
-    const opportunities = await prisma.opportunity.findMany({
-      where: { isActive: true },
-      include: {
-        domain: true,
-        skillTags: {
-          include: { skill: true }
+    try {
+      const opportunities = await prisma.opportunity.findMany({
+        where: { isActive: true },
+        include: {
+          domain: true,
+          skillTags: {
+            include: { skill: true }
+          }
         }
-      }
-    });
+      });
 
-    return opportunities.map(opp => ({
-      id: opp.id,
-      title: opp.title,
-      organization: opp.organization,
-      type: opp.type,
-      mode: opp.mode,
-      originalUrl: opp.originalUrl ?? '',
-      deadline: opp.deadline,
-      stipend: opp.stipend,
-      source: opp.source,
-      location: opp.location,
-      domainId: opp.domainId,
-      domain: opp.domain ? { name: opp.domain.name } : null,
-      eligibilityRaw: opp.eligibilityRaw,
-      skillTags: opp.skillTags.map(tag => ({
-        skillId: tag.skillId,
-        skill: { name: tag.skill.name },
-        confidence: tag.weight ?? 1.0,
-        requiredLevel: (tag.minProficiency as ProficiencyLevel) ?? 'INTERMEDIATE'
-      }))
-    }));
+      if (opportunities && opportunities.length > 0) {
+        return opportunities.map(opp => ({
+          id: opp.id,
+          title: opp.title,
+          organization: opp.organization,
+          type: opp.type,
+          mode: opp.mode,
+          originalUrl: opp.originalUrl ?? '',
+          deadline: opp.deadline,
+          stipend: opp.stipend,
+          source: opp.source,
+          location: opp.location,
+          domainId: opp.domainId,
+          domain: opp.domain ? { name: opp.domain.name } : null,
+          eligibilityRaw: opp.eligibilityRaw,
+          skillTags: opp.skillTags.map(tag => ({
+            skillId: tag.skillId,
+            skill: { name: tag.skill.name },
+            confidence: tag.weight ?? 1.0,
+            requiredLevel: (tag.minProficiency as ProficiencyLevel) ?? 'INTERMEDIATE'
+          }))
+        }));
+      }
+    } catch {
+      // Prisma offline or schema missing
+    }
+
+    // Fallback to data/seed_opportunities.json for offline resilience
+    try {
+      const seedPath = path.resolve(__dirname, '../../../data/seed_opportunities.json');
+      if (fs.existsSync(seedPath)) {
+        const raw = fs.readFileSync(seedPath, 'utf8');
+        const parsed = JSON.parse(raw);
+        return parsed.map((item: any, index: number) => ({
+          id: item.id || item.external_id || `seed-opp-${index + 1}`,
+          title: item.title,
+          organization: item.organization,
+          type: item.type || 'INTERNSHIP',
+          mode: item.mode || 'REMOTE',
+          originalUrl: item.original_url || '',
+          deadline: item.deadline || null,
+          stipend: item.stipend || null,
+          source: item.source || 'DIRECT',
+          location: item.location || 'India',
+          domainId: 'domain-backend',
+          domain: { name: 'Software Engineering' },
+          eligibilityRaw: item.description_raw || null,
+          skillTags: (item.required_skills || []).map((s: any) => ({
+            skillId: s.skill_id,
+            skill: { name: s.raw_mention },
+            confidence: 1.0,
+            requiredLevel: (s.min_proficiency as ProficiencyLevel) || 'INTERMEDIATE',
+          }))
+        }));
+      }
+    } catch (err) {
+      console.warn('⚠️ Could not load seed_opportunities in PrismaOpportunityRepository:', err);
+    }
+    return [];
   }
 }
 
 /**
  * Adapter for RecommendationPersistenceClient.
  * We can simply expose a wrapper around the Prisma client's recommendation model
- * that matches the interface structurally.
+ * that matches the interface structurally with graceful fallbacks.
  */
 export class PrismaRecommendationPersistenceClient implements RecommendationPersistenceClient {
   public recommendation = {
     async upsert(args: any): Promise<{ id: string }> {
-      return prisma.recommendation.upsert(args);
+      try {
+        return await prisma.recommendation.upsert(args);
+      } catch {
+        return { id: `mem-rec-${Date.now()}` };
+      }
     },
     async findMany(args: any): Promise<any[]> {
-      return prisma.recommendation.findMany(args);
+      try {
+        return await prisma.recommendation.findMany(args);
+      } catch {
+        return [];
+      }
     },
     async groupBy(args: any): Promise<any[]> {
-      return prisma.recommendation.groupBy(args);
+      try {
+        return await prisma.recommendation.groupBy(args);
+      } catch {
+        return [];
+      }
     }
   };
 }

@@ -5,7 +5,7 @@ import { OpportunityCard } from '../features/opportunities/OpportunityCard';
 import { MatchExplanationModal } from '../features/opportunities/MatchExplanationModal';
 import { Opportunity } from '../features/opportunities/types';
 import { FadeIn } from '../components/animations/FadeIn';
-import { opportunitiesApi, recommendationsApi } from '../services/api';
+import { getStoredUser, opportunitiesApi, recommendationsApi } from '../services/api';
 
 function mapScoredOpportunity(item: any, index = 0): Opportunity {
   const scores = item.scores || {};
@@ -70,7 +70,9 @@ export const OpportunitiesPage: React.FC = () => {
     setLoading(true);
     try {
       // 1. Primary: Role 5 Compatibility & AI Recommendation Engine
-      const recRes = await recommendationsApi.getOpportunities({ refresh });
+      const user = getStoredUser();
+      const studentId = user?.student_profile_id || user?.student_id || user?.id || 'student-demo';
+      const recRes = await recommendationsApi.getOpportunities({ refresh, studentId });
       if (recRes.success && recRes.data) {
         const { readyNow = [], almostReady = [], aspirational = [] } = recRes.data;
 
