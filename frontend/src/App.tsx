@@ -6,6 +6,7 @@ import { OpportunitiesPage } from './pages/OpportunitiesPage';
 import { SkillPassportPage } from './pages/SkillPassportPage';
 import { PublicPassportVerifyPage } from './pages/PublicPassportVerifyPage';
 import { CareerSimulatorPage } from './pages/CareerSimulatorPage';
+import { DiagnosticLoopPage } from './pages/DiagnosticLoopPage';
 import { IndustryOnboardPage } from './pages/IndustryOnboardPage';
 import { IndustryPostJobPage } from './pages/IndustryPostJobPage';
 import { IndustryTalentPage } from './pages/IndustryTalentPage';
@@ -130,6 +131,11 @@ function AppContent() {
         <Route path="/simulator" element={
           <div className="flex-1 bg-transparent text-gray-900 w-full">
             <CareerSimulatorPage />
+          </div>
+        } />
+        <Route path="/remediation" element={
+          <div className="flex-1 bg-transparent text-gray-900 w-full">
+            <DiagnosticLoopPage />
           </div>
         } />
 

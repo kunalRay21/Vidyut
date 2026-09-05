@@ -37,18 +37,16 @@ export class PassportService {
     try {
       const profile = await prisma.studentProfile.findFirst({
         where: { OR: [{ id: studentId }, { userId: studentId }] },
-        include: { user: true, institution: true, selectedRole: true },
       });
       if (profile) {
-        studentName = profile.user ? `${profile.user.first_name} ${profile.user.last_name}` : studentName;
-        institutionName = profile.institution?.name || institutionName;
-        degree = profile.branch ? `${profile.degree || 'B.Tech'} in ${profile.branch}` : degree;
-        targetRole = profile.selectedRole?.title || targetRole;
+        studentName = profile.fullName || studentName;
+        institutionName = profile.institution || institutionName;
+        degree = profile.degree ? `${profile.degree} (Year ${profile.yearOfStudy || 3})` : degree;
       }
     } catch {
       // Prisma offline, look in memoryStore
-      const memProf = memoryStore.profiles.get(studentId) || 
-        Array.from(memoryStore.profiles.values()).find(p => p.id === studentId || p.user_id === studentId);
+      const memProf = (memoryStore.profiles.get(studentId) || 
+        Array.from(memoryStore.profiles.values()).find(p => p.id === studentId || p.user_id === studentId)) as any;
       if (memProf) {
         studentName = memProf.full_name || studentName;
         institutionName = memProf.college_name || institutionName;

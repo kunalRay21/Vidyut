@@ -28,6 +28,9 @@ import { passportRouter } from './modules/passport/passport.router';
 // Career Simulator & Transferable Skill Intelligence Router
 import { simulatorRouter } from './modules/simulator/simulator.router';
 
+// Assessment -> Learning -> Reassessment Loop Router
+import { learningLoopRouter } from './modules/learning_loop/learning_loop.router';
+
 dotenv.config();
 
 const app = express();
@@ -109,6 +112,7 @@ app.use('/api/v1/portfolio', portfolioRouter);          // Member 4 (Portfolio &
 app.use('/api/v1/help', helpRouter);                    // Vidyut Help Assistant
 app.use('/api/v1/passport', passportRouter);            // Skill Passport & Evidence Authenticity
 app.use('/api/v1/simulator', simulatorRouter);          // Career Simulator & Transferable Skill Engine
+app.use('/api/v1/learning-loop', learningLoopRouter);    // Assessment -> Learning -> Reassessment Loop
 
 // ---------------------------------------------------------------------------
 // Generic error handler (must be last middleware)

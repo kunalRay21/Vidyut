@@ -15,6 +15,7 @@ import {
   ArrowRight,
   User,
   ShieldCheck,
+  RotateCcw,
 } from 'lucide-react';
 import { useAuth, UserRole } from '../../context/AuthContext';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
@@ -201,6 +202,20 @@ export const Navbar: React.FC = () => {
             >
               <Compass className="w-3.5 h-3.5 text-cyan-600" />
               <span>Career Simulator</span>
+            </NavLink>
+
+            <NavLink
+              to="/remediation"
+              className={({ isActive }) =>
+                `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  isActive
+                    ? 'text-gray-950 font-bold bg-white/70 shadow-2xs backdrop-blur-xs'
+                    : 'text-gray-700 hover:text-black hover:bg-white/40'
+                }`
+              }
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Skill Repair</span>
             </NavLink>
 
             {/* Portals Dropdown Trigger - Eliminates Horizontal Clutter */}
@@ -556,6 +571,23 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Compass className="w-4 h-4 text-cyan-600" />
                 <span>Career Simulator</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+            </NavLink>
+
+            <NavLink
+              to="/remediation"
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <RotateCcw className="w-4 h-4 text-emerald-600" />
+                <span>Skill Repair</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
