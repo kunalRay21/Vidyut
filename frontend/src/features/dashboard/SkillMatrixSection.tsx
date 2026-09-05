@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   PlayCircle,
   Search,
-  Columns3,
   LayoutGrid,
   List,
   AlertTriangle,
@@ -83,8 +82,8 @@ export const SkillMatrixSection: React.FC<SkillMatrixSectionProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // View state: 'BOARD' (Heatmap columns), 'GRID' (Compact Cards), 'TABLE' (Registry Table)
-  const [viewMode, setViewMode] = useState<'BOARD' | 'GRID' | 'TABLE'>('BOARD');
+  // View state: 'GRID' (Compact Cards), 'TABLE' (Registry Table)
+  const [viewMode, setViewMode] = useState<'GRID' | 'TABLE'>('GRID');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [selectedTier, setSelectedTier] = useState<number | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -131,16 +130,6 @@ export const SkillMatrixSection: React.FC<SkillMatrixSectionProps> = ({
       return true;
     });
   }, [skills, selectedCategory, selectedTier, searchQuery]);
-
-  // Group filtered skills by level for Board/Heatmap view
-  const boardColumns = useMemo(() => {
-    return {
-      4: filteredSkills.filter((s) => s.currentLevel === 4),
-      3: filteredSkills.filter((s) => s.currentLevel === 3),
-      2: filteredSkills.filter((s) => s.currentLevel === 2),
-      1: filteredSkills.filter((s) => s.currentLevel === 1),
-    };
-  }, [filteredSkills]);
 
   // Source Badge renderer
   const renderSourceBadge = (source: SkillItem['source'], compact = false) => {
@@ -364,43 +353,31 @@ export const SkillMatrixSection: React.FC<SkillMatrixSectionProps> = ({
             />
           </div>
 
-          {/* View Switcher buttons */}
+          {/* View Switcher buttons: Compact Cards Grid & Detailed Table */}
           <div className="bg-slate-100 p-0.5 rounded-xl border border-slate-200/80 flex items-center shrink-0">
-            <button
-              onClick={() => setViewMode('BOARD')}
-              title="Maturity Heatmap Columns"
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer ${
-                viewMode === 'BOARD'
-                  ? 'bg-white text-gray-900 shadow-2xs font-bold'
-                  : 'text-gray-500 hover:text-gray-800'
-              }`}
-            >
-              <Columns3 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline text-[11px]">Heatmap</span>
-            </button>
             <button
               onClick={() => setViewMode('GRID')}
               title="Compact Cards Grid"
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer ${
+              className={`p-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
                 viewMode === 'GRID'
                   ? 'bg-white text-gray-900 shadow-2xs font-bold'
                   : 'text-gray-500 hover:text-gray-800'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline text-[11px]">Grid</span>
+              <span className="text-[11px]">Cards Grid</span>
             </button>
             <button
               onClick={() => setViewMode('TABLE')}
               title="Detailed Registry Table"
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer ${
+              className={`p-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
                 viewMode === 'TABLE'
                   ? 'bg-white text-gray-900 shadow-2xs font-bold'
                   : 'text-gray-500 hover:text-gray-800'
               }`}
             >
               <List className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline text-[11px]">Table</span>
+              <span className="text-[11px]">Table Registry</span>
             </button>
           </div>
         </div>
@@ -460,108 +437,8 @@ export const SkillMatrixSection: React.FC<SkillMatrixSectionProps> = ({
             Reset All Filters
           </button>
         </div>
-      ) : viewMode === 'BOARD' ? (
-        /* ================= VIEW 1: MATURITY HEATMAP (BOARD) ================= */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-          {([4, 3, 2, 1] as const).map((tierKey) => {
-            const config = LEVEL_CONFIG[tierKey];
-            const columnSkills = boardColumns[tierKey];
-            const isTargetGapColumn = tierKey === 1;
-
-            return (
-              <div
-                key={tierKey}
-                className="bg-slate-50/70 rounded-2xl border border-slate-200/90 p-3.5 flex flex-col gap-3 min-h-[360px]"
-              >
-                {/* Column Header */}
-                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-3 h-3 rounded-full shrink-0"
-                      style={{ backgroundColor: config.color }}
-                    />
-                    <div>
-                      <h3 className="text-xs font-bold text-gray-900 tracking-tight">
-                        {config.label}
-                      </h3>
-                      <span className="text-[10px] text-gray-500 font-mono">
-                        {config.range}
-                      </span>
-                    </div>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-md text-[11px] font-extrabold bg-white border border-slate-200 text-gray-700 shadow-2xs">
-                    {columnSkills.length}
-                  </span>
-                </div>
-
-                {/* Skill Tiles */}
-                <div className="space-y-2.5 flex-1">
-                  {columnSkills.length === 0 ? (
-                    <div className="p-4 rounded-xl border border-dashed border-slate-200 bg-white text-center">
-                      <p className="text-[11px] text-gray-400">No skills currently in this tier.</p>
-                      {isTargetGapColumn && (
-                        <p className="text-[10px] text-emerald-600 font-semibold mt-1">
-                          ✓ No critical gaps identified!
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    columnSkills.map((skill) => (
-                      <div
-                        key={skill.id || skill.name}
-                        className="bg-white rounded-xl border border-gray-200/90 p-3 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between gap-2.5 group"
-                      >
-                        <div>
-                          {/* Category & Source Badges */}
-                          <div className="flex items-center justify-between gap-1.5 mb-1.5">
-                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider truncate max-w-[130px]">
-                              {skill.category}
-                            </span>
-                            {renderSourceBadge(skill.source, true)}
-                          </div>
-
-                          {/* Skill Name */}
-                          <h4 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-[#000080] transition-colors">
-                            {skill.name}
-                          </h4>
-                        </div>
-
-                        {/* Progress Bar & Score */}
-                        <div className="space-y-1 pt-1 border-t border-gray-100">
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="text-gray-500 text-[10px]">Mastery</span>
-                            <span
-                              className="font-mono font-extrabold"
-                              style={{ color: config.color }}
-                            >
-                              {skill.progress}%
-                            </span>
-                          </div>
-
-                          <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{
-                                width: `${skill.progress}%`,
-                                backgroundColor: config.color,
-                              }}
-                            />
-                          </div>
-
-                          <p className="text-[10px] text-gray-400 truncate pt-0.5">
-                            {skill.evidence}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
       ) : viewMode === 'GRID' ? (
-        /* ================= VIEW 2: COMPACT CARDS GRID ================= */
+        /* ================= VIEW 1: COMPACT CARDS GRID ================= */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {filteredSkills.map((skill) => {
             const config = LEVEL_CONFIG[skill.currentLevel];
