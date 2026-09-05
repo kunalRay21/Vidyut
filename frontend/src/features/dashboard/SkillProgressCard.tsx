@@ -1,189 +1,120 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Check } from 'lucide-react';
+import React from 'react';
+import { CheckCircle2, AlertTriangle, FileText, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export interface Skill {
   name: string;
   progress: number;
   currentLevel: number;
+  category?: string;
+  source?: 'ASSESSMENT' | 'RESUME' | 'GAP' | 'BASELINE';
+  evidence?: string;
 }
 
 interface SkillProgressCardProps {
   skill: Skill;
 }
 
-const LEVELS = ['FOUNDATION', 'DEVELOPING', 'PROFICIENT', 'ADVANCED'];
+const TIER_META = {
+  1: { label: 'Foundation', color: '#64748B', bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' },
+  2: { label: 'Developing', color: '#D97706', bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200' },
+  3: { label: 'Proficient', color: '#000080', bg: 'bg-blue-50', text: 'text-[#000080]', border: 'border-blue-200' },
+  4: { label: 'Expert', color: '#059669', bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' },
+};
 
 export const SkillProgressCard: React.FC<SkillProgressCardProps> = ({ skill }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(true);
-  const [displayedProgress, setDisplayedProgress] = useState(skill.progress || 0);
-  const [activeCheckpoints, setActiveCheckpoints] = useState<number>(skill.currentLevel || 1);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.15 }
-    );
-
-    if (cardRef.current) {
-      observer.observe(cardRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!isVisible) return;
-
-    // Animate circular progress
-    const duration = 2000;
-    const steps = 120;
-    const stepTime = duration / steps;
-    const increment = skill.progress / steps;
-
-    let currentProgress = 0;
-    const progressInterval = setInterval(() => {
-      currentProgress += increment;
-      if (currentProgress >= skill.progress) {
-        setDisplayedProgress(skill.progress);
-        clearInterval(progressInterval);
-      } else {
-        setDisplayedProgress(Math.floor(currentProgress));
-      }
-    }, stepTime);
-
-    // Animate checkpoints sequentially
-    let currentCheckpoint = 0;
-    const checkpointInterval = setInterval(() => {
-      currentCheckpoint++;
-      if (currentCheckpoint > skill.currentLevel) {
-        clearInterval(checkpointInterval);
-      } else {
-        setActiveCheckpoints(currentCheckpoint);
-      }
-    }, 600); // Slower delay between checkpoints
-
-    return () => {
-      clearInterval(progressInterval);
-      clearInterval(checkpointInterval);
-    };
-  }, [isVisible, skill.progress, skill.currentLevel]);
-
-  // SVG properties for circle
-  const size = 120;
-  const strokeWidth = 12;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (displayedProgress / 100) * circumference;
-
-  let accentColor = '#000080'; // Ashoka Navy (Default/Active)
-  if (skill.progress === 100) accentColor = '#138808'; // India Green (Completed)
-  else if (skill.progress > 0) accentColor = '#FF9933'; // Saffron (In Progress)
+  const navigate = useNavigate();
+  const level = (Math.max(1, Math.min(4, skill.currentLevel || 1))) as 1 | 2 | 3 | 4;
+  const meta = TIER_META[level];
 
   return (
-    <div 
-      ref={cardRef}
-      className="group bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-sm transition-all duration-300 hover:shadow-md flex flex-col w-full"
-    >
-      <h3 className="text-xl font-bold text-gray-800 mb-6">{skill.name}</h3>
-
-      <div className="flex flex-col md:flex-row items-center gap-12 w-full md:px-4">
-        {/* Circular Progress */}
-        <div className="relative shrink-0 transition-transform duration-300 group-hover:scale-105" style={{ width: size, height: size }}>
-          <svg className="transform -rotate-90 w-full h-full">
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              stroke="#E2E8F0"
-              strokeWidth={strokeWidth}
-              fill="transparent"
-            />
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              stroke={accentColor}
-              strokeWidth={strokeWidth}
-              fill="transparent"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              className="transition-all duration-100 ease-out"
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-semibold text-gray-900">{displayedProgress}%</span>
-          </div>
+    <div className="bg-white rounded-2xl border border-gray-200/90 p-4 sm:p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between gap-3">
+      <div>
+        {/* Header: Category & Source */}
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-bold uppercase tracking-wider">
+            {skill.category || 'Core Skill'}
+          </span>
+          {skill.source === 'ASSESSMENT' ? (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <CheckCircle2 className="w-3 h-3" /> Test Verified
+            </span>
+          ) : skill.source === 'RESUME' ? (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#000080] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+              <FileText className="w-3 h-3" /> Resume Evidence
+            </span>
+          ) : skill.source === 'GAP' ? (
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-300">
+              <AlertTriangle className="w-3 h-3" /> Target Gap
+            </span>
+          ) : (
+            <span className="text-[10px] font-semibold text-gray-500">
+              Academic Baseline
+            </span>
+          )}
         </div>
 
-        {/* Checkpoints */}
-        <div className="flex-1 w-full max-w-[500px] flex justify-between relative mt-8 md:mt-0">
-        {/* Connecting Lines Background */}
-        <div className="absolute top-[14px] left-8 right-8 h-1 bg-slate-200 -z-10 rounded-full" />
-        
-        {/* Connecting Lines Foreground (Animated) */}
-        <div className="absolute top-[14px] left-8 right-8 h-1 -z-10 rounded-full overflow-hidden">
-          <div 
-            className="h-full rounded-full transition-all duration-500 ease-out"
-            style={{ 
-              width: `${(Math.max(0, activeCheckpoints - 1) / 3) * 100}%`,
-              backgroundColor: accentColor
-            }} 
-          />
+        {/* Skill Name & Score */}
+        <div className="flex items-start justify-between gap-2">
+          <h4 className="text-base font-bold text-gray-900 leading-snug">
+            {skill.name}
+          </h4>
+          <span
+            className="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold"
+            style={{
+              backgroundColor: `${meta.color}15`,
+              color: meta.color,
+              border: `1px solid ${meta.color}35`,
+            }}
+          >
+            {skill.progress}%
+          </span>
         </div>
 
-        {LEVELS.map((level, index) => {
-          const checkpointNum = index + 1;
-          const isActivated = activeCheckpoints >= checkpointNum;
-          const isCompleted = isActivated && checkpointNum < skill.currentLevel;
-          const isCurrent = isActivated && checkpointNum === skill.currentLevel && skill.progress < 100;
-          const isFullyCompleted = skill.progress === 100 && isActivated;
-
-          let bgColor = '#F8FAFC'; 
-          let borderColor = '#CBD5E1'; 
-          let textColor = '#94A3B8';
-          
-          if (isCompleted || isFullyCompleted) {
-            bgColor = accentColor;
-            borderColor = accentColor;
-            textColor = '#FFFFFF';
-          } else if (isCurrent) {
-            bgColor = '#FFFFFF';
-            borderColor = accentColor;
-            textColor = accentColor;
-          }
-
-          return (
-            <div key={level} className="flex flex-col items-center relative z-10 w-16">
-              <div 
-                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 bg-white ${
-                  isActivated ? 'scale-100 shadow-sm' : 'scale-95'
-                }`}
-                style={{ backgroundColor: bgColor, borderColor: borderColor }}
-              >
-                {(isCompleted || isFullyCompleted) ? (
-                  <Check className="w-4 h-4 text-white" strokeWidth={3} />
-                ) : (
-                  <span className="text-xs font-bold" style={{ color: textColor }}>{checkpointNum}</span>
-                )}
-              </div>
-              <span 
-                className={`text-[9px] font-bold mt-2 tracking-wider text-center transition-colors duration-300 ${
-                  isActivated ? 'text-gray-800' : 'text-gray-400'
-                }`}
-              >
-                {level}
-              </span>
-            </div>
-          );
-        })}
+        <p className="text-[11px] text-gray-500 mt-1">
+          {meta.label} Stage • {skill.evidence || `${skill.progress}% calibrated readiness`}
+        </p>
       </div>
+
+      {/* 4-Step Milestone Progression */}
+      <div className="space-y-1.5 pt-2 border-t border-gray-100">
+        <div className="grid grid-cols-4 gap-1.5">
+          {[1, 2, 3, 4].map((step) => {
+            const isComplete = level >= step;
+            return (
+              <div key={step} className="space-y-1">
+                <div
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    isComplete ? '' : 'bg-slate-100'
+                  }`}
+                  style={{
+                    backgroundColor: isComplete ? meta.color : undefined,
+                  }}
+                />
+                <span
+                  className={`block text-[9px] text-center font-bold truncate ${
+                    isComplete ? 'text-gray-700' : 'text-gray-300'
+                  }`}
+                >
+                  {step === 1 ? 'Found.' : step === 2 ? 'Devel.' : step === 3 ? 'Profic.' : 'Expert'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between pt-1">
+          <span className="text-[10px] text-gray-400">
+            Stage {level} of 4 Complete
+          </span>
+          <button
+            onClick={() => navigate('/assessment/quiz')}
+            className="text-[11px] font-bold text-[#000080] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+          >
+            <span>Calibrate</span>
+            <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
       </div>
     </div>
   );

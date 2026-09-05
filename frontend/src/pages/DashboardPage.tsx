@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ReadinessGauge } from '../features/dashboard/ReadinessGauge';
-import { SkillProgressCard } from '../features/dashboard/SkillProgressCard';
+import { SkillMatrixSection, SkillItem } from '../features/dashboard/SkillMatrixSection';
+import { calibrateSkills } from '../features/dashboard/skillCalibration';
 import { DiscrepancyNotice } from '../features/dashboard/DiscrepancyNotice';
 import { FadeIn } from '../components/animations/FadeIn';
 import { profileApi, getStoredUser, getStoredResume } from '../services/api';
@@ -29,6 +30,12 @@ export const DashboardPage: React.FC = () => {
   // Profile & dynamic skills state
   const [profile, setProfile] = useState(() => {
     const stored = getStoredUser();
+    const resume = getStoredResume();
+    const initialSkills = calibrateSkills({
+      storedResume: resume,
+      selectedRole: stored?.selected_role || 'Backend Developer',
+      selectedRoleId: stored?.selected_role_id || 'bf9c3a6c-f0ec-4301-9e6b-c46d9fd50208',
+    });
     return {
       full_name: stored?.full_name || 'Student Candidate',
       institution: stored?.institution || 'National Engineering Institution',
@@ -36,8 +43,8 @@ export const DashboardPage: React.FC = () => {
       year_of_study: stored?.year_of_study || 3,
       selected_role: stored?.selected_role || 'Backend Developer',
       selected_role_id: stored?.selected_role_id || 'bf9c3a6c-f0ec-4301-9e6b-c46d9fd50208',
-      readiness_pct: typeof stored?.readiness_pct === 'number' ? stored.readiness_pct : 0,
-      skills: [] as Array<{ name: string; progress: number; currentLevel: number; category?: string }>,
+      readiness_pct: typeof stored?.readiness_pct === 'number' ? stored.readiness_pct : (resume?.primaryMatch?.matchPercentage || 74),
+      skills: initialSkills as SkillItem[],
     };
   });
 
@@ -45,7 +52,6 @@ export const DashboardPage: React.FC = () => {
   const [latestAssessment, setLatestAssessment] = useState<any | null>(null);
   const [assessmentHistory, setAssessmentHistory] = useState<any[]>([]);
   const [courseProgressMap, setCourseProgressMap] = useState<Record<string, any>>({});
-  const [skillFilter, setSkillFilter] = useState<'ALL' | 'MASTERED' | 'DEVELOPING'>('ALL');
 
   // Load and synchronize dynamic live data
   const loadDashboardData = async () => {
@@ -136,6 +142,7 @@ export const DashboardPage: React.FC = () => {
     }
 
     // 4. Fetch live data from backend
+    let liveBackendSkills: any[] = [];
     try {
       const profileRes = await profileApi.getMe();
       if (profileRes.success && profileRes.data) {
@@ -155,56 +162,37 @@ export const DashboardPage: React.FC = () => {
       // Fetch evaluated skills with studentId and roleId
       const skillsRes = await profileApi.getSkills(studentId, roleId);
       if (skillsRes.success && skillsRes.data?.skills && skillsRes.data.skills.length > 0) {
-        const mappedSkills = skillsRes.data.skills.map((s: any) => ({
-          name: s.skill_name || s.name,
-          progress: s.accuracy !== undefined && Number(s.accuracy) > 0 
-            ? Number(s.accuracy) 
-            : (s.assessed_level === 'PROFICIENT' ? 85 : s.assessed_level === 'INTERMEDIATE' ? 65 : 40),
-          currentLevel: s.assessed_level === 'EXPERT' ? 4 : s.assessed_level === 'PROFICIENT' ? 3 : s.assessed_level === 'INTERMEDIATE' ? 2 : 1,
-          category: s.category || 'Curriculum Milestone',
-        }));
-
-        setProfile((prev) => ({
-          ...prev,
-          skills: mappedSkills,
-          readiness_pct: skillsRes.data.readiness_pct !== undefined && skillsRes.data.readiness_pct > 0 
-            ? skillsRes.data.readiness_pct 
-            : prev.readiness_pct,
-        }));
+        liveBackendSkills = skillsRes.data.skills;
       }
     } catch (err) {
       console.warn('Backend live sync warning:', err);
     }
 
-    // 5. Calibrate initial skills & role from uploaded resume ONLY IF resume provided
+    // 5. Dynamic Skill Calibration from Assessment, Resume & Live Backend
     const resume = getStoredResume();
-    if (resume && resume.extractedSkills && resume.extractedSkills.length > 0) {
-      setProfile((prev) => {
-        const hasEvaluatedSkills = prev.skills.length > 0 && prev.skills.some(s => s.category !== 'Extracted from Resume');
-        if (!hasEvaluatedSkills) {
-          const resumeSkills = resume.extractedSkills.map((sk: string) => ({
-            name: sk,
-            progress: 75,
-            currentLevel: 3,
-            category: 'Extracted from Resume'
-          }));
+    const effectiveRole = stored?.selected_role || resume?.primaryMatch?.title || 'Backend Developer';
+    const effectiveRoleId = stored?.selected_role_id || resume?.primaryMatch?.id || 'bf9c3a6c-f0ec-4301-9e6b-c46d9fd50208';
 
-          const matchedTitle = resume.primaryMatch?.title;
-          const matchedId = resume.primaryMatch?.id;
+    const calibrated = calibrateSkills({
+      storedResume: resume,
+      latestAssessment: cachedScoreData,
+      backendSkills: liveBackendSkills,
+      selectedRole: effectiveRole,
+      selectedRoleId: effectiveRoleId,
+    });
 
-          return {
-            ...prev,
-            skills: resumeSkills,
-            selected_role: matchedTitle && prev.selected_role === 'Backend Developer' ? matchedTitle : prev.selected_role,
-            selected_role_id: matchedId && prev.selected_role_id === 'bf9c3a6c-f0ec-4301-9e6b-c46d9fd50208' ? matchedId : prev.selected_role_id,
-            readiness_pct: prev.readiness_pct === 0 && resume.primaryMatch?.matchPercentage
-              ? Math.round(resume.primaryMatch.matchPercentage * 0.45)
-              : prev.readiness_pct
-          };
-        }
-        return prev;
-      });
-    }
+    const calculatedReadiness = cachedScoreData?.overall_readiness_pct ??
+      cachedScoreData?.overall_accuracy_pct ??
+      stored?.readiness_pct ??
+      (resume?.primaryMatch?.matchPercentage ? Math.round(resume.primaryMatch.matchPercentage * 0.85) : 74);
+
+    setProfile((prev) => ({
+      ...prev,
+      skills: calibrated,
+      selected_role: effectiveRole,
+      selected_role_id: effectiveRoleId,
+      readiness_pct: calculatedReadiness,
+    }));
   };
 
   const storedResume = getStoredResume();
@@ -213,14 +201,7 @@ export const DashboardPage: React.FC = () => {
     loadDashboardData();
   }, []);
 
-  // Filter skills
-  const filteredSkills = profile.skills.filter((s) => {
-    if (skillFilter === 'MASTERED') return s.progress >= 70 || s.currentLevel >= 3;
-    if (skillFilter === 'DEVELOPING') return s.progress < 70 && s.currentLevel < 3;
-    return true;
-  });
-
-  const totalMasteredCount = profile.skills.filter((s) => s.progress >= 70 || s.currentLevel >= 3).length;
+  const totalMasteredCount = profile.skills.filter((s) => s.currentLevel >= 3).length;
   const totalCoursesEvaluated = Object.keys(courseProgressMap).length || (profile.readiness_pct > 0 ? 1 : 0);
 
   return (
@@ -540,75 +521,14 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Verified Skill Matrix Section */}
-      <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-200 pb-3">
-          <div>
-            <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight font-heading">
-              Verified Skill Matrix ({profile.skills.length} Evaluated)
-            </h2>
-            <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
-              Empirical mastery demonstrated through diagnostic code executions and conceptual evaluations.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <button
-              onClick={() => setSkillFilter('ALL')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
-                skillFilter === 'ALL'
-                  ? 'bg-[#000080] text-white shadow-2xs'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              All Skills ({profile.skills.length})
-            </button>
-            <button
-              onClick={() => setSkillFilter('MASTERED')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
-                skillFilter === 'MASTERED'
-                  ? 'bg-[#000080] text-white shadow-2xs'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              Mastered ({totalMasteredCount})
-            </button>
-            <button
-              onClick={() => setSkillFilter('DEVELOPING')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
-                skillFilter === 'DEVELOPING'
-                  ? 'bg-[#000080] text-white shadow-2xs'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              Developing ({profile.skills.length - totalMasteredCount})
-            </button>
-          </div>
-        </div>
-
-        {filteredSkills.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 border border-gray-200 text-center space-y-3 shadow-xs">
-            <Award className="w-10 h-10 text-gray-400 mx-auto" />
-            <h3 className="text-base font-bold text-gray-800">No Evaluated Skills in this Filter</h3>
-            <p className="text-xs text-gray-500 max-w-sm mx-auto">
-              Complete your diagnostic calibration quiz to automatically populate your empirically verified skill matrix.
-            </p>
-            <button
-              onClick={() => navigate('/assessment/quiz')}
-              className="btn-saffron text-xs py-2 px-4 font-bold rounded-xl shadow-xs inline-flex items-center gap-2"
-            >
-              <PlayCircle className="w-4 h-4" />
-              <span>Start Diagnostic Assessment</span>
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredSkills.map((skill) => (
-              <SkillProgressCard key={skill.name} skill={skill} />
-            ))}
-          </div>
-        )}
-      </section>
+      {/* 4. Calibrated Skill Matrix & Multi-View Hub */}
+      <FadeIn delay={250}>
+        <SkillMatrixSection
+          skills={profile.skills}
+          selectedRoleTitle={profile.selected_role}
+          onStartAssessment={() => navigate('/assessment/quiz')}
+        />
+      </FadeIn>
 
       {/* 6. Diagnostic Assessment History */}
       {assessmentHistory.length > 0 && (
