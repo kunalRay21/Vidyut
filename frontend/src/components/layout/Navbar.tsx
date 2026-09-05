@@ -189,6 +189,20 @@ export const Navbar: React.FC = () => {
               <span>Skill Passport</span>
             </NavLink>
 
+            <NavLink
+              to="/simulator"
+              className={({ isActive }) =>
+                `px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  isActive
+                    ? 'text-gray-950 font-bold bg-white/70 shadow-2xs backdrop-blur-xs'
+                    : 'text-gray-700 hover:text-black hover:bg-white/40'
+                }`
+              }
+            >
+              <Compass className="w-3.5 h-3.5 text-cyan-600" />
+              <span>Career Simulator</span>
+            </NavLink>
+
             {/* Portals Dropdown Trigger - Eliminates Horizontal Clutter */}
             <div className="relative" ref={portalsMenuRef}>
               <button
@@ -525,6 +539,23 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-3">
                 <ShieldCheck className="w-4 h-4 text-blue-600" />
                 <span>Skill Passport</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+            </NavLink>
+
+            <NavLink
+              to="/simulator"
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+                  isActive
+                    ? 'bg-black/[0.04] text-gray-950 font-semibold'
+                    : 'text-gray-600 hover:bg-black/[0.02] hover:text-gray-950'
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <Compass className="w-4 h-4 text-cyan-600" />
+                <span>Career Simulator</span>
               </div>
               <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
             </NavLink>
