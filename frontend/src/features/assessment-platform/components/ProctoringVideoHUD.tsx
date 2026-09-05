@@ -29,7 +29,7 @@ export const ProctoringVideoHUD: React.FC<ProctoringVideoHUDProps> = ({
   const [isMinimized, setIsMinimized] = useState<boolean>(false);
 
   useEffect(() => {
-    if (videoRef.current && stream) {
+    if (videoRef.current && stream && videoRef.current.srcObject !== stream) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(() => {});
     }

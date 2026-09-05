@@ -182,7 +182,7 @@ export function useAudioVisualProctoring({
           width: { ideal: 640 },
           height: { ideal: 480 },
           facingMode: 'user',
-          frameRate: { ideal: 15, max: 24 },
+          frameRate: { ideal: 30, min: 20 },
         },
         audio: {
           echoCancellation: true,
@@ -200,7 +200,7 @@ export function useAudioVisualProctoring({
       const cameraGranted = videoTracks.length > 0 && videoTracks[0].readyState === 'live';
       const micGranted = audioTracks.length > 0 && audioTracks[0].readyState === 'live';
 
-      // Attach video to internal hidden/visible video element
+      // Attach video to internal hidden/visible video element once
       if (!videoElementRef.current) {
         const vid = document.createElement('video');
         vid.muted = true;
@@ -209,7 +209,7 @@ export function useAudioVisualProctoring({
         vid.srcObject = mediaStream;
         vid.play().catch(() => {});
         videoElementRef.current = vid;
-      } else {
+      } else if (videoElementRef.current.srcObject !== mediaStream) {
         videoElementRef.current.srcObject = mediaStream;
         videoElementRef.current.play().catch(() => {});
       }
@@ -343,12 +343,22 @@ export function useAudioVisualProctoring({
       const audioResult = audioDetectorRef.current.analyzeAudio();
       const isQuiet = audioResult.volumeRms < 16 && !audioResult.isTalking;
 
-      setStatus((prev) => ({
-        ...prev,
-        audioLevel: audioResult.volumeRms,
-        isTalking: audioResult.isTalking,
-        isQuiet,
-      }));
+      // Guarded state update: only triggers React re-render if meaningful change occurred
+      setStatus((prev) => {
+        if (
+          Math.abs(prev.audioLevel - audioResult.volumeRms) < 2 &&
+          prev.isTalking === audioResult.isTalking &&
+          prev.isQuiet === isQuiet
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          audioLevel: audioResult.volumeRms,
+          isTalking: audioResult.isTalking,
+          isQuiet,
+        };
+      });
 
       // Active exam proctoring violation alerts for speech & background noise
       if (isActive && consentState.isReady) {
@@ -380,7 +390,7 @@ export function useAudioVisualProctoring({
           );
         }
       }
-    }, 60);
+    }, 100);
 
     return () => {
       isSubscribed = false;
@@ -500,15 +510,33 @@ export function useAudioVisualProctoring({
           );
         }
 
-        // Update consolidated proctoring status
-        setStatus((prev) => ({
-          ...prev,
-          faceDetected: visionRes ? visionRes.faceDetected : false,
-          multipleFacesDetected: visionRes ? visionRes.faceCount > 1 : false,
-          attentionOk: visionRes ? !visionRes.isLookingAway : true,
-          isLookingAway: visionRes ? visionRes.isLookingAway : false,
-          lightingOk: visionRes ? visionRes.lightingScore >= 15 : true,
-        }));
+        // Update consolidated proctoring status only if values actually changed
+        setStatus((prev) => {
+          const faceDetected = visionRes ? visionRes.faceDetected : false;
+          const multipleFacesDetected = visionRes ? visionRes.faceCount > 1 : false;
+          const attentionOk = visionRes ? !visionRes.isLookingAway : true;
+          const isLookingAway = visionRes ? visionRes.isLookingAway : false;
+          const lightingOk = visionRes ? visionRes.lightingScore >= 15 : true;
+
+          if (
+            prev.faceDetected === faceDetected &&
+            prev.multipleFacesDetected === multipleFacesDetected &&
+            prev.attentionOk === attentionOk &&
+            prev.isLookingAway === isLookingAway &&
+            prev.lightingOk === lightingOk
+          ) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            faceDetected,
+            multipleFacesDetected,
+            attentionOk,
+            isLookingAway,
+            lightingOk,
+          };
+        });
       } catch (err) {
         console.warn('[Proctoring Engine] Cycle error:', err);
       }

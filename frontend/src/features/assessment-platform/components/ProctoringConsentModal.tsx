@@ -35,9 +35,9 @@ export const ProctoringConsentModal: React.FC<ProctoringConsentModalProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
 
-  // Attach stream to video element when available
+  // Attach stream to video element when available without redundant re-attachments
   useEffect(() => {
-    if (videoRef.current && stream) {
+    if (videoRef.current && stream && videoRef.current.srcObject !== stream) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(() => {});
     }

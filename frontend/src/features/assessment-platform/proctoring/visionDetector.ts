@@ -1,19 +1,11 @@
 import { VisionDetectionResult } from '../types/proctoring';
 
-// Helper declaration for optional native Shape Detection API
-declare global {
-  interface Window {
-    FaceDetector?: any;
-  }
-}
-
 export class VisionDetector {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D | null;
   private previousLuminance: number = -1;
   private width: number;
   private height: number;
-  private nativeFaceDetector: any = null;
 
   constructor(width = 160, height = 120) {
     this.width = width;
@@ -22,15 +14,6 @@ export class VisionDetector {
     this.canvas.width = width;
     this.canvas.height = height;
     this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
-
-    // Initialize native Shape Detection API if available
-    if (typeof window !== 'undefined' && 'FaceDetector' in window) {
-      try {
-        this.nativeFaceDetector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 4 });
-      } catch {
-        this.nativeFaceDetector = null;
-      }
-    }
   }
 
   /**
@@ -123,30 +106,6 @@ export class VisionDetector {
         }
       }
 
-      // Native FaceDetector attempt if supported
-      let detectedFacesCount = 0;
-      let nativeBoundingBox: { x: number; y: number; width: number; height: number } | undefined;
-
-      if (this.nativeFaceDetector) {
-        try {
-          const detected = await this.nativeFaceDetector.detect(this.canvas);
-          if (Array.isArray(detected)) {
-            detectedFacesCount = detected.length;
-            if (detected.length > 0) {
-              const box = detected[0].boundingBox;
-              nativeBoundingBox = {
-                x: box.x,
-                y: box.y,
-                width: box.width,
-                height: box.height,
-              };
-            }
-          }
-        } catch {
-          // Native detector fallback
-        }
-      }
-
       // Determine face presence from skin ratio and bounding box dimensions
       const skinRatio = skinPixelCount / pixelCount;
       const hasFaceGeometry =
@@ -156,17 +115,15 @@ export class VisionDetector {
         (maxY - minY) >= this.height * 0.18 &&
         !isBlackout;
 
-      const faceDetected = detectedFacesCount > 0 || hasFaceGeometry;
-      const faceCount = detectedFacesCount > 0
-        ? detectedFacesCount
-        : (faceDetected ? (separatedClusters > 1 ? separatedClusters : 1) : 0);
+      const faceDetected = hasFaceGeometry;
+      const faceCount = faceDetected ? (separatedClusters > 1 ? separatedClusters : 1) : 0;
 
-      const boundingBox = nativeBoundingBox || (faceDetected ? {
+      const boundingBox = faceDetected ? {
         x: minX,
         y: minY,
         width: Math.max(1, maxX - minX),
         height: Math.max(1, maxY - minY),
-      } : undefined);
+      } : undefined;
 
       // 4. Eye/Gaze Direction Estimation
       // We inspect the eye zone (top 25% to 50% of the detected face bounding box)
@@ -273,6 +230,5 @@ export class VisionDetector {
 
   public destroy(): void {
     this.ctx = null;
-    this.nativeFaceDetector = null;
   }
 }
