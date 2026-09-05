@@ -45,6 +45,16 @@ export async function matchOpportunitySkills(
     canonicalMap.set(s.name.trim().toLowerCase(), s.id);
   }
 
+  // Fallback skills if DB is empty
+  if (canonicalMap.size === 0) {
+    const { FALLBACK_ROADMAPS } = require('../../roadmap/service');
+    for (const key of Object.keys(FALLBACK_ROADMAPS)) {
+      for (const s of FALLBACK_ROADMAPS[key].skills) {
+        canonicalMap.set(s.name.trim().toLowerCase(), s.id);
+      }
+    }
+  }
+
   const aliasMap = new Map<string, string>(); // lowercase alias -> skill_id
   for (const a of dbAliases) {
     aliasMap.set(a.alias.trim().toLowerCase(), a.skill_id);

@@ -399,7 +399,23 @@ export const roadmapApi = {
       }),
     });
   },
+
+  generateRoadmap: async (studentId?: string, roleId?: string) => {
+    return await request<any>('/api/v1/roadmap/generate', {
+      method: 'POST',
+      body: JSON.stringify({ student_id: studentId, role_id: roleId }),
+    });
+  },
+
+  getSkillGaps: async (studentId?: string, roleId?: string) => {
+    const params = new URLSearchParams();
+    if (studentId) params.append('student_id', studentId);
+    if (roleId) params.append('role_id', roleId);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return await request<any>(`/api/v1/roadmap/gaps${qs}`);
+  },
 };
+
 
 // ----------------------------------------------------
 // 7. Portfolio & Evidence

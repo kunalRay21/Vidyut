@@ -157,8 +157,22 @@ router.get('/me/skills', async (req: Request, res: Response) => {
     });
 
     const totalSkills = skills.length;
+    let totalRatio = 0;
+    const levelValueMap: Record<string, number> = { AWARENESS: 1, BEGINNER: 2, INTERMEDIATE: 3, PROFICIENT: 4, EXPERT: 5 };
+    for (const s of skills) {
+      const cur = levelValueMap[s.assessed_level] || 1;
+      const tgt = levelValueMap[s.target_level] || 4;
+      totalRatio += Math.min(cur / tgt, 1.0);
+    }
+    const readinessPct = totalSkills === 0 ? 0 : Math.round((totalRatio / totalSkills) * 100);
     const completedSkills = skills.filter((s) => s.status === 'completed').length;
-    const readinessPct = totalSkills === 0 ? 0 : Math.round((completedSkills / totalSkills) * 100);
+
+    // Synchronize student_profiles DB
+    try {
+      await query(`UPDATE student_profiles SET readiness_pct = $1 WHERE id = $2`, [readinessPct, studentId]);
+    } catch {
+      // Non-blocking fallback
+    }
 
     return apiSuccess(res, {
       student_id: studentId,
