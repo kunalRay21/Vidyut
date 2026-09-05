@@ -3,18 +3,21 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { UserPlus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { careersApi } from '../../services/api';
 
 export default function RegisterForm() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { registerStudent } = useAuth();
 
+  const [branches, setBranches] = useState<any[]>([]);
   const [form, setForm] = useState({
     full_name: '',
     email: '',
     password: '',
     institution: '',
-    degree: '',
+    degree: 'B.Tech CSE',
+    academic_branch_id: '',
     year_of_study: '',
     interests: '',
   });
@@ -22,8 +25,26 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  React.useEffect(() => {
+    async function loadBranches() {
+      try {
+        const res = await careersApi.getAcademicBranches();
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setBranches(res.data);
+          const cseBranch = res.data.find((b: any) => b.code === 'CSE');
+          if (cseBranch) {
+            setForm((prev) => ({ ...prev, academic_branch_id: cseBranch.id }));
+          }
+        }
+      } catch (err) {
+        console.warn('Academic branch fetch error:', err);
+      }
+    }
+    loadBranches();
+  }, []);
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setForm({
       ...form,
@@ -61,6 +82,7 @@ export default function RegisterForm() {
         full_name: form.full_name,
         institution: form.institution,
         degree: form.degree,
+        academic_branch_id: form.academic_branch_id || undefined,
         year_of_study: Number(form.year_of_study),
         interests: parsedInterests,
       });
@@ -152,19 +174,24 @@ export default function RegisterForm() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('auth.degreeLabel')} *
-              </label>
-              <input
-                type="text"
-                name="degree"
-                value={form.degree}
-                onChange={handleChange}
-                placeholder={t('auth.degreePlaceholder')}
-                className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Academic Branch *
+            </label>
+            <select
+              name="academic_branch_id"
+              value={form.academic_branch_id}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 outline-none focus:border-saffron focus:ring-1 focus:ring-saffron transition"
+            >
+              <option value="">Select Academic Branch...</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name} ({b.code})
+                </option>
+              ))}
+            </select>
+          </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

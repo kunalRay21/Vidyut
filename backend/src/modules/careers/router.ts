@@ -149,6 +149,48 @@ const FALLBACK_ROLES: Record<string, { role: any; skills: any[] }> = {
   }
 };
 
+import { getAllAcademicBranches, getPersonalizedDomainsForStudent, seedAcademicBranches, migrateExistingStudentProfiles } from './academicBranch.service';
+
+// Auto-seed academic branches on load
+seedAcademicBranches().then(() => migrateExistingStudentProfiles()).catch(() => {});
+
+// GET all canonical academic branches (Phase 2)
+router.get('/academic-branches', async (req: Request, res: Response) => {
+  try {
+    const branches = await getAllAcademicBranches();
+    return apiSuccess(res, branches);
+  } catch (error: any) {
+    console.error('[Academic Branches Error]', error);
+    return apiError(res, 'Failed to fetch academic branches: ' + error.message, 500, 'SERVER_ERROR');
+  }
+});
+
+// GET personalized domains ranked by student's academic branch relevance (Phase 2)
+router.get('/personalized-domains', async (req: Request, res: Response) => {
+  try {
+    const studentId = (req.query.student_id || req.headers['x-student-id']) as string | undefined;
+    const authHeader = req.headers.authorization;
+    let userIdOrStudentId = studentId;
+
+    if (!userIdOrStudentId && authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const { verifyToken } = require('../../auth/jwt');
+        const decoded = verifyToken(token);
+        if (decoded?.id) userIdOrStudentId = decoded.id;
+      } catch {
+        // ignore
+      }
+    }
+
+    const domains = await getPersonalizedDomainsForStudent(userIdOrStudentId || '');
+    return apiSuccess(res, domains);
+  } catch (error: any) {
+    console.error('[Personalized Domains Error]', error);
+    return apiError(res, 'Failed to fetch personalized domains: ' + error.message, 500, 'SERVER_ERROR');
+  }
+});
+
 // GET all career domains
 router.get('/domains', async (req: Request, res: Response) => {
   try {

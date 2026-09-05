@@ -16,9 +16,10 @@ router.get('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
 
     try {
       const resDb = await pool.query(
-        `SELECT sp.*, u.email 
+        `SELECT sp.*, u.email, ab.code as academic_branch_code, ab.name as academic_branch_name
          FROM student_profiles sp 
          JOIN users u ON sp.user_id = u.id 
+         LEFT JOIN academic_branches ab ON ab.id = sp.academic_branch_id
          WHERE sp.user_id = $1`,
         [userId]
       );
@@ -30,7 +31,13 @@ router.get('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
       profile = memoryStore.profiles.get(userId);
       if (profile) {
         const user = Array.from(memoryStore.users.values()).find(u => u.id === userId);
-        profile = { ...profile, email: user?.email };
+        const branch = profile.academic_branch_id ? memoryStore.academic_branches.get(profile.academic_branch_id) : null;
+        profile = {
+          ...profile,
+          email: user?.email,
+          academic_branch_code: branch?.code,
+          academic_branch_name: branch?.name,
+        };
       }
     }
 
@@ -41,6 +48,34 @@ router.get('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
     return apiSuccess(res, profile);
   } catch (err: any) {
     return apiError(res, 'Failed to fetch profile: ' + err.message, 500, 'SERVER_ERROR');
+  }
+});
+
+// PUT /api/v1/profile/academic-branch (Update Student Academic Branch - Phase 2)
+router.put('/academic-branch', authenticateJWT, requireRole(['STUDENT']), async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user!.id;
+  const { academic_branch_id } = req.body;
+
+  if (!academic_branch_id) {
+    return apiError(res, 'academic_branch_id is required', 400, 'BAD_REQUEST');
+  }
+
+  try {
+    try {
+      await pool.query(
+        `UPDATE student_profiles SET academic_branch_id = $1, updated_at = NOW() WHERE user_id = $2`,
+        [academic_branch_id, userId]
+      );
+    } catch {
+      const profile = memoryStore.profiles.get(userId);
+      if (profile) {
+        profile.academic_branch_id = academic_branch_id;
+      }
+    }
+
+    return apiSuccess(res, { message: 'Academic branch updated successfully', academic_branch_id });
+  } catch (err: any) {
+    return apiError(res, 'Failed to update academic branch: ' + err.message, 500, 'SERVER_ERROR');
   }
 });
 

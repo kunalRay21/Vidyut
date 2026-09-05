@@ -88,6 +88,10 @@ export interface StudentProfileContext {
   yearOfStudy: number;
   /** Student's declared interest domain/area names (from onboarding). */
   interests: string[];
+  /** Student's academic branch ID (Phase 2). */
+  academicBranchId?: string | null;
+  /** Domain ID -> Relevance level ('HIGH' | 'MEDIUM' | 'LOW') map for academic branch. */
+  academicBranchRelevanceMap?: Record<string, string>;
 }
 
 // ---------------------------------------------------------------------------

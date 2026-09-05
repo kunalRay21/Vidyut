@@ -20,40 +20,50 @@ import type { ResourceRepository, RoadmapRepository } from './resource-recommend
 
 /**
  * Adapter for ProfileService to fetch student data via Prisma.
+ *
+ * Supports two kinds of studentId:
+ *   - student_profiles.id  (UUID from registration response / x-student-id header)
+ *   - users.id             (JWT sub claim / user.id stored in localStorage)
+ * The second lookup is needed because the frontend may send either value.
  */
 export class PrismaProfileService implements ProfileService {
   async getProfile(studentId: string): Promise<StudentProfile> {
-    let profile = null;
-    try {
-      profile = await prisma.studentProfile.findUnique({
-        where: { id: studentId },
+    // 1. Try exact match by student_profiles.id
+    let profile = await prisma.studentProfile.findUnique({
+      where: { id: studentId },
+      include: {
+        selectedRole: {
+          include: { domain: true }
+        }
+      }
+    }).catch(() => null);
+
+    // 2. Fall back: look up by users.id (userId FK)
+    if (!profile) {
+      profile = await prisma.studentProfile.findFirst({
+        where: { userId: studentId },
         include: {
           selectedRole: {
             include: { domain: true }
           }
         }
-      });
-    } catch {
-      // ignore if studentId is not a valid uuid format for unique lookup
+      }).catch(() => null);
     }
 
     if (!profile) {
-      try {
-        profile = await prisma.studentProfile.findFirst({
-          where: { userId: studentId },
-          include: {
-            selectedRole: {
-              include: { domain: true }
-            }
-          }
-        });
-      } catch {
-        // ignore
+      throw new Error(`Student profile not found for id: ${studentId}`);
+    }
+
+    const academicBranchId = (profile as any).academicBranchId ?? null;
+    const academicBranchRelevanceMap: Record<string, string> = {};
+
+    if (academicBranchId) {
+      const branchDomains = await (prisma as any).academicBranchDomain.findMany({
+        where: { academicBranchId }
+      }).catch(() => []);
+      for (const bd of branchDomains) {
+        academicBranchRelevanceMap[bd.domainId] = bd.relevance;
       }
-    }
-
-    if (!profile) {
-      throw new Error(`Student profile not found: ${studentId}`);
     }
 
     return {
@@ -62,30 +72,30 @@ export class PrismaProfileService implements ProfileService {
       interests: profile.interests,
       selectedDomainId: profile.selectedRole?.domainId ?? null,
       selectedDomainName: profile.selectedRole?.domain?.name ?? null,
+      academicBranchId,
+      academicBranchRelevanceMap,
     };
   }
 
   async getSkillStates(studentId: string): Promise<StudentSkillState[]> {
-    let states: any[] = [];
-    try {
-      states = await prisma.studentSkillState.findMany({
-        where: { studentId }
-      });
-      if (states.length === 0) {
-        const prof = await prisma.studentProfile.findFirst({
-          where: { userId: studentId }
-        });
-        if (prof) {
-          states = await prisma.studentSkillState.findMany({
-            where: { studentId: prof.id }
-          });
-        }
+    // Try by studentId directly (student_profiles.id)
+    let states = await prisma.studentSkillState.findMany({
+      where: { studentId }
+    }).catch(() => [] as any[]);
+
+    // If empty, studentId may be a users.id — resolve the profile first
+    if (states.length === 0) {
+      const prof = await prisma.studentProfile.findFirst({
+        where: { userId: studentId }
+      }).catch(() => null);
+      if (prof) {
+        states = await prisma.studentSkillState.findMany({
+          where: { studentId: prof.id }
+        }).catch(() => []);
       }
-    } catch {
-      // ignore
     }
 
-    return states.map(state => ({
+    return states.map((state: any) => ({
       skillId: state.skillId,
       assessedLevel: (state.assessedLevel as ProficiencyLevel) ?? null
     }));
@@ -133,8 +143,7 @@ export class PrismaOpportunityRepository implements OpportunityRepository {
 
 /**
  * Adapter for RecommendationPersistenceClient.
- * We can simply expose a wrapper around the Prisma client's recommendation model
- * that matches the interface structurally.
+ * Wraps the Prisma client's recommendation model to match the interface.
  */
 export class PrismaRecommendationPersistenceClient implements RecommendationPersistenceClient {
   public recommendation = {
@@ -172,6 +181,7 @@ export class PrismaResourceRepository implements ResourceRepository {
 
 /**
  * Adapter for RoadmapRepository.
+ * Three-tier fallback: milestones → role skills → skill states.
  */
 export class PrismaRoadmapRepository implements RoadmapRepository {
   async getStudentRoadmap(studentId: string): Promise<RoadmapSkillState[]> {
@@ -267,11 +277,9 @@ export class PrismaRoadmapRepository implements RoadmapRepository {
     }
 
     return milestones.map(milestone => {
-      // Map existing milestone statuses to the expected RoadmapSkillStatus
       let status: RoadmapSkillStatus = 'NOT_STARTED';
       if (milestone.status === 'IN_PROGRESS') status = 'IN_PROGRESS';
       if (milestone.status === 'COMPLETED') status = 'COMPLETED';
-      // 'LOCKED' or any other state maps to 'NOT_STARTED'
 
       const skillState = milestone.skill?.skillStates[0];
       const currentProficiency = (skillState?.assessedLevel as ProficiencyLevel) ?? null;

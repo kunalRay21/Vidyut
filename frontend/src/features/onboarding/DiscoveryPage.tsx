@@ -36,6 +36,7 @@ export interface DomainItem {
   category: string;
   description: string;
   demand_level: 'High Demand' | 'Growing' | 'Critical Need';
+  academic_relevance: string;
   duration: string;
   openRolesCount: string;
   technologies: string[];
@@ -52,6 +53,7 @@ const DEFAULT_DOMAINS: DomainItem[] = [
     category: 'Artificial Intelligence',
     description: 'Design, evaluate and operationalize predictive machine learning models, deep learning architectures, and generative AI pipelines.',
     demand_level: 'High Demand',
+    academic_relevance: 'HIGH',
     duration: '14 Weeks · 9 Milestones',
     openRolesCount: '120+ Active Openings',
     technologies: ['Python', 'PyTorch', 'Scikit-Learn', 'NumPy & Pandas', 'Linear Algebra', 'GenAI'],
@@ -75,6 +77,7 @@ const DEFAULT_DOMAINS: DomainItem[] = [
     category: 'Backend & APIs',
     description: 'Architect resilient server-side microservices, high-throughput relational databases, robust REST/gRPC APIs, and scalable infrastructure.',
     demand_level: 'High Demand',
+    academic_relevance: 'HIGH',
     duration: '12 Weeks · 8 Milestones',
     openRolesCount: '185+ Active Openings',
     technologies: ['Python', 'FastAPI', 'PostgreSQL', 'Docker', 'Redis', 'REST APIs'],
@@ -98,6 +101,7 @@ const DEFAULT_DOMAINS: DomainItem[] = [
     category: 'Data Science',
     description: 'Extract transformative business intelligence, orchestrate reliable ETL data pipelines, and architect high-capacity data lakes and warehouses.',
     demand_level: 'High Demand',
+    academic_relevance: 'HIGH',
     duration: '11 Weeks · 7 Milestones',
     openRolesCount: '95+ Active Openings',
     technologies: ['Python', 'Advanced SQL', 'Pandas', 'Apache Spark', 'Data Warehousing', 'Kafka'],
@@ -119,6 +123,7 @@ const DEFAULT_DOMAINS: DomainItem[] = [
     category: 'Cloud & DevOps',
     description: 'Deploy resilient containerized workloads, configure automated CI/CD deployment pipelines, and maintain hyper-scaler cloud infrastructure.',
     demand_level: 'Critical Need',
+    academic_relevance: 'HIGH',
     duration: '10 Weeks · 7 Milestones',
     openRolesCount: '140+ Active Openings',
     technologies: ['Docker', 'Kubernetes', 'AWS / Azure', 'Terraform', 'GitHub Actions', 'Linux Shell'],
@@ -140,6 +145,7 @@ const DEFAULT_DOMAINS: DomainItem[] = [
     category: 'Full-Stack',
     description: 'Build rich, accessible user interfaces with modern React frameworks and connect them to secure, performant distributed backend services.',
     demand_level: 'High Demand',
+    academic_relevance: 'HIGH',
     duration: '12 Weeks · 8 Milestones',
     openRolesCount: '210+ Active Openings',
     technologies: ['TypeScript', 'React.js', 'Node.js', 'Tailwind CSS', 'PostgreSQL', 'Next.js'],
@@ -161,6 +167,7 @@ const DEFAULT_DOMAINS: DomainItem[] = [
     category: 'Security',
     description: 'Analyze network vulnerabilities, implement zero-trust authentication protocols, and harden enterprise software applications against exploits.',
     demand_level: 'Critical Need',
+    academic_relevance: 'MEDIUM',
     duration: '10 Weeks · 6 Milestones',
     openRolesCount: '80+ Active Openings',
     technologies: ['Network Security', 'OWASP Top 10', 'JWT & OAuth2', 'Linux Hardening', 'Cryptography'],
@@ -203,7 +210,7 @@ export default function DiscoveryPage() {
     async function loadDomains() {
       setLoading(true);
       try {
-        const res = await careersApi.getDomains();
+        const res = await careersApi.getPersonalizedDomains();
         if (mounted && res.success && Array.isArray(res.data) && res.data.length > 0) {
           // Merge API data with rich fallback metadata
           const mapped = res.data.map((apiDomain: any, idx: number) => {
@@ -217,10 +224,11 @@ export default function DiscoveryPage() {
               name: apiDomain.name || matchFallback.name,
               description: apiDomain.description || matchFallback.description,
               demand_level: (apiDomain.demand_level === 'CRITICAL' ? 'Critical Need' : apiDomain.demand_level === 'GROWING' ? 'Growing' : 'High Demand') as any,
+              academic_relevance: apiDomain.academic_relevance || 'MEDIUM',
             };
           });
 
-          // Ensure all default domains are included if backend only has 2 fallback items
+          // Ensure all default domains are included
           const mergedList = [...mapped];
           DEFAULT_DOMAINS.forEach((def) => {
             if (!mergedList.some((m) => m.id === def.id || m.name === def.name)) {

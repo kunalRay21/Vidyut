@@ -107,6 +107,7 @@ export const authApi = {
     full_name: string;
     institution: string;
     degree: string;
+    academic_branch_id?: string;
     year_of_study: number;
     interests?: string[];
   }) => {
@@ -121,6 +122,15 @@ export const authApi = {
 // 2. Career Domains & Roles
 // ----------------------------------------------------
 export const careersApi = {
+  getAcademicBranches: async () => {
+    return await request<any[]>('/api/v1/careers/academic-branches');
+  },
+
+  getPersonalizedDomains: async (studentId?: string) => {
+    const qs = studentId ? `?student_id=${encodeURIComponent(studentId)}` : '';
+    return await request<any[]>(`/api/v1/careers/personalized-domains${qs}`);
+  },
+
   getDomains: async () => {
     return await request('/api/v1/careers/domains');
   },
@@ -351,6 +361,13 @@ export const profileApi = {
     return await request('/api/v1/profile/me', {
       method: 'PUT',
       body: JSON.stringify(fields),
+    });
+  },
+
+  updateAcademicBranch: async (branchId: string) => {
+    return await request('/api/v1/profile/academic-branch', {
+      method: 'PUT',
+      body: JSON.stringify({ academic_branch_id: branchId }),
     });
   },
 };
