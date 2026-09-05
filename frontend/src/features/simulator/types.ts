@@ -41,7 +41,10 @@ export interface CareerSimulationResult {
 
 export interface SimulatableRole {
   id: string;
-  name: string;
+  name?: string;
+  title?: string;
   description: string;
-  skillCount: number;
+  skillCount?: number;
+  coreSkillCount?: number;
+  marketDemandRating?: string;
 }

@@ -12,8 +12,10 @@ import { PassportService } from '../passport/passport.service';
 export interface SimulatableRoleSummary {
   id: string;
   title: string;
+  name?: string;
   description: string;
   coreSkillCount: number;
+  skillCount?: number;
   marketDemandRating: 'VERY_HIGH' | 'HIGH' | 'STABLE';
 }
 
@@ -36,8 +38,10 @@ export class SimulatorService {
       return {
         id: roleId,
         title: graph.role?.name || roleId,
+        name: graph.role?.name || roleId,
         description: graph.role?.description || 'Calibrated industry competency DAG.',
         coreSkillCount: (graph.skills || []).length,
+        skillCount: (graph.skills || []).length,
         marketDemandRating: demandMap[roleId] || 'HIGH',
       };
     });

@@ -131,10 +131,10 @@ export const CareerSimulatorWidget: React.FC = () => {
                   <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-cyan-500/20 to-transparent rounded-bl-full pointer-events-none" />
                 )}
                 <div className="text-xs font-bold truncate text-slate-200 group-hover:text-white transition-colors">
-                  {role.name.split('&')[0].trim()}
+                  {((role.title || role.name || role.id).split('&')[0] || '').trim()}
                 </div>
                 <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                  <span>{role.skillCount} core skills</span>
+                  <span>{role.coreSkillCount ?? role.skillCount ?? 0} core skills</span>
                 </div>
               </button>
             );
