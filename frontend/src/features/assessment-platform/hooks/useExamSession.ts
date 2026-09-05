@@ -7,7 +7,7 @@ import {
   QuestionStatus,
   ExamReport,
 } from '../types/exam';
-import { assessmentApi } from '../../../services/api';
+import { assessmentApi, getStoredUser, setStoredUser } from '../../../services/api';
 
 interface UseExamSessionProps {
   initialSessionId?: string | null;
@@ -382,6 +382,30 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
       const fullReport = await assessmentApi.getReport(sessionId);
       setReport(fullReport);
       setExamStatus('COMPLETED');
+
+      // Cache assessment result for Dashboard & profile synchronization
+      try {
+        const storedUser = getStoredUser();
+        const payloadToStore = {
+          student_id: storedUser?.student_profile_id || storedUser?.id,
+          session_id: sessionId,
+          overall_accuracy_pct: fullReport.overall_accuracy_pct,
+          overall_readiness_pct: fullReport.overall_readiness_pct,
+          correct_answers: fullReport.correct_answers,
+          total_questions: fullReport.total_questions,
+          discrepancies: fullReport.discrepancies,
+          completed_at: fullReport.completed_at,
+        };
+        localStorage.setItem('assessment_result', JSON.stringify(payloadToStore));
+
+        // Update storedUser readiness_pct so Dashboard & Navbar reflect verified readiness immediately
+        if (storedUser) {
+          storedUser.readiness_pct = fullReport.overall_readiness_pct;
+          setStoredUser(storedUser);
+        }
+      } catch (e) {
+        console.warn('Could not cache assessment result locally:', e);
+      }
     } catch (err) {
       console.error('Failed to submit exam:', err);
       setErrorMessage((err as Error).message);

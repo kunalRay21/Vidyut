@@ -442,9 +442,57 @@ export class AssessmentService {
 
     payload.ratings.forEach(r => {
       ratingsMap[r.skill_id] = r.rating;
+      // Persist to unified memoryStore
+      const memKey = `${studentId}:${r.skill_id}`;
+      const existing = memoryStore.skill_states.get(memKey);
+      memoryStore.skill_states.set(memKey, {
+        student_id: studentId,
+        skill_id: r.skill_id,
+        self_rating: r.rating.toUpperCase(),
+        assessed_level: existing?.assessed_level || 'AWARENESS',
+        accuracy: existing?.accuracy || 0,
+        target_level: existing?.target_level || 'PROFICIENT',
+        updated_at: new Date().toISOString()
+      });
     });
 
     inMemorySelfRatings.set(studentId, ratingsMap);
+
+    // Update memoryStore.profiles if profile exists
+    const profile = memoryStore.profiles.get(studentId);
+    if (profile) {
+      profile.selected_role_id = payload.role_id;
+    } else {
+      for (const p of memoryStore.profiles.values()) {
+        if (p.user_id === studentId) {
+          p.selected_role_id = payload.role_id;
+        }
+      }
+    }
+
+    // Persist to PostgreSQL if available
+    try {
+      for (const r of payload.ratings) {
+        await query(
+          `
+          INSERT INTO student_skill_states (student_id, skill_id, self_rating, assessed_level, accuracy)
+          VALUES ($1, $2, $3, 'AWARENESS', 0)
+          ON CONFLICT (student_id, skill_id)
+          DO UPDATE SET
+            self_rating = EXCLUDED.self_rating,
+            updated_at = NOW()
+          `,
+          [studentId, r.skill_id, r.rating.toUpperCase()]
+        ).catch(() => {});
+      }
+
+      await query(
+        `UPDATE student_profiles SET selected_role_id = $1 WHERE id = $2 OR user_id = $2`,
+        [payload.role_id, studentId]
+      ).catch(() => {});
+    } catch {
+      // Offline fallback ignored
+    }
 
     return {
       student_id: studentId,
@@ -851,6 +899,61 @@ export class AssessmentService {
       }
     }
 
+    const overallReadinessPct = Math.min(100, Math.round(overallAccuracyPct * 0.95 + 5));
+
+    // Persist evaluated skill states to in-memory store
+    for (const score of skillScores) {
+      const memKey = `${session.student_id}:${score.skill_id}`;
+      const existing = memoryStore.skill_states.get(memKey);
+      memoryStore.skill_states.set(memKey, {
+        student_id: session.student_id,
+        skill_id: score.skill_id,
+        skill_name: score.skill_name,
+        self_rating: existing?.self_rating || studentRatings[score.skill_id] || 'AVERAGE',
+        assessed_level: score.proficiency,
+        accuracy: score.accuracy_pct,
+        target_level: existing?.target_level || 'PROFICIENT',
+        updated_at: new Date().toISOString(),
+      });
+    }
+
+    // Persist readiness score to profile in in-memory store
+    const studentProf = memoryStore.profiles.get(session.student_id);
+    if (studentProf) {
+      studentProf.readiness_pct = overallReadinessPct;
+    } else {
+      for (const p of memoryStore.profiles.values()) {
+        if (p.user_id === session.student_id) {
+          p.readiness_pct = overallReadinessPct;
+        }
+      }
+    }
+
+    // Persist to PostgreSQL if available
+    try {
+      for (const score of skillScores) {
+        await query(
+          `
+          INSERT INTO student_skill_states (student_id, skill_id, assessed_level, accuracy)
+          VALUES ($1, $2, $3, $4)
+          ON CONFLICT (student_id, skill_id)
+          DO UPDATE SET
+            assessed_level = EXCLUDED.assessed_level,
+            accuracy = EXCLUDED.accuracy,
+            updated_at = NOW()
+          `,
+          [session.student_id, score.skill_id, score.proficiency, score.accuracy_pct]
+        ).catch(() => {});
+      }
+
+      await query(
+        `UPDATE student_profiles SET readiness_pct = $1 WHERE id = $2 OR user_id = $2`,
+        [overallReadinessPct, session.student_id]
+      ).catch(() => {});
+    } catch {
+      // Offline fallback ignored
+    }
+
     return {
       session_id: sessionId,
       total_questions: questions.length,
@@ -858,7 +961,7 @@ export class AssessmentService {
       coding_solved: codingSolved,
       effective_coding_counted: effectiveCodingPoints,
       overall_accuracy_pct: overallAccuracyPct,
-      overall_readiness_pct: Math.min(100, Math.round(overallAccuracyPct * 0.95 + 5)),
+      overall_readiness_pct: overallReadinessPct,
       skill_scores: skillScores,
       discrepancies: discrepancies,
     };

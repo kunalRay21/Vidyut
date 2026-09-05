@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../../database/prisma';
+import { memoryStore } from '../../database/store';
+import { FALLBACK_GRAPHS } from '../skill_graph/router';
+import { RESOURCES_SEED } from './seedResources';
 import type { 
   ProfileService, 
   OpportunityRepository, 
@@ -53,6 +56,26 @@ export class PrismaProfileService implements ProfileService {
     }
 
     if (!profile) {
+      const memProf = memoryStore.profiles.get(studentId) ||
+        Array.from(memoryStore.profiles.values()).find(p => p.user_id === studentId);
+      if (memProf) {
+        return {
+          id: memProf.id,
+          yearOfStudy: memProf.year_of_study || 3,
+          interests: memProf.interests || ['Full-Stack Development', 'AI/ML'],
+          selectedDomainId: 'domain-backend',
+          selectedDomainName: 'Software Engineering',
+        };
+      }
+      if (studentId === 'student-demo' || studentId.startsWith('guest-')) {
+        return {
+          id: studentId,
+          yearOfStudy: 3,
+          interests: ['Full-Stack Development', 'AI/ML'],
+          selectedDomainId: 'domain-backend',
+          selectedDomainName: 'Software Engineering',
+        };
+      }
       throw new Error(`Student profile not found: ${studentId}`);
     }
 
@@ -83,6 +106,18 @@ export class PrismaProfileService implements ProfileService {
       }
     } catch {
       // ignore
+    }
+
+    if (states.length === 0) {
+      const inMemStates = Array.from(memoryStore.skill_states.values()).filter(
+        s => s.student_id === studentId
+      );
+      if (inMemStates.length > 0) {
+        return inMemStates.map(state => ({
+          skillId: state.skill_id,
+          assessedLevel: (state.assessed_level as ProficiencyLevel) ?? null
+        }));
+      }
     }
 
     return states.map(state => ({
@@ -155,12 +190,34 @@ export class PrismaRecommendationPersistenceClient implements RecommendationPers
  */
 export class PrismaResourceRepository implements ResourceRepository {
   async findResourcesBySkillId(skillId: string): Promise<ResourceItem[]> {
-    const resources = await prisma.resource.findMany({
-      where: { skillId }
-    });
+    try {
+      const resources = await prisma.resource.findMany({
+        where: { skillId }
+      });
 
-    return resources.map(res => ({
-      id: res.id,
+      if (resources && resources.length > 0) {
+        return resources.map(res => ({
+          id: res.id,
+          title: res.title,
+          url: res.url,
+          type: res.type,
+          isFree: res.isFree,
+          provider: res.provider
+        }));
+      }
+    } catch {
+      // Prisma offline or schema error
+    }
+
+    // In-memory seed resources fallback
+    const slug = skillId.toLowerCase().replace('skill-', '');
+    const matched = RESOURCES_SEED.filter((r: any) =>
+      r.skillName.toLowerCase().includes(slug) ||
+      slug.includes(r.skillName.toLowerCase().split(' ')[0])
+    );
+
+    return matched.map((res: any, idx: number) => ({
+      id: `seed-res-${skillId}-${idx + 1}`,
       title: res.title,
       url: res.url,
       type: res.type,
@@ -175,43 +232,71 @@ export class PrismaResourceRepository implements ResourceRepository {
  */
 export class PrismaRoadmapRepository implements RoadmapRepository {
   async getStudentRoadmap(studentId: string): Promise<RoadmapSkillState[]> {
-    const milestones = await prisma.milestone.findMany({
-      where: {
-        roadmap: { studentId },
-        skillId: { not: null }
-      },
-      include: {
-        skill: {
-          include: {
-            skillStates: {
-              where: { studentId }
+    let milestones: any[] = [];
+    try {
+      milestones = await prisma.milestone.findMany({
+        where: {
+          roadmap: { studentId },
+          skillId: { not: null }
+        },
+        include: {
+          skill: {
+            include: {
+              skillStates: {
+                where: { studentId }
+              }
             }
           }
+        },
+        orderBy: {
+          milestoneOrder: 'asc'
         }
-      },
-      orderBy: {
-        milestoneOrder: 'asc'
-      }
-    });
+      });
+    } catch {
+      milestones = [];
+    }
 
     if (milestones.length === 0) {
       // Fallback 1: selectedRole's skills
-      const profile = await prisma.studentProfile.findUnique({
-        where: { id: studentId },
-        include: {
-          selectedRole: {
-            include: {
-              skills: {
-                include: {
-                  skillStates: {
-                    where: { studentId }
+      let profile = null;
+      try {
+        profile = await prisma.studentProfile.findUnique({
+          where: { id: studentId },
+          include: {
+            selectedRole: {
+              include: {
+                skills: {
+                  include: {
+                    skillStates: {
+                      where: { studentId }
+                    }
                   }
                 }
               }
             }
           }
+        });
+        if (!profile) {
+          profile = await prisma.studentProfile.findFirst({
+            where: { userId: studentId },
+            include: {
+              selectedRole: {
+                include: {
+                  skills: {
+                    include: {
+                      skillStates: {
+                        where: { studentId }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          });
         }
-      });
+      } catch {
+        // ignore
+      }
 
       const roleSkills = profile?.selectedRole?.skills;
       if (roleSkills && roleSkills.length > 0) {
@@ -238,10 +323,15 @@ export class PrismaRoadmapRepository implements RoadmapRepository {
       }
 
       // Fallback 2: student's existing skillStates
-      const states = await prisma.studentSkillState.findMany({
-        where: { studentId },
-        include: { skill: true }
-      });
+      let states: any[] = [];
+      try {
+        states = await prisma.studentSkillState.findMany({
+          where: { studentId },
+          include: { skill: true }
+        });
+      } catch {
+        states = [];
+      }
 
       if (states.length > 0) {
         return states.map((s, idx) => {
@@ -257,6 +347,35 @@ export class PrismaRoadmapRepository implements RoadmapRepository {
           return {
             skillId: s.skillId,
             skillName: s.skill.name,
+            status,
+            sequence: idx + 1,
+            currentProficiency,
+            targetProficiency
+          };
+        });
+      }
+
+      // Fallback 3: in-memory store and FALLBACK_GRAPHS
+      const memProf = memoryStore.profiles.get(studentId) ||
+        Array.from(memoryStore.profiles.values()).find(p => p.user_id === studentId);
+      const roleId = memProf?.selected_role_id || 'role-backend';
+      const roleGraph = FALLBACK_GRAPHS[roleId] || FALLBACK_GRAPHS['role-backend'];
+      const rawSkills = roleGraph?.skills || [];
+      if (rawSkills.length > 0) {
+        return rawSkills.map((skill: any, idx: number) => {
+          const mem = memoryStore.skill_states.get(`${studentId}:${skill.id}`);
+          const currentProficiency = (mem?.assessed_level as ProficiencyLevel) ?? null;
+          const targetProficiency = (mem?.target_level as ProficiencyLevel) ?? 'PROFICIENT';
+          let status: RoadmapSkillStatus = 'NOT_STARTED';
+          if (currentProficiency === 'PROFICIENT' || currentProficiency === 'EXPERT') {
+            status = 'COMPLETED';
+          } else if (currentProficiency) {
+            status = 'IN_PROGRESS';
+          }
+
+          return {
+            skillId: skill.id,
+            skillName: skill.name,
             status,
             sequence: idx + 1,
             currentProficiency,

@@ -10,7 +10,13 @@ const levelValue: Record<string, number> = {
 };
 
 function getRolePhaseMeta(roleName: string, phaseNum: number) {
-  const isML = roleName.toLowerCase().includes('machine') || roleName.toLowerCase().includes('ml') || roleName.toLowerCase().includes('ai');
+  const slug = roleName.toLowerCase();
+  const isML = slug.includes('machine') || slug.includes('ml') || slug.includes('ai');
+  const isCloud = slug.includes('cloud') || slug.includes('devops');
+  const isData = slug.includes('data');
+  const isFullstack = slug.includes('fullstack') || slug.includes('full-stack');
+  const isSecurity = slug.includes('security') || slug.includes('cyber');
+
   if (isML) {
     switch (phaseNum) {
       case 1:
@@ -43,6 +49,150 @@ function getRolePhaseMeta(roleName: string, phaseNum: number) {
           title: 'Phase 5: MLOps, Model Serving & Applied AI',
           description: 'Package models into inference microservices, track experiments, and implement computer vision/NLP pipelines.',
           learning_outcome: 'Deploy, monitor, and scale high-throughput AI services in cloud production environments.'
+        };
+    }
+  }
+
+  if (isCloud) {
+    switch (phaseNum) {
+      case 1:
+        return {
+          title: 'Phase 1: Operating Systems & Computer Networking',
+          description: 'Master Linux systems administration, shell scripting, TCP/IP fundamentals, and DNS configuration.',
+          learning_outcome: 'Automate server tasks with Bash scripts, troubleshoot network packet drops, and configure secure SSH tunnels.'
+        };
+      case 2:
+        return {
+          title: 'Phase 2: Containerization & Modern Workload Packaging',
+          description: 'Package microservices into optimized Docker images, write multi-stage Dockerfiles, and compose multi-container setups.',
+          learning_outcome: 'Build minimal container images, manage storage volumes, and isolate virtual networks.'
+        };
+      case 3:
+        return {
+          title: 'Phase 3: Automated CI/CD Delivery Pipelines',
+          description: 'Configure continuous integration pipelines with automated testing, linting, and artifact repository releases.',
+          learning_outcome: 'Implement GitHub Actions workflows with branch protections, secret vaulting, and automatic rollbacks.'
+        };
+      case 4:
+        return {
+          title: 'Phase 4: Kubernetes Orchestration & Cluster Management',
+          description: 'Deploy resilient container workloads using Kubernetes Pods, Deployments, Services, and Ingress Controllers.',
+          learning_outcome: 'Architect zero-downtime rolling deployments, manage ConfigMaps, and configure Horizontal Pod Autoscaling.'
+        };
+      case 5:
+      default:
+        return {
+          title: 'Phase 5: Infrastructure as Code (Terraform) & Cloud SRE',
+          description: 'Provision reproducible cloud infrastructure using declarative Terraform state and maintain site reliability metrics.',
+          learning_outcome: 'Manage cloud VPC networks, enforce immutable infrastructure, and monitor Prometheus/Grafana alerts.'
+        };
+    }
+  }
+
+  if (isData) {
+    switch (phaseNum) {
+      case 1:
+        return {
+          title: 'Phase 1: Statistical Foundations & Relational Data',
+          description: 'Master probability, descriptive statistics, hypothesis testing, and advanced relational SQL queries.',
+          learning_outcome: 'Execute analytical queries with window functions, subqueries, and calculate statistical confidence intervals.'
+        };
+      case 2:
+        return {
+          title: 'Phase 2: Automated Data Wrangling & Pipelines',
+          description: 'Design robust ETL pipelines for structured and semi-structured datasets using Python and SQL engines.',
+          learning_outcome: 'Clean noisy raw telemetry, handle schema drift, and persist curated datasets into data warehouses.'
+        };
+      case 3:
+        return {
+          title: 'Phase 3: Exploratory Visualization & Storytelling',
+          description: 'Synthesize raw metrics into impactful executive dashboards and interactive visual analytics.',
+          learning_outcome: 'Communicate data-driven decisions and identify actionable business growth trends.'
+        };
+      case 4:
+        return {
+          title: 'Phase 4: Distributed Big Data Processing (PySpark)',
+          description: 'Orchestrate high-volume distributed compute jobs across multi-node clusters using Apache Spark.',
+          learning_outcome: 'Process terabyte-scale datasets with Spark DataFrames, partitioning, and resilient distributed datasets.'
+        };
+      case 5:
+      default:
+        return {
+          title: 'Phase 5: Real-Time Event Streaming & Data Lakehouse',
+          description: 'Build low-latency streaming architectures using Apache Kafka and modern cloud data lakes.',
+          learning_outcome: 'Ingest continuous real-time data streams and query analytical lakehouse architectures with sub-second latency.'
+        };
+    }
+  }
+
+  if (isFullstack) {
+    switch (phaseNum) {
+      case 1:
+        return {
+          title: 'Phase 1: Semantic Web & Modern CSS3 Standards',
+          description: 'Master accessible semantic HTML5 markup, responsive layouts with Flexbox and CSS Grid, and design systems.',
+          learning_outcome: 'Construct responsive web interfaces with full mobile support and WCAG accessibility standards.'
+        };
+      case 2:
+        return {
+          title: 'Phase 2: TypeScript & Strong Type Safety',
+          description: 'Leverage static typing, generics, interfaces, and compiler configurations for enterprise application logic.',
+          learning_outcome: 'Eliminate runtime null pointer errors and maintain modular type-safe codebases.'
+        };
+      case 3:
+        return {
+          title: 'Phase 3: React Component Architecture & Hooks',
+          description: 'Develop declarative frontend components with modern React hooks, state management, and optimized virtual DOM rendering.',
+          learning_outcome: 'Build modular, reusable user interfaces with robust local and global state handling.'
+        };
+      case 4:
+        return {
+          title: 'Phase 4: Server-Side Rendering & Next.js Framework',
+          description: 'Implement full-stack React applications using Next.js App Router, Server Actions, and API route handlers.',
+          learning_outcome: 'Optimize Core Web Vitals, server-side caching, and search engine indexability.'
+        };
+      case 5:
+      default:
+        return {
+          title: 'Phase 5: Full-Stack Integration, Testing & Cloud Deployment',
+          description: 'Connect frontend clients to Node.js backend services, secure authentication flows, and run automated end-to-end tests.',
+          learning_outcome: 'Ship tested full-stack web applications with continuous deployment pipelines.'
+        };
+    }
+  }
+
+  if (isSecurity) {
+    switch (phaseNum) {
+      case 1:
+        return {
+          title: 'Phase 1: Network Protocol & Packet Inspection',
+          description: 'Analyze TCP/IP packet handshakes, DNS queries, routing tables, and Wireshark network captures.',
+          learning_outcome: 'Detect anomalous network traffic, inspect TLS handshakes, and identify spoofed packet headers.'
+        };
+      case 2:
+        return {
+          title: 'Phase 2: Applied Cryptography Fundamentals',
+          description: 'Implement symmetric and asymmetric encryption algorithms, hashing functions, and digital signatures.',
+          learning_outcome: 'Secure data in transit and at rest using AES-256, RSA/ECC public key cryptography, and HMAC digests.'
+        };
+      case 3:
+        return {
+          title: 'Phase 3: Web Application Security (OWASP Top 10)',
+          description: 'Audit and harden server endpoints against injection attacks, cross-site scripting (XSS), and broken access controls.',
+          learning_outcome: 'Sanitize input surfaces, enforce Content Security Policies (CSP), and remediate web vulnerabilities.'
+        };
+      case 4:
+        return {
+          title: 'Phase 4: Identity & Access Management (OAuth2 & JWT)',
+          description: 'Architect centralized authentication, role-based access control (RBAC), and token revocation workflows.',
+          learning_outcome: 'Prevent unauthorized resource access with hardened token expiration and claims validation.'
+        };
+      case 5:
+      default:
+        return {
+          title: 'Phase 5: Defensive SIEM & Zero-Trust Hardening',
+          description: 'Monitor enterprise audit logs, configure Security Information & Event Management alerts, and enforce Zero Trust.',
+          learning_outcome: 'Investigate security incidents, contain compromised nodes, and maintain strict least-privilege security postures.'
         };
     }
   }
@@ -151,6 +301,120 @@ const FALLBACK_ROADMAPS: Record<string, any> = {
         ]
       }
     ]
+  },
+  'role-cloud': {
+    role_name: 'Cloud Native & DevOps Engineer',
+    skills: [
+      { id: 'skill-linux', name: 'Linux Administration & Shell Scripting', category: 'FOUNDATION', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-networking', name: 'Computer Networking & DNS Basics', category: 'TOOLS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-docker', name: 'Container Orchestration with Docker', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-cicd', name: 'Automated CI/CD Pipelines', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-k8s', name: 'Kubernetes Cluster Management', category: 'DEPLOYMENT', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-terraform', name: 'Infrastructure as Code (Terraform)', category: 'ARCHITECTURE', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-docker', prerequisite_skill_id: 'skill-linux' },
+      { skill_id: 'skill-cicd', prerequisite_skill_id: 'skill-docker' },
+      { skill_id: 'skill-k8s', prerequisite_skill_id: 'skill-docker' },
+      { skill_id: 'skill-terraform', prerequisite_skill_id: 'skill-networking' }
+    ],
+    branches: [
+      {
+        id: 'branch-cloud-provider',
+        name: 'Primary Cloud Infrastructure',
+        description: 'Choose between AWS and Google Cloud Platform',
+        options: [
+          { branch_id: 'branch-cloud-provider', option_id: 'opt-aws', name: 'Amazon Web Services (AWS)', skill_id: 'skill-aws' },
+          { branch_id: 'branch-cloud-provider', option_id: 'opt-gcp', name: 'Google Cloud Platform (GCP)', skill_id: 'skill-gcp' }
+        ]
+      }
+    ]
+  },
+  'role-data': {
+    role_name: 'Data Science & Big Data Engineer',
+    skills: [
+      { id: 'skill-prob-stats', name: 'Probability & Descriptive Statistics', category: 'MATHEMATICS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-adv-sql', name: 'Advanced SQL & Window Functions', category: 'DATABASE', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-etl', name: 'Automated ETL Pipeline Engineering', category: 'DATA', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-data-viz', name: 'Data Visualization & Storytelling', category: 'DATA', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-spark', name: 'Distributed Processing with PySpark', category: 'DATA', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-kafka-stream', name: 'Real-Time Event Streaming (Kafka)', category: 'ARCHITECTURE', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-adv-sql', prerequisite_skill_id: 'skill-prob-stats' },
+      { skill_id: 'skill-etl', prerequisite_skill_id: 'skill-adv-sql' },
+      { skill_id: 'skill-data-viz', prerequisite_skill_id: 'skill-prob-stats' },
+      { skill_id: 'skill-spark', prerequisite_skill_id: 'skill-etl' },
+      { skill_id: 'skill-kafka-stream', prerequisite_skill_id: 'skill-spark' }
+    ],
+    branches: [
+      {
+        id: 'branch-bi-tool',
+        name: 'Business Intelligence & Visualization Tool',
+        description: 'Choose between Power BI and Tableau for dashboard reporting',
+        options: [
+          { branch_id: 'branch-bi-tool', option_id: 'opt-powerbi', name: 'Microsoft Power BI', skill_id: 'skill-powerbi' },
+          { branch_id: 'branch-bi-tool', option_id: 'opt-tableau', name: 'Tableau Desktop', skill_id: 'skill-tableau' }
+        ]
+      }
+    ]
+  },
+  'role-fullstack': {
+    role_name: 'Full-Stack Web Architect',
+    skills: [
+      { id: 'skill-html-css', name: 'Semantic HTML5 & Modern CSS3', category: 'FOUNDATION', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-ts', name: 'TypeScript & Type Safety', category: 'PROGRAMMING', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-react', name: 'React Component Architecture & Hooks', category: 'WEB', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-node-api', name: 'Backend API Integration (Node/Express)', category: 'WEB', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-nextjs', name: 'Server-Side Rendering (Next.js)', category: 'FRAMEWORK', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-testing', name: 'Automated Testing & End-to-End', category: 'QUALITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-ts', prerequisite_skill_id: 'skill-html-css' },
+      { skill_id: 'skill-react', prerequisite_skill_id: 'skill-ts' },
+      { skill_id: 'skill-node-api', prerequisite_skill_id: 'skill-ts' },
+      { skill_id: 'skill-nextjs', prerequisite_skill_id: 'skill-react' },
+      { skill_id: 'skill-testing', prerequisite_skill_id: 'skill-react' }
+    ],
+    branches: [
+      {
+        id: 'branch-fullstack-state',
+        name: 'Frontend State Management Pattern',
+        description: 'Choose between Redux Toolkit and Zustand for state architecture',
+        options: [
+          { branch_id: 'branch-fullstack-state', option_id: 'opt-redux', name: 'Redux Toolkit', skill_id: 'skill-redux' },
+          { branch_id: 'branch-fullstack-state', option_id: 'opt-zustand', name: 'Zustand Minimalist Store', skill_id: 'skill-zustand' }
+        ]
+      }
+    ]
+  },
+  'role-security': {
+    role_name: 'Cybersecurity & Defensive Specialist',
+    skills: [
+      { id: 'skill-sec-net', name: 'Network Protocol & Packet Analysis', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-crypto', name: 'Applied Cryptography Fundamentals', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-owasp', name: 'Web Application Security (OWASP Top 10)', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-iam', name: 'Identity & Access Management (OAuth/JWT)', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-siem', name: 'Defensive SIEM & Threat Monitoring', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-zero-trust', name: 'Zero-Trust Architecture & Hardening', category: 'ARCHITECTURE', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-owasp', prerequisite_skill_id: 'skill-sec-net' },
+      { skill_id: 'skill-iam', prerequisite_skill_id: 'skill-crypto' },
+      { skill_id: 'skill-siem', prerequisite_skill_id: 'skill-sec-net' },
+      { skill_id: 'skill-zero-trust', prerequisite_skill_id: 'skill-iam' }
+    ],
+    branches: [
+      {
+        id: 'branch-sec-focus',
+        name: 'Cybersecurity Operational Track',
+        description: 'Choose between Offensive Penetration Testing and Defensive Blue Teaming',
+        options: [
+          { branch_id: 'branch-sec-focus', option_id: 'opt-pen-testing', name: 'Offensive Security & Ethical Hacking', skill_id: 'skill-pentest' },
+          { branch_id: 'branch-sec-focus', option_id: 'opt-soc-analyst', name: 'Defensive SOC & Incident Response', skill_id: 'skill-soc' }
+        ]
+      }
+    ]
   }
 };
 
@@ -173,11 +437,18 @@ export async function generatePersonalizedRoadmap(
   try {
     // 1. Resolve role ID to database UUID if necessary
     if (!isUUID(validRoleId)) {
-      const isML = validRoleId.toLowerCase().includes('ml') || validRoleId.toLowerCase().includes('machine');
+      const slug = validRoleId.toLowerCase();
+      let roleSearch = '%backend%';
+      if (slug.includes('ml') || slug.includes('machine') || slug.includes('ai')) roleSearch = '%machine%';
+      else if (slug.includes('cloud') || slug.includes('devops')) roleSearch = '%cloud%';
+      else if (slug.includes('data')) roleSearch = '%data%';
+      else if (slug.includes('fullstack') || slug.includes('full-stack')) roleSearch = '%full-stack%';
+      else if (slug.includes('security') || slug.includes('cyber')) roleSearch = '%cybersecurity%';
+
       const found = await query<{ id: string }>(
         `SELECT id FROM roles WHERE LOWER(name) LIKE $1 LIMIT 1`,
-        [isML ? '%machine%' : '%backend%']
-      );
+        [roleSearch]
+      ).catch(() => ({ rows: [] as any[] }));
       if (found.rows.length > 0) validRoleId = found.rows[0].id;
     }
 
@@ -297,13 +568,21 @@ export async function generatePersonalizedRoadmap(
 
   // Fallback data if skills empty
   if (skills.length === 0) {
-    const fallbackKey = validRoleId.includes('ml') ? 'role-ml' : 'role-backend';
-    const fallback = FALLBACK_ROADMAPS[fallbackKey];
+    let fallbackKey = 'role-backend';
+    const slug = validRoleId.toLowerCase();
+    if (slug.includes('ml') || slug.includes('machine') || slug.includes('ai')) fallbackKey = 'role-ml';
+    else if (slug.includes('cloud') || slug.includes('devops')) fallbackKey = 'role-cloud';
+    else if (slug.includes('data')) fallbackKey = 'role-data';
+    else if (slug.includes('fullstack') || slug.includes('full-stack')) fallbackKey = 'role-fullstack';
+    else if (slug.includes('security') || slug.includes('cyber')) fallbackKey = 'role-security';
+    else if (FALLBACK_ROADMAPS[validRoleId]) fallbackKey = validRoleId;
+
+    const fallback = FALLBACK_ROADMAPS[fallbackKey] || FALLBACK_ROADMAPS['role-backend'];
     roleName = fallback.role_name;
     skills = fallback.skills;
     prerequisiteRows = fallback.prerequisites;
     branchesCount = fallback.branches.length;
-    branchOptions = fallback.branches[0].options;
+    branchOptions = fallback.branches[0]?.options || [];
   }
 
   // Build DAG for full topological ordering across all skills

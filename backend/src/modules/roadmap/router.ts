@@ -10,6 +10,8 @@ const isUUID = (s?: string) =>
   typeof s === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s.trim());
 
+import { memoryStore } from '../../database/store';
+
 async function resolveStudentAndRole(req: Request): Promise<{ studentId: string; roleId: string }> {
   let studentId = (req.query.student_id || req.body?.student_id || req.headers['x-student-id']) as string | undefined;
   let roleId = (req.query.role_id || req.body?.role_id || req.headers['x-role-id']) as string | undefined;
@@ -21,13 +23,24 @@ async function resolveStudentAndRole(req: Request): Promise<{ studentId: string;
       const token = authHeader.split(' ')[1];
       const decoded = verifyToken(token);
       if (decoded?.id) {
-        const profileRes = await query<{ id: string; selected_role_id: string }>(
-          `SELECT id, selected_role_id FROM student_profiles WHERE user_id = $1 OR id = $1`,
-          [decoded.id]
-        );
-        if (profileRes.rows.length > 0) {
-          if (!studentId || !isUUID(studentId)) studentId = profileRes.rows[0].id;
-          if (!roleId && profileRes.rows[0].selected_role_id) roleId = profileRes.rows[0].selected_role_id;
+        studentId = studentId || decoded.id;
+        try {
+          const profileRes = await query<{ id: string; selected_role_id: string }>(
+            `SELECT id, selected_role_id FROM student_profiles WHERE user_id = $1 OR id = $1`,
+            [decoded.id]
+          );
+          if (profileRes.rows.length > 0) {
+            if (!studentId || !isUUID(studentId)) studentId = profileRes.rows[0].id;
+            if (!roleId && profileRes.rows[0].selected_role_id) roleId = profileRes.rows[0].selected_role_id;
+          }
+        } catch {
+          // DB offline - check in-memory store
+          const memProf = memoryStore.profiles.get(decoded.id) ||
+            Array.from(memoryStore.profiles.values()).find(p => p.user_id === decoded.id);
+          if (memProf) {
+            studentId = memProf.id;
+            if (!roleId && memProf.selected_role_id) roleId = memProf.selected_role_id;
+          }
         }
       }
     } catch {
@@ -35,7 +48,17 @@ async function resolveStudentAndRole(req: Request): Promise<{ studentId: string;
     }
   }
 
-  // 2. If studentId is not a valid UUID, look up student_profiles or fallback to first active student
+  // 2. In-memory profile check if still not resolved
+  if (studentId) {
+    const memProf = memoryStore.profiles.get(studentId) ||
+      Array.from(memoryStore.profiles.values()).find(p => p.user_id === studentId);
+    if (memProf) {
+      studentId = memProf.id;
+      if (!roleId && memProf.selected_role_id) roleId = memProf.selected_role_id;
+    }
+  }
+
+  // 3. Fallback to active student in DB or memoryStore
   if (!studentId || !isUUID(studentId)) {
     if (studentId) {
       const matched = await query<{ id: string; selected_role_id: string }>(
@@ -60,12 +83,14 @@ async function resolveStudentAndRole(req: Request): Promise<{ studentId: string;
           roleId = firstStudent.rows[0].selected_role_id;
         }
       } else {
-        studentId = '3f89fe2a-829a-435d-ad79-d7205f4aa5fa';
+        const firstMem = Array.from(memoryStore.profiles.values())[0];
+        studentId = firstMem?.id || 'student-demo';
+        if (!roleId && firstMem?.selected_role_id) roleId = firstMem.selected_role_id;
       }
     }
   }
 
-  // 3. Resolve roleId to a valid database UUID
+  // 4. Resolve roleId across all 6 tracks
   if (!roleId || !isUUID(roleId)) {
     if (studentId && isUUID(studentId)) {
       const studentRole = await query<{ selected_role_id: string }>(
@@ -79,8 +104,28 @@ async function resolveStudentAndRole(req: Request): Promise<{ studentId: string;
 
     if (!roleId || !isUUID(roleId)) {
       const slug = (roleId || '').toLowerCase();
-      const isML = slug.includes('ml') || slug.includes('machine') || slug.includes('ai');
-      const roleSearch = isML ? '%machine%' : '%backend%';
+      let roleSearch = '%backend%';
+      let defaultFallbackId = 'role-backend';
+
+      if (slug.includes('ml') || slug.includes('machine') || slug.includes('ai')) {
+        roleSearch = '%machine%';
+        defaultFallbackId = 'role-ml';
+      } else if (slug.includes('cloud') || slug.includes('devops')) {
+        roleSearch = '%cloud%';
+        defaultFallbackId = 'role-cloud';
+      } else if (slug.includes('data')) {
+        roleSearch = '%data%';
+        defaultFallbackId = 'role-data';
+      } else if (slug.includes('fullstack') || slug.includes('full-stack')) {
+        roleSearch = '%full-stack%';
+        defaultFallbackId = 'role-fullstack';
+      } else if (slug.includes('security') || slug.includes('cyber')) {
+        roleSearch = '%cybersecurity%';
+        defaultFallbackId = 'role-security';
+      } else if (slug.startsWith('role-')) {
+        defaultFallbackId = slug;
+      }
+
       const foundRole = await query<{ id: string }>(
         `SELECT id FROM roles WHERE LOWER(name) LIKE $1 ORDER BY created_at ASC LIMIT 1`,
         [roleSearch]
@@ -89,17 +134,14 @@ async function resolveStudentAndRole(req: Request): Promise<{ studentId: string;
       if (foundRole.rows.length > 0) {
         roleId = foundRole.rows[0].id;
       } else {
-        const anyRole = await query<{ id: string }>(
-          `SELECT id FROM roles ORDER BY created_at ASC LIMIT 1`
-        ).catch(() => ({ rows: [] as any[] }));
-        roleId = anyRole.rows[0]?.id || 'bf9c3a6c-f0ec-4301-9e6b-c46d9fd50208';
+        roleId = defaultFallbackId;
       }
     }
   }
 
   return {
-    studentId: studentId || '3f89fe2a-829a-435d-ad79-d7205f4aa5fa',
-    roleId: roleId || 'bf9c3a6c-f0ec-4301-9e6b-c46d9fd50208'
+    studentId: studentId || 'student-demo',
+    roleId: roleId || 'role-backend'
   };
 }
 

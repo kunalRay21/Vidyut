@@ -9,7 +9,7 @@ interface ResourceSeedItem {
   provider: string;
 }
 
-const RESOURCES_SEED: ResourceSeedItem[] = [
+export const RESOURCES_SEED: ResourceSeedItem[] = [
   // =========================================================================
   // 1. MATHEMATICS & THEORETICAL FOUNDATIONS
   // =========================================================================

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FadeIn } from '../../components/animations/FadeIn';
-import { skillGraphApi, assessmentApi, getStoredUser } from '../../services/api';
+import { skillGraphApi, assessmentApi, getStoredUser, setStoredUser } from '../../services/api';
 
 type Rating = 'BEGINNER' | 'AVERAGE' | 'GOOD' | 'EXPERT';
 
@@ -228,6 +228,13 @@ export default function SelfAssessmentPage() {
         role_name: currentRole.name,
         ratings: ratingPayload,
       }));
+
+      // Update stored user object with selected career track
+      if (user) {
+        user.selected_role = currentRole.name;
+        user.selected_role_id = selectedRole;
+        setStoredUser(user);
+      }
 
       // 2. Start calibrated assessment session on backend
       const startRes = await assessmentApi.startSession(selectedRole, studentId);
