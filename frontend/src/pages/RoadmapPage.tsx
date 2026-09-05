@@ -5,7 +5,7 @@ import { RoadmapTimeline, Phase } from '../features/roadmap/RoadmapTimeline';
 import { DecisionPointModal } from '../features/roadmap/DecisionPointModal';
 import { EvidenceSubmitModal } from '../features/roadmap/EvidenceSubmitModal';
 import { FadeIn } from '../components/animations/FadeIn';
-import { roadmapApi, portfolioApi, recommendationsApi, getStoredUser } from '../services/api';
+import { roadmapApi, portfolioApi, recommendationsApi, getStoredUser, getStoredResume } from '../services/api';
 import { 
   BookOpen, 
   ExternalLink, 
@@ -16,7 +16,9 @@ import {
   Compass, 
   RefreshCw, 
   AlertCircle,
-  Award
+  Award,
+  FileText,
+  ArrowRight
 } from 'lucide-react';
 
 export const RoadmapPage: React.FC = () => {
@@ -36,6 +38,10 @@ export const RoadmapPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [skillResources, setSkillResources] = useState<any[]>([]);
+  const [hasResume, setHasResume] = useState<boolean>(false);
+  const [resumeFilename, setResumeFilename] = useState<string | null>(null);
+  const [resumeMatchedRole, setResumeMatchedRole] = useState<string | null>(null);
+  const [resumeSkillsCount, setResumeSkillsCount] = useState<number>(0);
 
   // Modals state
   const [decisionPhase, setDecisionPhase] = useState<Phase | null>(null);
@@ -71,6 +77,13 @@ export const RoadmapPage: React.FC = () => {
           setLockedSkills(res.data.locked_skills);
         }
 
+        const storedResume = getStoredResume();
+        const resumePresent = !!(res.data.has_resume || storedResume?.fileName || storedResume?.extractedSkills?.length);
+        setHasResume(resumePresent);
+        setResumeFilename(res.data.resume_filename || storedResume?.fileName || null);
+        setResumeMatchedRole(res.data.resume_matched_role || storedResume?.primaryMatch?.title || null);
+        setResumeSkillsCount(res.data.resume_skills_count || storedResume?.extractedSkills?.length || 0);
+
         if (Array.isArray(res.data.phases)) {
           const mappedPhases: Phase[] = res.data.phases.map((p: any) => ({
             id: p.id || `p-${p.phase_number}`,
@@ -80,7 +93,20 @@ export const RoadmapPage: React.FC = () => {
             learning_outcome: p.learning_outcome,
             status: p.status || 'LOCKED',
             topics: p.topics || p.milestones?.map((m: any) => m.title) || [],
-            milestones: p.milestones || [],
+            milestones: Array.isArray(p.milestones)
+              ? p.milestones.map((m: any) => ({
+                  ...m,
+                  verified_by_resume: !!(
+                    m.verified_by_resume ||
+                    (resumePresent &&
+                      storedResume?.extractedSkills?.some(
+                        (sk: string) =>
+                          m.title?.toLowerCase().includes(sk.toLowerCase()) ||
+                          sk.toLowerCase().includes(m.title?.toLowerCase())
+                      ))
+                  ),
+                }))
+              : [],
             has_decision_point: !!p.has_decision_point,
             selected_branch_id: p.selected_branch_id,
             selected_option_name: p.selected_option_name,
@@ -317,6 +343,80 @@ export const RoadmapPage: React.FC = () => {
           </div>
         </FadeIn>
       </header>
+
+      {/* Resume Calibration Dependency Banner */}
+      {!isLoading && (
+        <FadeIn delay={150}>
+          {hasResume ? (
+            <div className="bg-gradient-to-r from-emerald-50 via-white to-emerald-50/40 border-2 border-emerald-300 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="p-2.5 bg-emerald-600 text-white rounded-xl shrink-0 mt-0.5 shadow-xs">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                      Resume-Calibrated DAG
+                    </span>
+                    {resumeMatchedRole && (
+                      <span className="text-xs font-bold text-[#000080] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                        {resumeMatchedRole} Track
+                      </span>
+                    )}
+                    {resumeSkillsCount > 0 && (
+                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        {resumeSkillsCount} Verified Competencies
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-bold text-gray-900">
+                    Prerequisite milestones fast-tracked from <span className="text-emerald-800 underline underline-offset-2">{resumeFilename || 'uploaded resume'}</span>
+                  </p>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Foundational milestones have been marked completed, automatically unlocking subsequent core and production milestones.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/profile')}
+                className="shrink-0 px-3.5 py-2 bg-white hover:bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-xl shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5 self-start sm:self-center"
+              >
+                <span>Update Resume</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="bg-gradient-to-r from-amber-50 via-white to-orange-50/40 border-2 border-amber-300 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="p-2.5 bg-amber-500 text-white rounded-xl shrink-0 mt-0.5 shadow-xs">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
+                      Standard Baseline DAG
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-gray-900">
+                    Upload your resume in Profile to pre-validate existing skills
+                  </p>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Without a resume, all milestones begin at awareness level and require diagnostic evaluation to unlock subsequent phases.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/profile')}
+                className="shrink-0 px-4 py-2 bg-saffron hover:bg-saffron-600 text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer flex items-center gap-1.5 self-start sm:self-center"
+              >
+                <span>Upload Resume in Profile</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+        </FadeIn>
+      )}
 
       {/* Loading Skeleton State */}
       {isLoading && (

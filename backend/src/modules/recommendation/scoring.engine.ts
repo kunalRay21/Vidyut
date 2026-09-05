@@ -184,8 +184,16 @@ export function computeCompatibilityScore(
     totalTagWeight = 1;
   } else {
     for (const tag of opportunity.skillTags) {
+      const tagName = tag.skill?.name;
+      const tagNameLower = tagName?.toLowerCase().trim();
+      const tagSlug = tagNameLower ? `skill-${tagNameLower.replace(/[^a-z0-9]/g, '-')}` : null;
+
       const studentLevelStr =
-        studentLevelMap.get(tag.skillId) ?? 'UNASSESSED';
+        studentLevelMap.get(tag.skillId) ??
+        (tagName ? studentLevelMap.get(tagName) : undefined) ??
+        (tagNameLower ? studentLevelMap.get(tagNameLower) : undefined) ??
+        (tagSlug ? studentLevelMap.get(tagSlug) : undefined) ??
+        'UNASSESSED';
       const studentScore =
         PROFICIENCY_SCORES[studentLevelStr] ?? PROFICIENCY_SCORES['UNASSESSED']!;
 

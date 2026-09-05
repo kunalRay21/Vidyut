@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../../database/prisma';
+import { query } from '../../database/db';
 import { memoryStore } from '../../database/store';
 import { FALLBACK_GRAPHS } from '../skill_graph/router';
 import { RESOURCES_SEED } from './seedResources';
@@ -90,40 +91,74 @@ export class PrismaProfileService implements ProfileService {
 
   async getSkillStates(studentId: string): Promise<StudentSkillState[]> {
     let states: any[] = [];
-    try {
-      states = await prisma.studentSkillState.findMany({
-        where: { studentId }
-      });
-      if (states.length === 0) {
-        const prof = await prisma.studentProfile.findFirst({
-          where: { userId: studentId }
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId || '');
+    if (isUuid) {
+      try {
+        states = await prisma.studentSkillState.findMany({
+          where: { studentId }
         });
-        if (prof) {
-          states = await prisma.studentSkillState.findMany({
-            where: { studentId: prof.id }
+        if (states.length === 0) {
+          const prof = await prisma.studentProfile.findFirst({
+            where: { userId: studentId }
           });
+          if (prof) {
+            states = await prisma.studentSkillState.findMany({
+              where: { studentId: prof.id }
+            });
+          }
         }
-      }
-    } catch {
-      // ignore
-    }
-
-    if (states.length === 0) {
-      const inMemStates = Array.from(memoryStore.skill_states.values()).filter(
-        s => s.student_id === studentId
-      );
-      if (inMemStates.length > 0) {
-        return inMemStates.map(state => ({
-          skillId: state.skill_id,
-          assessedLevel: (state.assessed_level as ProficiencyLevel) ?? null
-        }));
+      } catch {
+        // ignore
       }
     }
 
-    return states.map(state => ({
-      skillId: state.skillId,
-      assessedLevel: (state.assessedLevel as ProficiencyLevel) ?? null
-    }));
+    if (states.length > 0) {
+      return states.map(state => ({
+        skillId: state.skillId,
+        assessedLevel: (state.assessedLevel as ProficiencyLevel) ?? null
+      }));
+    }
+
+    const inMemStates = Array.from(memoryStore.skill_states.values()).filter(
+      s => s.student_id === studentId
+    );
+    if (inMemStates.length > 0) {
+      return inMemStates.map(state => ({
+        skillId: state.skill_id,
+        assessedLevel: (state.assessed_level as ProficiencyLevel) ?? null
+      }));
+    }
+
+    // Check memoryStore or PostgreSQL for RESUME-EXTRACTED SKILLS (Only if resume provided!)
+    let profile = memoryStore.profiles.get(studentId) || Array.from(memoryStore.profiles.values()).find(p => p.id === studentId || p.user_id === studentId);
+    if (!profile) {
+      try {
+        const dbProf = await query<any>(
+          `SELECT parsed_skills, resume_parsed_data, resume_matched_role FROM student_profiles WHERE id::text = $1 OR user_id::text = $1 LIMIT 1`,
+          [studentId]
+        );
+        if (dbProf.rows.length > 0) profile = dbProf.rows[0];
+      } catch {
+        // ignore
+      }
+    }
+
+    if (profile) {
+      const skillsList: string[] = profile.parsed_skills || profile.resume_parsed_data?.extractedSkills || [];
+      if (skillsList.length > 0) {
+        const skillStates: StudentSkillState[] = [];
+        for (const sk of skillsList) {
+          const cleanSk = (sk || '').toLowerCase().trim();
+          if (!cleanSk) continue;
+          skillStates.push({ skillId: sk, assessedLevel: 'PROFICIENT' });
+          skillStates.push({ skillId: cleanSk, assessedLevel: 'PROFICIENT' });
+          skillStates.push({ skillId: `skill-${cleanSk.replace(/[^a-z0-9]/g, '-')}`, assessedLevel: 'PROFICIENT' });
+        }
+        return skillStates;
+      }
+    }
+
+    return [];
   }
 }
 
@@ -170,57 +205,65 @@ export class PrismaOpportunityRepository implements OpportunityRepository {
       // Prisma offline or schema missing
     }
 
-    // Fallback to data/seed_opportunities.json for offline resilience
+    // Fallback: read opportunities from backend/data/seed_opportunities.json
     try {
       const seedPath = path.resolve(__dirname, '../../../data/seed_opportunities.json');
       if (fs.existsSync(seedPath)) {
         const raw = fs.readFileSync(seedPath, 'utf8');
-        const parsed = JSON.parse(raw);
-        return parsed.map((item: any, index: number) => ({
+        const items = JSON.parse(raw);
+        return items.map((item: any, index: number) => ({
           id: item.id || item.external_id || `seed-opp-${index + 1}`,
           title: item.title,
           organization: item.organization,
           type: item.type || 'INTERNSHIP',
           mode: item.mode || 'REMOTE',
-          originalUrl: item.original_url || '',
-          deadline: item.deadline || null,
-          stipend: item.stipend || null,
-          source: item.source || 'DIRECT',
-          location: item.location || 'India',
-          domainId: 'domain-backend',
-          domain: { name: 'Software Engineering' },
+          originalUrl: item.original_url || 'https://internshala.com',
+          deadline: item.deadline || '2026-10-31',
+          stipend: item.stipend || 'Competitive Stipend',
+          source: (item.source || 'DIRECT').toUpperCase(),
+          location: item.location || 'Pan-India',
+          domainId: item.domain_id || 'domain-backend',
+          domain: item.domain_id ? { name: item.domain_id } : { name: 'Software Engineering' },
           eligibilityRaw: item.description_raw || null,
           skillTags: (item.required_skills || []).map((s: any) => ({
-            skillId: s.skill_id,
-            skill: { name: s.raw_mention },
+            skillId: s.skill_id || `skill-${(s.raw_mention || '').toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+            skill: { name: s.raw_mention || s.skill_id },
             confidence: 1.0,
-            requiredLevel: (s.min_proficiency as ProficiencyLevel) || 'INTERMEDIATE',
+            requiredLevel: (s.min_proficiency as ProficiencyLevel) ?? 'INTERMEDIATE'
           }))
         }));
       }
-    } catch (err) {
-      console.warn('⚠️ Could not load seed_opportunities in PrismaOpportunityRepository:', err);
+    } catch (e) {
+      console.warn('Seed opportunities read warning:', e);
     }
+
     return [];
   }
 }
 
 /**
  * Adapter for RecommendationPersistenceClient.
- * We can simply expose a wrapper around the Prisma client's recommendation model
- * that matches the interface structurally with graceful fallbacks.
+ * Safeguarded for offline mode and non-UUID student IDs.
  */
 export class PrismaRecommendationPersistenceClient implements RecommendationPersistenceClient {
   public recommendation = {
     async upsert(args: any): Promise<{ id: string }> {
       try {
+        const studentId = args.where?.studentId_opportunityId?.studentId;
+        if (studentId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId)) {
+          return { id: `rec-${Date.now()}` };
+        }
         return await prisma.recommendation.upsert(args);
       } catch {
-        return { id: `mem-rec-${Date.now()}` };
+        return { id: `rec-${Date.now()}` };
       }
     },
     async findMany(args: any): Promise<any[]> {
       try {
+        const studentId = args.where?.studentId;
+        if (studentId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId)) {
+          return [];
+        }
         return await prisma.recommendation.findMany(args);
       } catch {
         return [];

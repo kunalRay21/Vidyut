@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FadeIn } from '../../components/animations/FadeIn';
-import { skillGraphApi, assessmentApi, getStoredUser, setStoredUser } from '../../services/api';
+import { skillGraphApi, assessmentApi, getStoredUser, setStoredUser, getStoredResume } from '../../services/api';
+import { Sparkles, FileText, CheckCircle2 } from 'lucide-react';
 
 type Rating = 'BEGINNER' | 'AVERAGE' | 'GOOD' | 'EXPERT';
 
@@ -132,12 +133,16 @@ export default function SelfAssessmentPage() {
   const location = useLocation();
   const navState = location.state as { selectedDomainId?: string; domainName?: string } | null;
 
+  const storedResume = getStoredResume();
+  const resumeRoleId = storedResume?.primaryMatch?.id;
+
   const initialRole = DEFAULT_ROLES.find(
     (r) =>
       r.id === navState?.selectedDomainId ||
       (navState?.selectedDomainId && (r.id.includes(navState.selectedDomainId.replace('domain-', '').replace('role-', '')) || navState.selectedDomainId.includes(r.id.replace('role-', '')))) ||
       (navState?.domainName && r.name.toLowerCase().includes(navState.domainName.toLowerCase())) ||
-      (navState?.domainName && navState.domainName.toLowerCase().includes(r.name.toLowerCase().split(' ')[0]))
+      (navState?.domainName && navState.domainName.toLowerCase().includes(r.name.toLowerCase().split(' ')[0])) ||
+      (resumeRoleId && (r.id === resumeRoleId || r.id.includes(resumeRoleId.replace('role-', ''))))
   )?.id || DEFAULT_ROLES[0].id;
 
   const [roles, setRoles] = useState<RoleItem[]>(DEFAULT_ROLES);
@@ -145,6 +150,15 @@ export default function SelfAssessmentPage() {
   const [ratings, setRatings] = useState<Record<string, Rating>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const isSkillInResume = (skillName: string): boolean => {
+    if (!storedResume?.extractedSkills || storedResume.extractedSkills.length === 0) return false;
+    const sLower = skillName.toLowerCase();
+    return storedResume.extractedSkills.some((rs: string) => {
+      const rLower = rs.toLowerCase();
+      return sLower.includes(rLower) || rLower.includes(sLower);
+    });
+  };
 
   // Dynamically load skills for the selected role from skill graph API
   useEffect(() => {
@@ -175,6 +189,24 @@ export default function SelfAssessmentPage() {
   }, [selectedRole]);
 
   const currentRole = roles.find((role) => role.id === selectedRole) || roles[0];
+
+  // Pre-populate ratings from resume for detected skills
+  useEffect(() => {
+    if (!storedResume?.extractedSkills || storedResume.extractedSkills.length === 0) return;
+    if (!currentRole?.skills || currentRole.skills.length === 0) return;
+
+    setRatings((prev) => {
+      let changed = false;
+      const updated = { ...prev };
+      currentRole.skills.forEach((sk) => {
+        if (!updated[sk.id] && isSkillInResume(sk.name)) {
+          updated[sk.id] = 'GOOD';
+          changed = true;
+        }
+      });
+      return changed ? updated : prev;
+    });
+  }, [currentRole, selectedRole]);
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const roleId = e.target.value;
@@ -276,6 +308,66 @@ export default function SelfAssessmentPage() {
         </div>
       </FadeIn>
 
+      {/* Resume Calibration Dependency Banner */}
+      <FadeIn delay={130}>
+        {storedResume && storedResume.extractedSkills && storedResume.extractedSkills.length > 0 ? (
+          <div className="bg-gradient-to-r from-emerald-50 via-white to-emerald-50/40 border-2 border-emerald-300 rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 shadow-xs">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 bg-emerald-600 text-white rounded-xl shrink-0 mt-0.5 shadow-xs">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                    Resume Pre-Calibration
+                  </span>
+                  {storedResume.primaryMatch?.title && (
+                    <span className="text-xs font-bold text-[#000080] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                      Aligned with {storedResume.primaryMatch.title}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-gray-900">
+                  Detected skills pre-populated from <span className="underline underline-offset-2 text-emerald-800">{storedResume.fileName}</span>
+                </p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Core competencies matching your CV have been automatically pre-selected as "Good". Feel free to adjust any level before continuing to the diagnostic quiz.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-gradient-to-r from-amber-50 via-white to-orange-50/40 border-2 border-amber-300 rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 shadow-xs">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 bg-amber-500 text-white rounded-xl shrink-0 mt-0.5 shadow-xs">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
+                    Standard Baseline Mode
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-gray-900">
+                  Upload your resume in Profile to automatically pre-populate verified skills
+                </p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Without a resume, please evaluate each capability manually to calibrate your diagnostic starting point.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/profile')}
+              className="shrink-0 px-3.5 py-2 bg-saffron hover:bg-saffron-600 text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer"
+            >
+              Upload Resume
+            </button>
+          </div>
+        )}
+      </FadeIn>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Role Selection */}
         <FadeIn delay={150}>
@@ -332,9 +424,17 @@ export default function SelfAssessmentPage() {
                     className="border-b border-gray-200/70 pb-5 last:border-b-0"
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-semibold text-sm text-gray-800">
-                        {skill.name}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm text-gray-800">
+                          {skill.name}
+                        </span>
+                        {isSkillInResume(skill.name) && (
+                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            Detected in Resume
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs font-bold text-saffron bg-saffron/10 px-2.5 py-0.5 rounded-full">
                         {ratings[skill.id]
                           ? t(`selfAssessment.ratings.${ratings[skill.id].toLowerCase()}`, ratingLabels[ratings[skill.id]])

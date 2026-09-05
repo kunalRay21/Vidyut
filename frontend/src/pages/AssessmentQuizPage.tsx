@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FadeIn } from '../components/animations/FadeIn';
 import { CheckCircle2, ChevronRight, X, Timer, Check, XCircle, ArrowRight, Award } from 'lucide-react';
 import { MOCK_STUDENT_PROFILE } from '../mocks/studentSessionMock';
+import { getStoredUser, setStoredUser } from '../services/api';
 
 export const AssessmentQuizPage: React.FC = () => {
   const { skillId = 'Python' } = useParams();
@@ -79,8 +80,65 @@ export const AssessmentQuizPage: React.FC = () => {
     const scorePct = Math.round((score / questions.length) * 100);
 
     const handleContinue = () => {
-      // Mock update to global profile readiness
-      MOCK_STUDENT_PROFILE.readiness_pct = 19.0;
+      const skillName = skillId.charAt(0).toUpperCase() + skillId.slice(1);
+      const evaluationData = {
+        session_id: `session-${Date.now()}`,
+        test_title: `${skillName} Diagnostic Calibration`,
+        role_id: skillId,
+        overall_accuracy_pct: scorePct,
+        overall_readiness_pct: scorePct,
+        correct_answers: score,
+        total_questions: questions.length,
+        completed_at: new Date().toISOString(),
+        skill_scores: [
+          {
+            skill_name: skillName,
+            accuracy_pct: scorePct,
+            proficiency: scorePct >= 80 ? 'EXPERT' : scorePct >= 60 ? 'PROFICIENT' : 'INTERMEDIATE',
+            category: 'Diagnostic Assessment',
+          }
+        ],
+      };
+
+      localStorage.setItem('assessment_result', JSON.stringify(evaluationData));
+
+      // Append to assessment history
+      try {
+        const history = JSON.parse(localStorage.getItem('assessment_history') || '[]');
+        history.unshift({
+          id: `hist-${Date.now()}`,
+          test_title: evaluationData.test_title,
+          accuracy: scorePct,
+          date: new Date().toLocaleDateString(),
+          score_pct: scorePct,
+        });
+        localStorage.setItem('assessment_history', JSON.stringify(history.slice(0, 10)));
+      } catch (e) {}
+
+      // Update multi-course progress map
+      try {
+        const progressMap = JSON.parse(localStorage.getItem('course_progress_map') || '{}');
+        progressMap[skillId] = {
+          role_id: skillId,
+          test_title: evaluationData.test_title,
+          accuracy: scorePct,
+          readiness: scorePct,
+          completed_at: new Date().toISOString(),
+          status: 'COMPLETED',
+        };
+        localStorage.setItem('course_progress_map', JSON.stringify(progressMap));
+      } catch (e) {}
+
+      // Update current stored user readiness
+      const currentUser = getStoredUser();
+      if (currentUser) {
+        setStoredUser({
+          ...currentUser,
+          readiness_pct: scorePct,
+        });
+      }
+
+      MOCK_STUDENT_PROFILE.readiness_pct = scorePct;
       navigate('/dashboard');
     };
 
@@ -104,12 +162,12 @@ export const AssessmentQuizPage: React.FC = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                  <span className="block text-sm text-gray-500 mb-1">Previous Readiness</span>
-                  <span className="text-2xl font-bold text-gray-700">14%</span>
+                  <span className="block text-sm text-gray-500 mb-1">Baseline Accuracy</span>
+                  <span className="text-2xl font-bold text-gray-700">{Math.max(scorePct - 15, 0)}%</span>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-                  <span className="block text-sm text-green-700 mb-1">Updated Readiness</span>
-                  <span className="text-2xl font-bold text-[#138808]">19%</span>
+                  <span className="block text-sm text-green-700 mb-1">Calibrated Readiness</span>
+                  <span className="text-2xl font-bold text-[#138808]">{scorePct}%</span>
                 </div>
               </div>
             </div>

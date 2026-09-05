@@ -590,7 +590,17 @@ export async function generateRecommendations(
     const gapSkills: string[] = [];
 
     for (const tag of opp.skillTags) {
-      if (studentSkillIds.has(tag.skillId)) {
+      const tagName = tag.skill?.name;
+      const tagNameLower = tagName?.toLowerCase().trim();
+      const tagSlug = tagNameLower ? `skill-${tagNameLower.replace(/[^a-z0-9]/g, '-')}` : null;
+
+      const isMatch =
+        studentSkillIds.has(tag.skillId) ||
+        (tagName && studentSkillIds.has(tagName)) ||
+        (tagNameLower && studentSkillIds.has(tagNameLower)) ||
+        (tagSlug && studentSkillIds.has(tagSlug));
+
+      if (isMatch) {
         matchingSkills.push(tag.skill.name);
       } else {
         gapSkills.push(tag.skill.name);

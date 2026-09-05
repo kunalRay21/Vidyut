@@ -1,5 +1,5 @@
 import { query } from '../../database/db';
-import { inMemorySkillStates } from '../../database/store';
+import { inMemorySkillStates, memoryStore } from '../../database/store';
 
 const levelValue: Record<string, number> = {
   AWARENESS: 1,
@@ -10,50 +10,19 @@ const levelValue: Record<string, number> = {
 };
 
 function getRolePhaseMeta(roleName: string, phaseNum: number) {
-  const slug = roleName.toLowerCase();
-  const isML = slug.includes('machine') || slug.includes('ml') || slug.includes('ai');
-  const isCloud = slug.includes('cloud') || slug.includes('devops');
-  const isData = slug.includes('data');
-  const isFullstack = slug.includes('fullstack') || slug.includes('full-stack');
-  const isSecurity = slug.includes('security') || slug.includes('cyber');
+  const slug = (roleName || '').toLowerCase();
 
-  if (isML) {
+  if (slug.includes('machine') || slug.includes('ml') || slug.includes('ai')) {
     switch (phaseNum) {
-      case 1:
-        return {
-          title: 'Phase 1: Mathematical Foundations & Programming',
-          description: 'Establish core mathematical rigor across linear algebra, probability, statistics, and scientific Python programming.',
-          learning_outcome: 'Manipulate high-dimensional tensors, formulate statistical models, and collaborate with Git version control.'
-        };
-      case 2:
-        return {
-          title: 'Phase 2: Data Engineering & Exploratory Analysis',
-          description: 'Perform tabular data engineering with Pandas/NumPy, relational data queries with SQL, and diagnostic visualization.',
-          learning_outcome: 'Clean, preprocess, and extract high-signal predictive features from production datasets.'
-        };
-      case 3:
-        return {
-          title: 'Phase 3: Classical Machine Learning & Validation',
-          description: 'Train supervised and unsupervised learning algorithms with rigorous cross-validation and hyperparameter optimization.',
-          learning_outcome: 'Train calibrated Scikit-Learn models, prevent data leakage, and establish robust baseline metrics.'
-        };
-      case 4:
-        return {
-          title: 'Phase 4: Deep Learning Framework Specialization',
-          description: 'Specialize in your selected deep learning framework to construct neural architectures, loss functions, and embeddings.',
-          learning_outcome: 'Implement deep neural networks and custom training loops in production.'
-        };
-      case 5:
-      default:
-        return {
-          title: 'Phase 5: MLOps, Model Serving & Applied AI',
-          description: 'Package models into inference microservices, track experiments, and implement computer vision/NLP pipelines.',
-          learning_outcome: 'Deploy, monitor, and scale high-throughput AI services in cloud production environments.'
-        };
+      case 1: return { title: 'Phase 1: Mathematical Foundations & Programming', description: 'Establish core mathematical rigor across linear algebra, probability, statistics, and scientific Python programming.', learning_outcome: 'Manipulate high-dimensional tensors, formulate statistical models, and collaborate with Git version control.' };
+      case 2: return { title: 'Phase 2: Data Engineering & Exploratory Analysis', description: 'Perform tabular data engineering with Pandas/NumPy, relational data queries with SQL, and diagnostic visualization.', learning_outcome: 'Clean, preprocess, and extract high-signal predictive features from production datasets.' };
+      case 3: return { title: 'Phase 3: Classical Machine Learning & Validation', description: 'Train supervised and unsupervised learning algorithms with rigorous cross-validation and hyperparameter optimization.', learning_outcome: 'Train calibrated Scikit-Learn models, prevent data leakage, and establish robust baseline metrics.' };
+      case 4: return { title: 'Phase 4: Deep Learning Framework Specialization', description: 'Specialize in your selected deep learning framework to construct neural architectures, loss functions, and embeddings.', learning_outcome: 'Implement deep neural networks and custom training loops in production.' };
+      default: return { title: 'Phase 5: MLOps, Model Serving & Applied AI', description: 'Package models into inference microservices, track experiments, and implement computer vision/NLP pipelines.', learning_outcome: 'Deploy, monitor, and scale high-throughput AI services in cloud production environments.' };
     }
   }
 
-  if (isCloud) {
+  if (slug.includes('cloud') || slug.includes('devops')) {
     switch (phaseNum) {
       case 1:
         return {
@@ -89,7 +58,7 @@ function getRolePhaseMeta(roleName: string, phaseNum: number) {
     }
   }
 
-  if (isData) {
+  if (slug.includes('data') || slug.includes('analytics')) {
     switch (phaseNum) {
       case 1:
         return {
@@ -125,7 +94,7 @@ function getRolePhaseMeta(roleName: string, phaseNum: number) {
     }
   }
 
-  if (isFullstack) {
+  if (slug.includes('full') || slug.includes('stack') || slug.includes('web')) {
     switch (phaseNum) {
       case 1:
         return {
@@ -161,7 +130,7 @@ function getRolePhaseMeta(roleName: string, phaseNum: number) {
     }
   }
 
-  if (isSecurity) {
+  if (slug.includes('security') || slug.includes('cyber')) {
     switch (phaseNum) {
       case 1:
         return {
@@ -197,56 +166,30 @@ function getRolePhaseMeta(roleName: string, phaseNum: number) {
     }
   }
 
-  // Backend Developer & General Software Engineering
+  // Backend Developer & General Systems
   switch (phaseNum) {
-    case 1:
-      return {
-        title: 'Phase 1: Foundations & Core Logic',
-        description: 'Master programming fundamentals, language syntax, and distributed version control workflows.',
-        learning_outcome: 'Write modular code, implement structured algorithms, and collaborate with Git repositories.'
-      };
-    case 2:
-      return {
-        title: 'Phase 2: Data Persistence & Web Architecture',
-        description: 'Construct relational schemas, write optimal SQL queries, and implement HTTP/REST communication protocols.',
-        learning_outcome: 'Design normalized database schemas, query tables, and consume robust web endpoints.'
-      };
-    case 3:
-      return {
-        title: 'Phase 3: APIs, Authentication & Testing',
-        description: 'Implement enterprise authentication mechanisms, API security controls, and automated test suites.',
-        learning_outcome: 'Build hardened server-side endpoints with high automated test coverage.'
-      };
-    case 4:
-      return {
-        title: 'Phase 4: Framework Specialization & Distributed Systems',
-        description: 'Select your core web framework track and master caching and messaging patterns.',
-        learning_outcome: 'Architect production-ready microservices using modern backend frameworks.'
-      };
-    case 5:
-    default:
-      return {
-        title: 'Phase 5: DevOps, Containerization & Cloud Deployment',
-        description: 'Automate delivery pipelines, containerize microservices, and ensure resilient cloud deployment.',
-        learning_outcome: 'Deploy scalable, monitored cloud architectures with continuous delivery pipelines.'
-      };
+    case 1: return { title: 'Phase 1: Foundations & Core Logic', description: 'Master programming fundamentals, language syntax, and distributed version control workflows.', learning_outcome: 'Write modular code, implement structured algorithms, and collaborate with Git repositories.' };
+    case 2: return { title: 'Phase 2: Data Persistence & Web Architecture', description: 'Construct relational schemas, write optimal SQL queries, and implement HTTP/REST communication protocols.', learning_outcome: 'Design normalized database schemas, query tables, and consume robust web endpoints.' };
+    case 3: return { title: 'Phase 3: APIs, Authentication & Testing', description: 'Implement enterprise authentication mechanisms, API security controls, and automated test suites.', learning_outcome: 'Build hardened server-side endpoints with high automated test coverage.' };
+    case 4: return { title: 'Phase 4: Framework Specialization & Distributed Systems', description: 'Select your core web framework track and master caching and messaging patterns.', learning_outcome: 'Architect production-ready microservices using modern backend frameworks.' };
+    default: return { title: 'Phase 5: DevOps, Containerization & Cloud Deployment', description: 'Automate delivery pipelines, containerize microservices, and ensure resilient cloud deployment.', learning_outcome: 'Deploy scalable, monitored cloud architectures with continuous delivery pipelines.' };
   }
 }
 
 const FALLBACK_ROADMAPS: Record<string, any> = {
   'role-backend': {
-    role_name: 'Backend Developer',
+    role_name: 'Modern Backend & Distributed Systems',
     skills: [
       { id: 'skill-prog-fund', name: 'Programming Fundamentals', category: 'FOUNDATION', assessed_level: 'PROFICIENT', target_level: 'PROFICIENT' },
       { id: 'skill-git', name: 'Git & GitHub', category: 'TOOLS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-http', name: 'HTTP', category: 'WEB', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-rest', name: 'REST API', category: 'WEB', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-sql', name: 'SQL', category: 'DATABASE', assessed_level: 'AWARENESS', target_level: 'INTERMEDIATE' },
-      { id: 'skill-db-design', name: 'Database Design', category: 'DATABASE', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-auth', name: 'Authentication', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-python', name: 'Python', category: 'PROGRAMMING', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
-      { id: 'skill-docker', name: 'Docker', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-cicd', name: 'CI/CD', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
+      { id: 'skill-http', name: 'HTTP & Web Architecture', category: 'WEB', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-rest', name: 'REST API Design', category: 'WEB', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-sql', name: 'SQL & Relational Databases', category: 'DATABASE', assessed_level: 'AWARENESS', target_level: 'INTERMEDIATE' },
+      { id: 'skill-db-design', name: 'Database Architecture & Normalization', category: 'DATABASE', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-auth', name: 'Authentication & JWT Security', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-python', name: 'Python / Node.js Core Logic', category: 'PROGRAMMING', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
+      { id: 'skill-docker', name: 'Docker Containerization', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-cicd', name: 'CI/CD Pipeline Automation', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
     ],
     prerequisites: [
       { skill_id: 'skill-git', prerequisite_skill_id: 'skill-prog-fund' },
@@ -262,25 +205,26 @@ const FALLBACK_ROADMAPS: Record<string, any> = {
     branches: [
       {
         id: 'branch-backend-framework',
-        name: 'Python Web Framework',
-        description: 'Choose between FastAPI and Django',
+        name: 'Backend Web Framework',
+        description: 'Choose between FastAPI (Modern Python) and Express (Node.js)',
         options: [
           { branch_id: 'branch-backend-framework', option_id: 'opt-fastapi', name: 'FastAPI', skill_id: 'skill-fastapi' },
-          { branch_id: 'branch-backend-framework', option_id: 'opt-django', name: 'Django', skill_id: 'skill-django' }
+          { branch_id: 'branch-backend-framework', option_id: 'opt-express', name: 'Express / NestJS', skill_id: 'skill-express' }
         ]
       }
     ]
   },
   'role-ml': {
-    role_name: 'Machine Learning Engineer',
+    role_name: 'Machine Learning & Applied AI',
     skills: [
-      { id: 'skill-python', name: 'Python', category: 'PROGRAMMING', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
-      { id: 'skill-git', name: 'Git', category: 'TOOLS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-numpy', name: 'NumPy', category: 'DATA', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-pandas', name: 'Pandas', category: 'DATA', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-stats', name: 'Statistics', category: 'MATHEMATICS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-linalg', name: 'Linear Algebra', category: 'MATHEMATICS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
-      { id: 'skill-ml-fund', name: 'Machine Learning Fundamentals', category: 'MACHINE_LEARNING', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
+      { id: 'skill-python', name: 'Python Programming', category: 'PROGRAMMING', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
+      { id: 'skill-git', name: 'Git & Collaboration', category: 'TOOLS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-numpy', name: 'NumPy & Array Mathematics', category: 'DATA', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-pandas', name: 'Pandas & Data Wrangling', category: 'DATA', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-stats', name: 'Probability & Statistics', category: 'MATHEMATICS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-linalg', name: 'Linear Algebra & Tensors', category: 'MATHEMATICS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-ml-fund', name: 'Supervised & Unsupervised ML', category: 'MACHINE_LEARNING', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-scikit', name: 'Scikit-Learn Modeling', category: 'MACHINE_LEARNING', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
     ],
     prerequisites: [
       { skill_id: 'skill-git', prerequisite_skill_id: 'skill-python' },
@@ -288,16 +232,145 @@ const FALLBACK_ROADMAPS: Record<string, any> = {
       { skill_id: 'skill-pandas', prerequisite_skill_id: 'skill-numpy' },
       { skill_id: 'skill-stats', prerequisite_skill_id: 'skill-python' },
       { skill_id: 'skill-linalg', prerequisite_skill_id: 'skill-python' },
-      { skill_id: 'skill-ml-fund', prerequisite_skill_id: 'skill-pandas' }
+      { skill_id: 'skill-ml-fund', prerequisite_skill_id: 'skill-pandas' },
+      { skill_id: 'skill-scikit', prerequisite_skill_id: 'skill-ml-fund' }
     ],
     branches: [
       {
         id: 'branch-dl-framework',
-        name: 'Deep Learning Framework',
-        description: 'Choose between TensorFlow and PyTorch',
+        name: 'Deep Learning Framework Specialization',
+        description: 'Choose between PyTorch and TensorFlow for deep neural networks',
         options: [
-          { branch_id: 'branch-dl-framework', option_id: 'opt-tf', name: 'TensorFlow', skill_id: 'skill-tf' },
-          { branch_id: 'branch-dl-framework', option_id: 'opt-pytorch', name: 'PyTorch', skill_id: 'skill-pytorch' }
+          { branch_id: 'branch-dl-framework', option_id: 'opt-pytorch', name: 'PyTorch', skill_id: 'skill-pytorch' },
+          { branch_id: 'branch-dl-framework', option_id: 'opt-tf', name: 'TensorFlow / Keras', skill_id: 'skill-tf' }
+        ]
+      }
+    ]
+  },
+  'role-cloud': {
+    role_name: 'Cloud Native & DevOps Engineering',
+    skills: [
+      { id: 'skill-linux', name: 'Linux Administration & Shell', category: 'FOUNDATION', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
+      { id: 'skill-git', name: 'Git & Trunk-Based Development', category: 'TOOLS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-networking', name: 'Networking & DNS Architecture', category: 'FOUNDATION', assessed_level: 'AWARENESS', target_level: 'INTERMEDIATE' },
+      { id: 'skill-docker', name: 'Docker & Image Security', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-cicd', name: 'GitHub Actions & CI/CD', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-k8s', name: 'Kubernetes Workload Orchestration', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-iac', name: 'Infrastructure as Code (Terraform)', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-monitoring', name: 'Prometheus & Grafana Observability', category: 'DEVOPS', assessed_level: 'AWARENESS', target_level: 'INTERMEDIATE' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-git', prerequisite_skill_id: 'skill-linux' },
+      { skill_id: 'skill-networking', prerequisite_skill_id: 'skill-linux' },
+      { skill_id: 'skill-docker', prerequisite_skill_id: 'skill-linux' },
+      { skill_id: 'skill-cicd', prerequisite_skill_id: 'skill-git' },
+      { skill_id: 'skill-k8s', prerequisite_skill_id: 'skill-docker' },
+      { skill_id: 'skill-iac', prerequisite_skill_id: 'skill-docker' },
+      { skill_id: 'skill-monitoring', prerequisite_skill_id: 'skill-k8s' }
+    ],
+    branches: [
+      {
+        id: 'branch-cloud-provider',
+        name: 'Primary Cloud Infrastructure Track',
+        description: 'Select your primary target cloud certification platform',
+        options: [
+          { branch_id: 'branch-cloud-provider', option_id: 'opt-aws', name: 'Amazon Web Services (AWS)', skill_id: 'skill-aws' },
+          { branch_id: 'branch-cloud-provider', option_id: 'opt-gcp', name: 'Google Cloud Platform (GCP)', skill_id: 'skill-gcp' }
+        ]
+      }
+    ]
+  },
+  'role-fullstack': {
+    role_name: 'Full-Stack Web Architecture',
+    skills: [
+      { id: 'skill-html-css', name: 'Semantic HTML5 & Modern CSS', category: 'FOUNDATION', assessed_level: 'PROFICIENT', target_level: 'PROFICIENT' },
+      { id: 'skill-js-ts', name: 'Modern TypeScript & ES6+', category: 'PROGRAMMING', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
+      { id: 'skill-git', name: 'Git & Feature Branching', category: 'TOOLS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-react', name: 'React Architecture & State Hooks', category: 'WEB', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-rest-node', name: 'REST APIs & Node.js Server Logic', category: 'WEB', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-sql', name: 'Relational Database Schema & ORMs', category: 'DATABASE', assessed_level: 'AWARENESS', target_level: 'INTERMEDIATE' },
+      { id: 'skill-auth-full', name: 'Session & JWT Authentication', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-e2e', name: 'Automated Testing (Jest & Cypress)', category: 'QUALITY', assessed_level: 'AWARENESS', target_level: 'INTERMEDIATE' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-js-ts', prerequisite_skill_id: 'skill-html-css' },
+      { skill_id: 'skill-git', prerequisite_skill_id: 'skill-js-ts' },
+      { skill_id: 'skill-react', prerequisite_skill_id: 'skill-js-ts' },
+      { skill_id: 'skill-rest-node', prerequisite_skill_id: 'skill-js-ts' },
+      { skill_id: 'skill-sql', prerequisite_skill_id: 'skill-rest-node' },
+      { skill_id: 'skill-auth-full', prerequisite_skill_id: 'skill-rest-node' },
+      { skill_id: 'skill-e2e', prerequisite_skill_id: 'skill-react' }
+    ],
+    branches: [
+      {
+        id: 'branch-frontend-framework',
+        name: 'Full-Stack Application Framework',
+        description: 'Choose between Next.js React Framework and Vite SPA Architecture',
+        options: [
+          { branch_id: 'branch-frontend-framework', option_id: 'opt-nextjs', name: 'Next.js App Router', skill_id: 'skill-nextjs' },
+          { branch_id: 'branch-frontend-framework', option_id: 'opt-vite', name: 'React + Vite + Express', skill_id: 'skill-vite' }
+        ]
+      }
+    ]
+  },
+  'role-data': {
+    role_name: 'Data Science & Big Data Engineering',
+    skills: [
+      { id: 'skill-python-data', name: 'Python for Scientific Computing', category: 'PROGRAMMING', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
+      { id: 'skill-git', name: 'Git & Notebook Versioning', category: 'TOOLS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-sql-adv', name: 'Advanced SQL & Window Functions', category: 'DATABASE', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-pandas-clean', name: 'Data Wrangling with Pandas', category: 'DATA', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-eda', name: 'Exploratory Analysis & Visualization', category: 'DATA', assessed_level: 'AWARENESS', target_level: 'INTERMEDIATE' },
+      { id: 'skill-etl', name: 'Automated ETL Pipeline Design', category: 'DATA', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-warehouse', name: 'Data Warehousing & OLAP Schemas', category: 'DATABASE', assessed_level: 'AWARENESS', target_level: 'INTERMEDIATE' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-git', prerequisite_skill_id: 'skill-python-data' },
+      { skill_id: 'skill-sql-adv', prerequisite_skill_id: 'skill-python-data' },
+      { skill_id: 'skill-pandas-clean', prerequisite_skill_id: 'skill-python-data' },
+      { skill_id: 'skill-eda', prerequisite_skill_id: 'skill-pandas-clean' },
+      { skill_id: 'skill-etl', prerequisite_skill_id: 'skill-pandas-clean' },
+      { skill_id: 'skill-warehouse', prerequisite_skill_id: 'skill-sql-adv' }
+    ],
+    branches: [
+      {
+        id: 'branch-data-engine',
+        name: 'Distributed Big Data Engine',
+        description: 'Choose between Batch Spark Analytics and Event-Driven Kafka Streaming',
+        options: [
+          { branch_id: 'branch-data-engine', option_id: 'opt-spark', name: 'Apache Spark & PySpark', skill_id: 'skill-spark' },
+          { branch_id: 'branch-data-engine', option_id: 'opt-kafka', name: 'Apache Kafka Event Streams', skill_id: 'skill-kafka' }
+        ]
+      }
+    ]
+  },
+  'role-security': {
+    role_name: 'Cybersecurity & Defensive Systems',
+    skills: [
+      { id: 'skill-net-sec', name: 'Computer Networking & Protocols', category: 'FOUNDATION', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
+      { id: 'skill-linux-hard', name: 'Linux System Hardening', category: 'FOUNDATION', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-crypto-sec', name: 'Applied Cryptography & SSL/TLS', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-owasp-sec', name: 'Web Security & OWASP Top 10', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-iam-sec', name: 'Identity & Access Management (OAuth)', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-vuln-audit', name: 'Vulnerability Assessment & Pen-Testing', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'INTERMEDIATE' },
+      { id: 'skill-siem-audit', name: 'Threat Detection & SIEM Monitoring', category: 'SECURITY', assessed_level: 'AWARENESS', target_level: 'INTERMEDIATE' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-linux-hard', prerequisite_skill_id: 'skill-net-sec' },
+      { skill_id: 'skill-crypto-sec', prerequisite_skill_id: 'skill-net-sec' },
+      { skill_id: 'skill-owasp-sec', prerequisite_skill_id: 'skill-net-sec' },
+      { skill_id: 'skill-iam-sec', prerequisite_skill_id: 'skill-owasp-sec' },
+      { skill_id: 'skill-vuln-audit', prerequisite_skill_id: 'skill-owasp-sec' },
+      { skill_id: 'skill-siem-audit', prerequisite_skill_id: 'skill-vuln-audit' }
+    ],
+    branches: [
+      {
+        id: 'branch-sec-track',
+        name: 'Cybersecurity Specialization Track',
+        description: 'Choose between Blue Team Defensive Operations and Application Security Engineering',
+        options: [
+          { branch_id: 'branch-sec-track', option_id: 'opt-appsec', name: 'Application Security (DevSecOps)', skill_id: 'skill-appsec' },
+          { branch_id: 'branch-sec-track', option_id: 'opt-soc', name: 'SOC Analysis & Incident Response', skill_id: 'skill-soc' }
         ]
       }
     ]
@@ -429,6 +502,28 @@ export async function generatePersonalizedRoadmap(
   let branchesCount = 0;
   let selectedBranchId: string | null = null;
   let validRoleId = roleId;
+
+  // 0. Check student profile for uploaded resume (Calibrate ONLY if resume provided)
+  let studentProfile = memoryStore.profiles.get(studentId) || Array.from(memoryStore.profiles.values()).find(p => p.id === studentId || p.user_id === studentId);
+  if (!studentProfile) {
+    try {
+      const pRes = await query<any>(
+        `SELECT id, user_id, resume_matched_role, parsed_skills, resume_parsed_data, resume_filename FROM student_profiles WHERE id::text = $1 OR user_id::text = $1 LIMIT 1`,
+        [studentId]
+      );
+      if (pRes.rows.length > 0) studentProfile = pRes.rows[0];
+    } catch {
+      // Non-blocking
+    }
+  }
+
+  const hasResume = !!(studentProfile?.resume_filename || studentProfile?.resume_matched_role || (studentProfile?.parsed_skills && studentProfile.parsed_skills.length > 0));
+  const resumeSkills: string[] = studentProfile?.parsed_skills || studentProfile?.resume_parsed_data?.extractedSkills || [];
+
+  // If roleId not explicitly set or generic, default to student's resume matched role if available
+  if ((!validRoleId || validRoleId === 'default' || validRoleId === 'role-backend') && studentProfile?.resume_matched_role) {
+    validRoleId = studentProfile.resume_matched_role;
+  }
 
   const isUUID = (s: string) =>
     typeof s === 'string' &&
@@ -569,20 +664,37 @@ export async function generatePersonalizedRoadmap(
   // Fallback data if skills empty
   if (skills.length === 0) {
     let fallbackKey = 'role-backend';
-    const slug = validRoleId.toLowerCase();
+    const slug = (validRoleId || '').toLowerCase();
     if (slug.includes('ml') || slug.includes('machine') || slug.includes('ai')) fallbackKey = 'role-ml';
     else if (slug.includes('cloud') || slug.includes('devops')) fallbackKey = 'role-cloud';
-    else if (slug.includes('data')) fallbackKey = 'role-data';
-    else if (slug.includes('fullstack') || slug.includes('full-stack')) fallbackKey = 'role-fullstack';
+    else if (slug.includes('data') || slug.includes('analytics')) fallbackKey = 'role-data';
+    else if (slug.includes('full') || slug.includes('stack') || slug.includes('web')) fallbackKey = 'role-fullstack';
     else if (slug.includes('security') || slug.includes('cyber')) fallbackKey = 'role-security';
     else if (FALLBACK_ROADMAPS[validRoleId]) fallbackKey = validRoleId;
 
     const fallback = FALLBACK_ROADMAPS[fallbackKey] || FALLBACK_ROADMAPS['role-backend'];
     roleName = fallback.role_name;
-    skills = fallback.skills;
+    skills = fallback.skills.map((s: any) => ({ ...s }));
     prerequisiteRows = fallback.prerequisites;
     branchesCount = fallback.branches.length;
     branchOptions = fallback.branches[0]?.options || [];
+  }
+
+  // CALIBRATE SKILLS FROM RESUME: Only if resume is provided!
+  if (hasResume && resumeSkills.length > 0) {
+    for (const skill of skills) {
+      const sName = skill.name.toLowerCase();
+      const isMatchedInResume = resumeSkills.some((rSkill: string) => {
+        const rLower = (rSkill || '').toLowerCase().trim();
+        return rLower.length > 1 && (sName.includes(rLower) || rLower.includes(sName));
+      });
+
+      if (isMatchedInResume) {
+        skill.assessed_level = 'PROFICIENT';
+        skill.accuracy = 85;
+        skill.verified_by_resume = true;
+      }
+    }
   }
 
   // Build DAG for full topological ordering across all skills
@@ -717,7 +829,8 @@ const categoryWeight: Record<string, number> = {
       status,
       assessed_level: skill.assessed_level || 'AWARENESS',
       target_level: skill.target_level || 'PROFICIENT',
-      accuracy: skill.accuracy ?? 0
+      accuracy: skill.accuracy ?? 0,
+      verified_by_resume: !!skill.verified_by_resume
     };
   });
 
@@ -822,7 +935,11 @@ const categoryWeight: Record<string, number> = {
     locked_skills: lockedCount,
     selected_branch_id: selectedBranchId,
     milestones,
-    phases
+    phases,
+    has_resume: hasResume,
+    resume_filename: studentProfile?.resume_filename || null,
+    resume_matched_role: studentProfile?.resume_matched_role || null,
+    resume_skills_count: resumeSkills.length
   };
 }
 

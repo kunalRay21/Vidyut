@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { OpportunityTabs, OpportunityCategory } from '../features/opportunities/OpportunityTabs';
 import { OpportunityCard } from '../features/opportunities/OpportunityCard';
 import { MatchExplanationModal } from '../features/opportunities/MatchExplanationModal';
 import { Opportunity } from '../features/opportunities/types';
 import { FadeIn } from '../components/animations/FadeIn';
-import { getStoredUser, opportunitiesApi, recommendationsApi } from '../services/api';
+import { getStoredUser, opportunitiesApi, recommendationsApi, getStoredResume } from '../services/api';
+import { Sparkles, FileText, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 function mapScoredOpportunity(item: any, index = 0): Opportunity {
   const scores = item.scores || {};
@@ -60,11 +62,13 @@ const EMPTY_CATEGORIZED_OPPS = {
 
 export const OpportunitiesPage: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<OpportunityCategory>('READY_NOW');
   const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
   const [categorizedOpps, setCategorizedOpps] = useState(EMPTY_CATEGORIZED_OPPS);
   const [loading, setLoading] = useState(false);
   const [isAiPowered, setIsAiPowered] = useState(false);
+  const [storedResume, setStoredResume] = useState<any>(null);
 
   const loadOpportunities = async (refresh = false) => {
     setLoading(true);
@@ -136,6 +140,7 @@ export const OpportunitiesPage: React.FC = () => {
   };
 
   useEffect(() => {
+    setStoredResume(getStoredResume());
     loadOpportunities(false);
   }, []);
 
@@ -150,7 +155,7 @@ export const OpportunitiesPage: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       <FadeIn delay={100}>
-        <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <header className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-bold uppercase tracking-wider mb-2 border border-green-200">
               {isAiPowered ? '✨ Role 5 AI Compatibility Engine Active' : 'Live Verified Opportunity Pipeline'}
@@ -168,6 +173,82 @@ export const OpportunitiesPage: React.FC = () => {
             {loading ? 'Re-scoring...' : 'Recalculate Matches'}
           </button>
         </header>
+      </FadeIn>
+
+      {/* Resume Dependency / Compatibility Engine Banner */}
+      <FadeIn delay={150}>
+        {storedResume && storedResume.extractedSkills && storedResume.extractedSkills.length > 0 ? (
+          <div className="bg-gradient-to-r from-emerald-50 via-white to-emerald-50/40 border-2 border-emerald-300 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="p-2.5 bg-emerald-600 text-white rounded-xl shrink-0 mt-0.5 shadow-xs">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-700" />
+                    Resume-Calibrated Scoring
+                  </span>
+                  {storedResume.primaryMatch?.title && (
+                    <span className="text-xs font-bold text-[#000080] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                      {storedResume.primaryMatch.title} ({storedResume.primaryMatch.score || 85}% Fit)
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm font-bold text-gray-900">
+                  Scoring opportunities against {storedResume.extractedSkills.length} skills extracted from <span className="underline underline-offset-2 text-emerald-800">{storedResume.fileName}</span>
+                </p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {storedResume.extractedSkills.slice(0, 8).map((s: string) => (
+                    <span key={s} className="text-[10px] font-semibold bg-white text-emerald-900 border border-emerald-200 px-2 py-0.5 rounded shadow-2xs">
+                      {s}
+                    </span>
+                  ))}
+                  {storedResume.extractedSkills.length > 8 && (
+                    <span className="text-[10px] text-gray-500 font-semibold self-center">
+                      +{storedResume.extractedSkills.length - 8} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/profile')}
+              className="shrink-0 px-3.5 py-2 bg-white hover:bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-xl shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5 self-start sm:self-center"
+            >
+              <span>Manage Resume</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="bg-gradient-to-r from-amber-50 via-white to-orange-50/40 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="p-2.5 bg-amber-500 text-white rounded-xl shrink-0 mt-0.5 shadow-xs">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
+                    Baseline Match Mode
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-gray-900">
+                  Upload your resume in Profile to unlock instant AI Compatibility Scoring
+                </p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Currently matching against default role requirements. Uploading your resume pre-populates verified skills across national internships and live projects.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/profile')}
+              className="shrink-0 px-4 py-2 bg-saffron hover:bg-saffron-600 text-white text-xs font-bold rounded-xl shadow-sm transition-colors cursor-pointer flex items-center gap-1.5 self-start sm:self-center"
+            >
+              <span>Upload Resume</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </FadeIn>
 
       {loading && (

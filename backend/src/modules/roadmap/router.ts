@@ -3,6 +3,7 @@ import { generatePersonalizedRoadmap, recordBranchChoice } from './service';
 import { apiSuccess, apiError } from '../../core/responses';
 import { query } from '../../database/db';
 import { verifyToken } from '../../auth/jwt';
+import { memoryStore } from '../../database/store';
 
 const router = Router();
 
@@ -10,11 +11,9 @@ const isUUID = (s?: string) =>
   typeof s === 'string' &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s.trim());
 
-import { memoryStore } from '../../database/store';
-
 async function resolveStudentAndRole(req: Request): Promise<{ studentId: string; roleId: string }> {
-  let studentId = (req.query.student_id || req.body?.student_id || req.headers['x-student-id']) as string | undefined;
-  let roleId = (req.query.role_id || req.body?.role_id || req.headers['x-role-id']) as string | undefined;
+  let studentId = (req.query.student_id || req.query.studentId || req.body?.student_id || req.body?.studentId || req.headers['x-student-id']) as string | undefined;
+  let roleId = (req.query.role_id || req.query.roleId || req.body?.role_id || req.body?.roleId || req.headers['x-role-id']) as string | undefined;
 
   // 1. Check Bearer JWT token if available
   const authHeader = req.headers.authorization;
@@ -23,119 +22,89 @@ async function resolveStudentAndRole(req: Request): Promise<{ studentId: string;
       const token = authHeader.split(' ')[1];
       const decoded = verifyToken(token);
       if (decoded?.id) {
-        studentId = studentId || decoded.id;
-        try {
-          const profileRes = await query<{ id: string; selected_role_id: string }>(
-            `SELECT id, selected_role_id FROM student_profiles WHERE user_id = $1 OR id = $1`,
-            [decoded.id]
-          );
-          if (profileRes.rows.length > 0) {
-            if (!studentId || !isUUID(studentId)) studentId = profileRes.rows[0].id;
-            if (!roleId && profileRes.rows[0].selected_role_id) roleId = profileRes.rows[0].selected_role_id;
-          }
-        } catch {
-          // DB offline - check in-memory store
-          const memProf = memoryStore.profiles.get(decoded.id) ||
-            Array.from(memoryStore.profiles.values()).find(p => p.user_id === decoded.id);
-          if (memProf) {
-            studentId = memProf.id;
-            if (!roleId && memProf.selected_role_id) roleId = memProf.selected_role_id;
-          }
-        }
+        if (!studentId) studentId = decoded.id;
       }
     } catch {
       // Fallback
     }
   }
 
-  // 2. In-memory profile check if still not resolved
+  // 2. Check memoryStore if present
   if (studentId) {
-    const memProf = memoryStore.profiles.get(studentId) ||
-      Array.from(memoryStore.profiles.values()).find(p => p.user_id === studentId);
-    if (memProf) {
-      studentId = memProf.id;
-      if (!roleId && memProf.selected_role_id) roleId = memProf.selected_role_id;
+    const mem = memoryStore.profiles.get(studentId) || Array.from(memoryStore.profiles.values()).find(p => p.id === studentId || p.user_id === studentId);
+    if (mem) {
+      if (!roleId && mem.resume_matched_role) roleId = mem.resume_matched_role;
+      else if (!roleId && mem.selected_role_id) roleId = mem.selected_role_id;
     }
   }
 
-  // 3. Fallback to active student in DB or memoryStore
-  if (!studentId || !isUUID(studentId)) {
-    if (studentId) {
-      const matched = await query<{ id: string; selected_role_id: string }>(
-        `SELECT id, selected_role_id FROM student_profiles WHERE user_id::text = $1 OR id::text = $1 LIMIT 1`,
-        [studentId]
-      ).catch(() => ({ rows: [] as any[] }));
-      if (matched.rows.length > 0) {
-        studentId = matched.rows[0].id;
-        if (!roleId && matched.rows[0].selected_role_id) {
-          roleId = matched.rows[0].selected_role_id;
-        }
-      }
-    }
-
-    if (!studentId || !isUUID(studentId)) {
-      const firstStudent = await query<{ id: string; selected_role_id: string }>(
-        `SELECT id, selected_role_id FROM student_profiles ORDER BY created_at ASC LIMIT 1`
-      ).catch(() => ({ rows: [] as any[] }));
-      if (firstStudent.rows.length > 0) {
-        studentId = firstStudent.rows[0].id;
-        if (!roleId && firstStudent.rows[0].selected_role_id) {
-          roleId = firstStudent.rows[0].selected_role_id;
-        }
-      } else {
-        const firstMem = Array.from(memoryStore.profiles.values())[0];
-        studentId = firstMem?.id || 'student-demo';
-        if (!roleId && firstMem?.selected_role_id) roleId = firstMem.selected_role_id;
+  // 3. If studentId is in database
+  if (studentId) {
+    const matched = await query<{ id: string; selected_role_id: string; resume_matched_role: string }>(
+      `SELECT id, selected_role_id, resume_matched_role FROM student_profiles WHERE user_id::text = $1 OR id::text = $1 LIMIT 1`,
+      [studentId]
+    ).catch(() => ({ rows: [] as any[] }));
+    if (matched.rows.length > 0) {
+      studentId = matched.rows[0].id;
+      if (!roleId) {
+        roleId = matched.rows[0].resume_matched_role || matched.rows[0].selected_role_id;
       }
     }
   }
 
-  // 4. Resolve roleId across all 6 tracks
+  // 4. Default fallbacks for studentId
+  if (!studentId) {
+    const memFirst = Array.from(memoryStore.profiles.values())[0];
+    if (memFirst) {
+      studentId = memFirst.id;
+      if (!roleId) roleId = memFirst.resume_matched_role || memFirst.selected_role_id;
+    }
+  }
+
+  if (!studentId) {
+    const firstStudent = await query<{ id: string; selected_role_id: string; resume_matched_role: string }>(
+      `SELECT id, selected_role_id, resume_matched_role FROM student_profiles ORDER BY created_at ASC LIMIT 1`
+    ).catch(() => ({ rows: [] as any[] }));
+    if (firstStudent.rows.length > 0) {
+      studentId = firstStudent.rows[0].id;
+      if (!roleId) roleId = firstStudent.rows[0].resume_matched_role || firstStudent.rows[0].selected_role_id;
+    }
+  }
+
+  // 5. If roleId is missing or needs resolving to DB UUID
   if (!roleId || !isUUID(roleId)) {
-    if (studentId && isUUID(studentId)) {
-      const studentRole = await query<{ selected_role_id: string }>(
-        `SELECT selected_role_id FROM student_profiles WHERE id = $1`,
-        [studentId]
-      ).catch(() => ({ rows: [] as any[] }));
-      if (studentRole.rows.length > 0 && studentRole.rows[0].selected_role_id) {
-        roleId = studentRole.rows[0].selected_role_id;
-      }
+    const slug = (roleId || '').toLowerCase();
+    let roleSearch = '%backend%';
+    let defaultFallbackId = 'role-backend';
+
+    if (slug.includes('ml') || slug.includes('machine') || slug.includes('ai')) {
+      roleSearch = '%machine%';
+      defaultFallbackId = 'role-ml';
+    } else if (slug.includes('cloud') || slug.includes('devops')) {
+      roleSearch = '%cloud%';
+      defaultFallbackId = 'role-cloud';
+    } else if (slug.includes('data')) {
+      roleSearch = '%data%';
+      defaultFallbackId = 'role-data';
+    } else if (slug.includes('fullstack') || slug.includes('full-stack')) {
+      roleSearch = '%full-stack%';
+      defaultFallbackId = 'role-fullstack';
+    } else if (slug.includes('security') || slug.includes('cyber')) {
+      roleSearch = '%cybersecurity%';
+      defaultFallbackId = 'role-security';
+    } else if (slug.startsWith('role-')) {
+      defaultFallbackId = slug;
     }
 
-    if (!roleId || !isUUID(roleId)) {
-      const slug = (roleId || '').toLowerCase();
-      let roleSearch = '%backend%';
-      let defaultFallbackId = 'role-backend';
+    const foundRole = await query<{ id: string }>(
+      `SELECT id FROM roles WHERE LOWER(name) LIKE $1 ORDER BY created_at ASC LIMIT 1`,
+      [roleSearch]
+    ).catch(() => ({ rows: [] as any[] }));
 
-      if (slug.includes('ml') || slug.includes('machine') || slug.includes('ai')) {
-        roleSearch = '%machine%';
-        defaultFallbackId = 'role-ml';
-      } else if (slug.includes('cloud') || slug.includes('devops')) {
-        roleSearch = '%cloud%';
-        defaultFallbackId = 'role-cloud';
-      } else if (slug.includes('data')) {
-        roleSearch = '%data%';
-        defaultFallbackId = 'role-data';
-      } else if (slug.includes('fullstack') || slug.includes('full-stack')) {
-        roleSearch = '%full-stack%';
-        defaultFallbackId = 'role-fullstack';
-      } else if (slug.includes('security') || slug.includes('cyber')) {
-        roleSearch = '%cybersecurity%';
-        defaultFallbackId = 'role-security';
-      } else if (slug.startsWith('role-')) {
-        defaultFallbackId = slug;
-      }
-
-      const foundRole = await query<{ id: string }>(
-        `SELECT id FROM roles WHERE LOWER(name) LIKE $1 ORDER BY created_at ASC LIMIT 1`,
-        [roleSearch]
-      ).catch(() => ({ rows: [] as any[] }));
-
-      if (foundRole.rows.length > 0) {
-        roleId = foundRole.rows[0].id;
-      } else {
-        roleId = defaultFallbackId;
-      }
+    if (foundRole.rows.length > 0) {
+      roleId = foundRole.rows[0].id;
+    } else {
+      roleId = defaultFallbackId;
     }
   }
 

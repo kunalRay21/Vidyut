@@ -20,6 +20,7 @@ export interface PhaseMilestone {
   target_level?: string;
   accuracy?: number;
   milestone_order?: number;
+  verified_by_resume?: boolean;
 }
 
 export interface Phase {
@@ -187,16 +188,25 @@ const PhaseCard: React.FC<{
                             {m.title}
                           </span>
                         </div>
-                        {m.category && (
-                          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/5 text-gray-600 shrink-0">
-                            {m.category}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {m.verified_by_resume && (
+                            <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              Resume Verified
+                            </span>
+                          )}
+                          {m.category && (
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/5 text-gray-600">
+                              {m.category}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-2.5 border-t border-black/5">
                         <span className="text-[11px] font-medium opacity-80">
-                          {m.status === 'FAST_TRACKED'
+                          {m.verified_by_resume
+                            ? '📄 Verified from Resume'
+                            : m.status === 'FAST_TRACKED'
                             ? '⭐ Mastered (Fast-Tracked)'
                             : isDone
                             ? '✓ Mastered'
