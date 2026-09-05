@@ -302,10 +302,14 @@ router.post('/direct', async (req: Request, res: Response) => {
 });
 
 function checkAdminPermission(req: Request): boolean {
-  const authHeader = req.headers.authorization;
   const adminKey = req.headers['x-admin-key'];
-  if (adminKey === 'vidyut_admin_secret_key' || adminKey === process.env.ADMIN_KEY) return true;
-  if (!authHeader) return true; // Offline dev/test mode compatibility
+  if (adminKey === 'vidyut_admin_secret_key' || (process.env.ADMIN_KEY && adminKey === process.env.ADMIN_KEY)) {
+    return true;
+  }
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
   try {
     const { verifyToken } = require('../../auth/jwt');
     const token = authHeader.split(' ')[1];

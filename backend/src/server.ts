@@ -22,6 +22,12 @@ import portfolioRouter from './modules/portfolio/router';
 // Help & Guided Assistant Router
 import helpRouter from './modules/help/router';
 
+// Phase 6 Demo Router
+import demoRouter from './modules/demo/router';
+import { checkDatabaseConnection } from './database/db';
+import { apiSuccess, apiError } from './core/responses';
+import { logger } from './core/logger';
+
 dotenv.config();
 
 const app = express();
@@ -82,9 +88,26 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'healthy' });
+app.get(['/health', '/api/v1/health'], async (_req: Request, res: Response) => {
+  const dbConnected = await checkDatabaseConnection();
+  const uptimeSeconds = Math.floor(process.uptime());
+
+  const healthData = {
+    status: dbConnected ? 'healthy' : 'degraded',
+    mode: dbConnected ? 'postgresql' : 'in-memory-fallback',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    uptime: `${uptimeSeconds}s`,
+    services: {
+      api: 'operational',
+      database: dbConnected ? 'connected' : 'disconnected (using in-memory fallback)',
+      redis: 'optional (in-memory caching active)'
+    }
+  };
+
+  return apiSuccess(res, healthData, 200);
 });
+
 // Core Routes (Owned by Team Leader)
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/profile', profileRouter);
@@ -100,16 +123,17 @@ app.use('/api/v1/assessments', assessmentRouter);       // Member 4 (Assessment 
 app.use('/api/v1/roadmap', roadmapRouter);              // Member 4 (Adaptive Roadmap)
 app.use('/api/v1/portfolio', portfolioRouter);          // Member 4 (Portfolio & Evidence)
 app.use('/api/v1/help', helpRouter);                    // Vidyut Help Assistant
+app.use('/api/v1/demo', demoRouter);                    // Phase 6 Demo & Simulation Router
 
 // ---------------------------------------------------------------------------
 // Generic error handler (must be last middleware)
 // ---------------------------------------------------------------------------
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('[Error]', err);
+  logger.error('Server', 'Unhandled server error', { error: err instanceof Error ? err.message : String(err) });
   const message =
     err instanceof Error ? err.message : 'An unexpected error occurred.';
-  res.status(500).json({ success: false, error: message });
+  return apiError(res, message, 500, 'INTERNAL_SERVER_ERROR');
 });
 
 // ---------------------------------------------------------------------------

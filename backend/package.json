@@ -12,6 +12,7 @@
     "prisma:push": "prisma db push",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "demo:reset": "ts-node-dev --transpile-only src/scripts/demoReset.ts",
     "test": "jest"
   },
   "dependencies": {
