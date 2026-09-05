@@ -340,9 +340,12 @@ export const profileApi = {
   },
 
   getSkills: async (studentId?: string, roleId?: string) => {
+    const user = getStoredUser();
+    const sid = studentId || user?.student_profile_id || user?.id || user?.student_id;
+    const rid = roleId || user?.selected_role_id || user?.role_id;
     const params = new URLSearchParams();
-    if (studentId) params.append('student_id', studentId);
-    if (roleId) params.append('role_id', roleId);
+    if (sid) params.append('student_id', sid);
+    if (rid) params.append('role_id', rid);
     const qs = params.toString() ? `?${params.toString()}` : '';
     return await request(`/api/v1/profile/me/skills${qs}`);
   },

@@ -1,5 +1,23 @@
 import { query } from '../../database/db';
-import { inMemorySkillStates } from '../../database/store';
+import { inMemorySkillStates, memoryStore } from '../../database/store';
+
+const categoryWeight: Record<string, number> = {
+  FOUNDATION: 10,
+  MATHEMATICS: 10,
+  TOOLS: 15,
+  PROGRAMMING: 20,
+  DATA: 25,
+  WEB: 30,
+  DATABASE: 35,
+  FRAMEWORK: 40,
+  MACHINE_LEARNING: 45,
+  QUALITY: 50,
+  SECURITY: 60,
+  DEVOPS: 70,
+  DEPLOYMENT: 80,
+  ARCHITECTURE: 90,
+  MLOPS: 90,
+};
 
 const levelValue: Record<string, number> = {
   AWARENESS: 1,
@@ -83,7 +101,7 @@ function getRolePhaseMeta(roleName: string, phaseNum: number) {
   }
 }
 
-const FALLBACK_ROADMAPS: Record<string, any> = {
+export const FALLBACK_ROADMAPS: Record<string, any> = {
   'role-backend': {
     role_name: 'Backend Developer',
     skills: [
@@ -151,8 +169,147 @@ const FALLBACK_ROADMAPS: Record<string, any> = {
         ]
       }
     ]
+  },
+  'role-cloud': {
+    role_name: 'Cloud Native & DevOps Engineer',
+    skills: [
+      { id: 'skill-linux', name: 'Linux Administration & Shell Scripting', category: 'SYSADMIN', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
+      { id: 'skill-networking', name: 'Computer Networking & DNS Basics', category: 'NETWORKING', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-docker', name: 'Container Orchestration with Docker', category: 'CONTAINERS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-cicd', name: 'Automated CI/CD Pipelines', category: 'CI_CD', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-k8s', name: 'Kubernetes Cluster Management', category: 'ORCHESTRATION', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-terraform', name: 'Infrastructure as Code (Terraform)', category: 'IAC', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-networking', prerequisite_skill_id: 'skill-linux' },
+      { skill_id: 'skill-docker', prerequisite_skill_id: 'skill-linux' },
+      { skill_id: 'skill-cicd', prerequisite_skill_id: 'skill-docker' },
+      { skill_id: 'skill-k8s', prerequisite_skill_id: 'skill-docker' },
+      { skill_id: 'skill-terraform', prerequisite_skill_id: 'skill-k8s' }
+    ],
+    branches: [
+      {
+        id: 'branch-cloud-provider',
+        name: 'Cloud Infrastructure Provider',
+        description: 'Choose between AWS and Azure architectures',
+        options: [
+          { branch_id: 'branch-cloud-provider', option_id: 'opt-aws', name: 'AWS Cloud Services', skill_id: 'skill-aws' },
+          { branch_id: 'branch-cloud-provider', option_id: 'opt-azure', name: 'Microsoft Azure', skill_id: 'skill-azure' }
+        ]
+      }
+    ]
+  },
+  'role-data': {
+    role_name: 'Data Science & Big Data Engineer',
+    skills: [
+      { id: 'skill-prob-stats', name: 'Probability & Descriptive Statistics', category: 'STATISTICS', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
+      { id: 'skill-adv-sql', name: 'Advanced SQL & Window Functions', category: 'DATABASE', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-etl', name: 'Automated ETL Pipeline Engineering', category: 'DATA_PIPELINES', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-data-viz', name: 'Data Visualization & Storytelling', category: 'ANALYTICS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-spark', name: 'Distributed Processing with PySpark', category: 'BIG_DATA', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-kafka-stream', name: 'Real-Time Event Streaming (Kafka)', category: 'STREAMING', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-adv-sql', prerequisite_skill_id: 'skill-prob-stats' },
+      { skill_id: 'skill-etl', prerequisite_skill_id: 'skill-adv-sql' },
+      { skill_id: 'skill-data-viz', prerequisite_skill_id: 'skill-adv-sql' },
+      { skill_id: 'skill-spark', prerequisite_skill_id: 'skill-etl' },
+      { skill_id: 'skill-kafka-stream', prerequisite_skill_id: 'skill-spark' }
+    ],
+    branches: [
+      {
+        id: 'branch-data-warehouse',
+        name: 'Modern Data Warehouse Platform',
+        description: 'Choose between Snowflake and Databricks',
+        options: [
+          { branch_id: 'branch-data-warehouse', option_id: 'opt-snowflake', name: 'Snowflake Analytics', skill_id: 'skill-snowflake' },
+          { branch_id: 'branch-data-warehouse', option_id: 'opt-databricks', name: 'Databricks Lakehouse', skill_id: 'skill-databricks' }
+        ]
+      }
+    ]
+  },
+  'role-fullstack': {
+    role_name: 'Full-Stack Web Architect',
+    skills: [
+      { id: 'skill-html-css', name: 'Semantic HTML5 & Modern CSS3', category: 'WEB', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
+      { id: 'skill-ts', name: 'TypeScript & Type Safety', category: 'PROGRAMMING', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-react', name: 'React Component Architecture & Hooks', category: 'FRONTEND', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-node-api', name: 'Backend API Integration (Node/Express)', category: 'BACKEND', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-nextjs', name: 'Server-Side Rendering (Next.js)', category: 'FULLSTACK', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-testing', name: 'Automated Testing & End-to-End', category: 'TESTING', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-ts', prerequisite_skill_id: 'skill-html-css' },
+      { skill_id: 'skill-react', prerequisite_skill_id: 'skill-ts' },
+      { skill_id: 'skill-node-api', prerequisite_skill_id: 'skill-ts' },
+      { skill_id: 'skill-nextjs', prerequisite_skill_id: 'skill-react' },
+      { skill_id: 'skill-testing', prerequisite_skill_id: 'skill-nextjs' }
+    ],
+    branches: [
+      {
+        id: 'branch-state-management',
+        name: 'Client State Architecture',
+        description: 'Choose between Zustand and Redux Toolkit',
+        options: [
+          { branch_id: 'branch-state-management', option_id: 'opt-zustand', name: 'Zustand Minimal State', skill_id: 'skill-zustand' },
+          { branch_id: 'branch-state-management', option_id: 'opt-redux', name: 'Redux Toolkit Enterprise', skill_id: 'skill-redux' }
+        ]
+      }
+    ]
+  },
+  'role-security': {
+    role_name: 'Cybersecurity & Defensive Specialist',
+    skills: [
+      { id: 'skill-sec-net', name: 'Network Protocol & Packet Analysis', category: 'NETWORKING', assessed_level: 'BEGINNER', target_level: 'PROFICIENT' },
+      { id: 'skill-crypto', name: 'Applied Cryptography Fundamentals', category: 'CRYPTOGRAPHY', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-owasp', name: 'Web Application Security (OWASP Top 10)', category: 'APPSEC', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-iam', name: 'Identity & Access Management (OAuth/JWT)', category: 'AUTH', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-siem', name: 'Defensive SIEM & Threat Monitoring', category: 'OPERATIONS', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' },
+      { id: 'skill-zero-trust', name: 'Zero-Trust Architecture & Hardening', category: 'ENTERPRISE', assessed_level: 'AWARENESS', target_level: 'PROFICIENT' }
+    ],
+    prerequisites: [
+      { skill_id: 'skill-crypto', prerequisite_skill_id: 'skill-sec-net' },
+      { skill_id: 'skill-owasp', prerequisite_skill_id: 'skill-sec-net' },
+      { skill_id: 'skill-iam', prerequisite_skill_id: 'skill-crypto' },
+      { skill_id: 'skill-siem', prerequisite_skill_id: 'skill-owasp' },
+      { skill_id: 'skill-zero-trust', prerequisite_skill_id: 'skill-iam' }
+    ],
+    branches: [
+      {
+        id: 'branch-security-ops',
+        name: 'Defensive Security Specialization',
+        description: 'Choose between Cloud Security Posture and Incident Response',
+        options: [
+          { branch_id: 'branch-security-ops', option_id: 'opt-cloudsec', name: 'Cloud Security Posture (CSPM)', skill_id: 'skill-cloudsec' },
+          { branch_id: 'branch-security-ops', option_id: 'opt-forensics', name: 'Digital Forensics & Incident Response', skill_id: 'skill-forensics' }
+        ]
+      }
+    ]
   }
 };
+
+export const inMemoryRoadmapBranches = new Map<string, { branchId: string; optionId?: string; roleId?: string }>();
+
+function resolveRoleSearchPattern(roleSlug: string): string {
+  const s = (roleSlug || '').toLowerCase();
+  if (s.includes('cloud') || s.includes('devops')) return '%cloud%';
+  if (s.includes('data') || s.includes('analytics') || s.includes('big')) return '%data%';
+  if (s.includes('fullstack') || s.includes('full-stack') || s.includes('frontend') || s.includes('web')) return '%full%';
+  if (s.includes('security') || s.includes('cyber') || s.includes('defensive')) return '%security%';
+  if (s.includes('ml') || s.includes('machine') || s.includes('ai')) return '%machine%';
+  return '%backend%';
+}
+
+export function resolveFallbackRoleKey(roleSlug: string): string {
+  if (FALLBACK_ROADMAPS[roleSlug]) return roleSlug;
+  const s = (roleSlug || '').toLowerCase();
+  if (s.includes('cloud') || s.includes('devops')) return 'role-cloud';
+  if (s.includes('data') || s.includes('analytics') || s.includes('big')) return 'role-data';
+  if (s.includes('fullstack') || s.includes('full-stack') || s.includes('web')) return 'role-fullstack';
+  if (s.includes('security') || s.includes('cyber')) return 'role-security';
+  if (s.includes('ml') || s.includes('machine') || s.includes('ai')) return 'role-ml';
+  return 'role-backend';
+}
 
 export async function generatePersonalizedRoadmap(
   studentId: string,
@@ -173,10 +330,10 @@ export async function generatePersonalizedRoadmap(
   try {
     // 1. Resolve role ID to database UUID if necessary
     if (!isUUID(validRoleId)) {
-      const isML = validRoleId.toLowerCase().includes('ml') || validRoleId.toLowerCase().includes('machine');
+      const searchPattern = resolveRoleSearchPattern(validRoleId);
       const found = await query<{ id: string }>(
         `SELECT id FROM roles WHERE LOWER(name) LIKE $1 LIMIT 1`,
-        [isML ? '%machine%' : '%backend%']
+        [searchPattern]
       );
       if (found.rows.length > 0) validRoleId = found.rows[0].id;
     }
@@ -219,19 +376,6 @@ export async function generatePersonalizedRoadmap(
 
       skills = skillsResult.rows;
 
-      // Merge in-memory test states if student recently completed diagnostic
-      for (const skill of skills) {
-        const memKey = `${studentId}:${skill.id}`;
-        const mem = inMemorySkillStates.get(memKey);
-        if (mem && mem.assessed_level) {
-          const memVal = levelValue[mem.assessed_level] || 1;
-          const curVal = levelValue[skill.assessed_level || 'AWARENESS'] || 1;
-          if (memVal > curVal) {
-            skill.assessed_level = mem.assessed_level;
-            if (mem.accuracy !== undefined) skill.accuracy = mem.accuracy;
-          }
-        }
-      }
 
       // 4. Fetch prerequisite edges
       const edgesResult = await query<{
@@ -295,15 +439,35 @@ export async function generatePersonalizedRoadmap(
     console.warn('[Roadmap Service] Database query fallback:', err);
   }
 
+  // Check in-memory branch state for offline resilience
+  const memBranch = inMemoryRoadmapBranches.get(studentId) || inMemoryRoadmapBranches.get(`${studentId}:${validRoleId}`);
+  if (memBranch) {
+    selectedBranchId = selectedBranchId || memBranch.branchId;
+  }
+
   // Fallback data if skills empty
   if (skills.length === 0) {
-    const fallbackKey = validRoleId.includes('ml') ? 'role-ml' : 'role-backend';
+    const fallbackKey = resolveFallbackRoleKey(validRoleId || roleId);
     const fallback = FALLBACK_ROADMAPS[fallbackKey];
     roleName = fallback.role_name;
-    skills = fallback.skills;
+    skills = fallback.skills.map((s: any) => ({ ...s }));
     prerequisiteRows = fallback.prerequisites;
     branchesCount = fallback.branches.length;
     branchOptions = fallback.branches[0].options;
+  }
+
+  // Merge in-memory test states and evidence for student (works for both DB and fallback paths)
+  for (const skill of skills) {
+    const memKey = `${studentId}:${skill.id}`;
+    const mem = memoryStore.skill_states.get(memKey) || inMemorySkillStates.get(memKey);
+    if (mem && mem.assessed_level) {
+      const memVal = levelValue[mem.assessed_level] || 1;
+      const curVal = levelValue[skill.assessed_level || 'AWARENESS'] || 1;
+      if (memVal >= curVal) {
+        skill.assessed_level = mem.assessed_level;
+        if (mem.accuracy !== undefined) skill.accuracy = mem.accuracy;
+      }
+    }
   }
 
   // Build DAG for full topological ordering across all skills
@@ -326,24 +490,6 @@ export async function generatePersonalizedRoadmap(
       inDegree.set(edge.skill_id, (inDegree.get(edge.skill_id) || 0) + 1);
     }
   }
-
-const categoryWeight: Record<string, number> = {
-  FOUNDATION: 10,
-  MATHEMATICS: 10,
-  TOOLS: 15,
-  PROGRAMMING: 20,
-  DATA: 25,
-  WEB: 30,
-  DATABASE: 35,
-  FRAMEWORK: 40,
-  MACHINE_LEARNING: 45,
-  QUALITY: 50,
-  SECURITY: 60,
-  DEVOPS: 70,
-  DEPLOYMENT: 80,
-  ARCHITECTURE: 90,
-  MLOPS: 90
-};
 
   // Kahn's algorithm: topological sort prioritized by category progression
   const skillMap = new Map(skills.map(s => [s.id, s]));
@@ -613,6 +759,34 @@ export async function recordBranchChoice(
     }
   } catch (err) {
     console.error('[recordBranchChoice Error]', err);
+  }
+
+  // Persist into in-memory branch state for offline resilience
+  inMemoryRoadmapBranches.set(studentId, { branchId, optionId, roleId });
+  inMemoryRoadmapBranches.set(`${studentId}:${roleId}`, { branchId, optionId, roleId });
+
+  if (branchName === 'Technology Framework') {
+    for (const fb of Object.values(FALLBACK_ROADMAPS)) {
+      const b = fb.branches?.find((br: any) => br.id === branchId);
+      if (b) {
+        branchName = b.name;
+        if (optionId) {
+          const opt = b.options?.find((o: any) => o.option_id === optionId || o.skill_id === optionId);
+          if (opt && opt.skill_id) {
+            skillId = opt.skill_id;
+            memoryStore.skill_states.set(`${studentId}:${opt.skill_id}`, {
+              student_id: studentId,
+              skill_id: opt.skill_id,
+              assessed_level: 'BEGINNER',
+              accuracy: 40,
+              target_level: 'PROFICIENT',
+              updated_at: new Date().toISOString()
+            });
+          }
+        }
+        break;
+      }
+    }
   }
 
   const updatedRoadmap = await generatePersonalizedRoadmap(studentId, roleId);

@@ -29,4 +29,5 @@ export interface Opportunity {
   stipend?: string | null;
   scores?: CompatibilityScores;
   explanation: Explanation;
+  is_active?: boolean;
 }

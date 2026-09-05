@@ -13,6 +13,14 @@
 import express from 'express';
 import request from 'supertest';
 
+jest.mock('../../src/database/prisma', () => ({
+  prisma: {
+    studentProfile: {
+      findFirst: jest.fn().mockResolvedValue(null),
+    },
+  },
+}));
+
 import { GetRecommendationsQuerySchema } from '../../src/modules/recommendation/recommendation.schema';
 import {
   generateRecommendations,

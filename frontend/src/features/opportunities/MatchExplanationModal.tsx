@@ -30,7 +30,7 @@ export const MatchExplanationModal: React.FC<MatchExplanationModalProps> = ({ op
           <p className="text-gray-500 text-sm mb-4">{opportunity.organization}</p>
           
           <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg text-sm text-blue-900 mb-6 leading-relaxed">
-            {opportunity.explanation.summary}
+            {opportunity.explanation?.summary || 'Calculated match based on verified skill proficiencies and career alignment.'}
           </div>
 
           {opportunity.scores && (
@@ -61,12 +61,12 @@ export const MatchExplanationModal: React.FC<MatchExplanationModalProps> = ({ op
                 Matching Skills (Verified)
               </h5>
               <div className="flex flex-wrap gap-2">
-                {opportunity.explanation.matching_skills.map(skill => (
+                {(opportunity.explanation?.matching_skills || []).map(skill => (
                   <span key={skill} className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded-md border border-green-200">
                     {skill}
                   </span>
                 ))}
-                {opportunity.explanation.matching_skills.length === 0 && (
+                {(!opportunity.explanation?.matching_skills || opportunity.explanation.matching_skills.length === 0) && (
                   <span className="text-xs text-gray-400 italic">None verified yet.</span>
                 )}
               </div>
@@ -78,12 +78,12 @@ export const MatchExplanationModal: React.FC<MatchExplanationModalProps> = ({ op
                 Gap Skills (Missing or In-Progress)
               </h5>
               <div className="flex flex-wrap gap-2">
-                {opportunity.explanation.gap_skills.map(skill => (
+                {(opportunity.explanation?.gap_skills || []).map(skill => (
                   <span key={skill} className="bg-orange-50 text-orange-800 text-xs font-semibold px-2.5 py-1 rounded-md border border-orange-200">
                     {skill}
                   </span>
                 ))}
-                {opportunity.explanation.gap_skills.length === 0 && (
+                {(!opportunity.explanation?.gap_skills || opportunity.explanation.gap_skills.length === 0) && (
                   <span className="text-xs text-gray-400 italic">No gaps identified!</span>
                 )}
               </div>

@@ -369,6 +369,18 @@ export async function submitAssessment(
   const total = answers.length;
   const correct = answers.filter(a => a.selected_option.trim().toUpperCase() === 'B' || a.selected_option.trim().toUpperCase() === 'C').length;
   const accuracy = total === 0 ? 0 : Math.round((correct / total) * 100);
+  const fallbackProficiency = getProficiencyLevel(accuracy);
+
+  const fallbackStudentId = inMemorySessions.get(sessionId)?.student_id || '3f89fe2a-829a-435d-ad79-d7205f4aa5fa';
+  memoryStore.skill_states.set(`${fallbackStudentId}:skill-python`, {
+    student_id: fallbackStudentId,
+    skill_id: 'skill-python',
+    skill_name: 'Python',
+    self_rating: 'INTERMEDIATE',
+    assessed_level: fallbackProficiency,
+    accuracy,
+    updated_at: new Date().toISOString()
+  });
 
   return {
     session_id: sessionId,
@@ -381,14 +393,14 @@ export async function submitAssessment(
         correct: Math.min(correct, 2),
         total: 2,
         accuracy_pct: accuracy,
-        proficiency: getProficiencyLevel(accuracy)
+        proficiency: fallbackProficiency
       }
     ],
     discrepancies: [
       {
         skill_id: 'skill-python',
         self_rating: 'INTERMEDIATE',
-        assessed_level: getProficiencyLevel(accuracy),
+        assessed_level: fallbackProficiency,
         message: 'Assessment verified your current proficiency in Python fundamentals.'
       }
     ]
@@ -811,6 +823,19 @@ export class AssessmentService {
       });
 
       const selfRating = (studentRatings[skillId] as SelfRatingLevel) || 'AVERAGE';
+
+      // Persist to unified memoryStore so downstream modules (roadmap, dashboard, portfolio)
+      // immediately reflect the verified skill assessment in memory
+      memoryStore.skill_states.set(`${session.student_id}:${skillId}`, {
+        student_id: session.student_id,
+        skill_id: skillId,
+        skill_name: stats.name,
+        self_rating: selfRating,
+        assessed_level: assessedLevel,
+        accuracy: accuracyPct,
+        updated_at: new Date().toISOString(),
+      });
+
       const selfWeight = RATING_WEIGHTS[selfRating] || 3;
       const assessedWeight = RATING_WEIGHTS[assessedLevel] || 3;
       const delta = assessedWeight - selfWeight;

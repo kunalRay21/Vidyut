@@ -44,15 +44,24 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity, o
           <Sparkles className="w-4 h-4" />
           {t('opportunities.viewMatchReasoning', 'AI Explanation')}
         </button>
-        <a 
-          href={opportunity.original_url || '#'} 
-          target="_blank" 
-          rel="noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer"
-        >
-          {t('opportunities.applyNow', 'Apply Now')}
-          <ExternalLink className="w-4 h-4" />
-        </a>
+        {opportunity.original_url && opportunity.original_url !== '#' && opportunity.is_active !== false ? (
+          <a 
+            href={opportunity.original_url} 
+            target="_blank" 
+            rel="noreferrer"
+            className="flex-1 flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer"
+          >
+            {t('opportunities.applyNow', 'Apply Now')}
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        ) : (
+          <button
+            disabled
+            className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-400 border border-gray-200 py-2 rounded-lg font-medium text-sm cursor-not-allowed"
+          >
+            {t('opportunities.applicationsClosed', 'Closed')}
+          </button>
+        )}
       </div>
     </div>
   );

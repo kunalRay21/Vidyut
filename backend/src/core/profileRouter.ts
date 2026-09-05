@@ -4,6 +4,7 @@ import { verifyToken } from '../auth/jwt';
 import { apiResponse, apiSuccess, apiError } from './responses';
 import { pool, query } from '../database/db';
 import { memoryStore } from '../database/store';
+import { FALLBACK_ROADMAPS, resolveFallbackRoleKey } from '../modules/roadmap/service';
 
 const router = Router();
 
@@ -47,8 +48,8 @@ router.get('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
 // GET /api/v1/profile/me/skills (Member 4 - Student Evaluated Skills & Readiness)
 router.get('/me/skills', async (req: Request, res: Response) => {
   try {
-    let studentId = req.query.student_id as string | undefined;
-    let roleId = req.query.role_id as string | undefined;
+    let studentId = (req.query.student_id || req.headers['x-student-id']) as string | undefined;
+    let roleId = (req.query.role_id || req.headers['x-role-id']) as string | undefined;
 
     // Check if optional Authorization header is present
     const authHeader = req.headers.authorization;
@@ -60,10 +61,16 @@ router.get('/me/skills', async (req: Request, res: Response) => {
           const profileRes = await query(
             `SELECT id, selected_role_id FROM student_profiles WHERE user_id = $1`,
             [decoded.id]
-          );
+          ).catch(() => ({ rows: [] as any[] }));
           if (profileRes.rows.length > 0) {
             studentId = studentId || profileRes.rows[0].id;
             roleId = roleId || profileRes.rows[0].selected_role_id;
+          } else {
+            const memProf = memoryStore.profiles.get(decoded.id);
+            if (memProf) {
+              studentId = studentId || memProf.id;
+              roleId = roleId || memProf.selected_role_id;
+            }
           }
         }
       } catch {
@@ -71,9 +78,9 @@ router.get('/me/skills', async (req: Request, res: Response) => {
       }
     }
 
-    if (!studentId || !roleId) {
-      return apiError(res, 'student_id and role_id are required (either query parameters or via authenticated profile)', 400, 'BAD_REQUEST');
-    }
+    // Default fallbacks for unauthenticated or demo dev mode
+    studentId = studentId || '3f89fe2a-829a-435d-ad79-d7205f4aa5fa';
+    roleId = roleId || 'role-backend';
 
     let rows: any[] = [];
     try {
@@ -99,6 +106,27 @@ router.get('/me/skills', async (req: Request, res: Response) => {
       rows = result.rows;
     } catch {
       rows = [];
+    }
+
+    // Offline / fallback resolution if DB returned 0 rows
+    if (rows.length === 0) {
+      const fallbackKey = resolveFallbackRoleKey(roleId);
+      const fallback = FALLBACK_ROADMAPS[fallbackKey] || FALLBACK_ROADMAPS['role-backend'];
+      if (fallback && Array.isArray(fallback.skills)) {
+        rows = fallback.skills.map((s: any) => {
+          const memKey = `${studentId}:${s.id}`;
+          const mem = memoryStore.skill_states.get(memKey);
+          return {
+            skill_id: s.id,
+            name: s.name,
+            skill_name: s.name,
+            category: s.category || 'GENERAL',
+            assessed_level: mem?.assessed_level || s.assessed_level || 'AWARENESS',
+            accuracy: mem?.accuracy ?? (s.assessed_level === 'PROFICIENT' ? 85 : 0),
+            target_level: s.target_level || 'PROFICIENT'
+          };
+        });
+      }
     }
 
     const skills = rows.map((s) => {

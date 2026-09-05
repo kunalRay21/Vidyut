@@ -33,8 +33,8 @@ export interface OpportunityItem {
 // In-memory cache loaded from data/seed_opportunities.json for instantaneous offline resilience
 let seedCache: OpportunityItem[] = [];
 
-function loadSeedData(): OpportunityItem[] {
-  if (seedCache.length > 0) return seedCache;
+function loadSeedData(forceRefresh = false): OpportunityItem[] {
+  if (!forceRefresh && seedCache.length > 0) return seedCache;
   try {
     const seedPath = path.resolve(__dirname, '../../../data/seed_opportunities.json');
     if (fs.existsSync(seedPath)) {
@@ -306,6 +306,7 @@ router.post('/direct', async (req: Request, res: Response) => {
  * Sync / Trigger scraper pipeline endpoint
  */
 router.post('/sync', async (_req: Request, res: Response) => {
+  loadSeedData(true);
   return apiSuccess(res, {
     success: true,
     message: 'Opportunity index synchronization triggered successfully',

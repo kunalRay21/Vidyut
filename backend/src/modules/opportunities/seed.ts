@@ -109,6 +109,8 @@ export async function seedOpportunities() {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       ON CONFLICT (fingerprint) DO UPDATE SET
         title = EXCLUDED.title,
+        original_url = EXCLUDED.original_url,
+        is_active = EXCLUDED.is_active,
         domain_id = EXCLUDED.domain_id,
         last_seen_at = NOW()
       RETURNING id
