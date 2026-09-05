@@ -8,6 +8,7 @@ import { PublicPassportVerifyPage } from './pages/PublicPassportVerifyPage';
 import { CareerSimulatorPage } from './pages/CareerSimulatorPage';
 import { DiagnosticLoopPage } from './pages/DiagnosticLoopPage';
 import { JobSimulationPage } from './pages/JobSimulationPage';
+import { AIFluencyPage } from './pages/AIFluencyPage';
 import { IndustryOnboardPage } from './pages/IndustryOnboardPage';
 import { IndustryPostJobPage } from './pages/IndustryPostJobPage';
 import { IndustryTalentPage } from './pages/IndustryTalentPage';
@@ -142,6 +143,11 @@ function AppContent() {
         <Route path="/job-simulations" element={
           <div className="flex-1 bg-transparent text-gray-900 w-full">
             <JobSimulationPage />
+          </div>
+        } />
+        <Route path="/ai-fluency" element={
+          <div className="flex-1 bg-transparent text-gray-900 w-full">
+            <AIFluencyPage />
           </div>
         } />
 

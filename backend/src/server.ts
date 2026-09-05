@@ -34,6 +34,9 @@ import { learningLoopRouter } from './modules/learning_loop/learning_loop.router
 // Real-World Job Readiness Simulations Router
 import { simulationRouter } from './modules/simulations/simulation.router';
 
+// AI Usage & AI Fluency Engine Router
+import { aiFluencyRouter } from './modules/ai_fluency/ai_fluency.router';
+
 dotenv.config();
 
 const app = express();
@@ -117,6 +120,7 @@ app.use('/api/v1/passport', passportRouter);            // Skill Passport & Evid
 app.use('/api/v1/simulator', simulatorRouter);          // Career Simulator & Transferable Skill Engine
 app.use('/api/v1/learning-loop', learningLoopRouter);    // Assessment -> Learning -> Reassessment Loop
 app.use('/api/v1/job-simulations', simulationRouter);    // Real-World Job Readiness Simulations
+app.use('/api/v1/ai-fluency', aiFluencyRouter);          // AI Usage & AI Fluency Score
 
 // ---------------------------------------------------------------------------
 // Generic error handler (must be last middleware)
