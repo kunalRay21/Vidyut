@@ -10,11 +10,13 @@ import {
   Target,
   FileCode,
   Loader2,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { setStoredResume } from '../../services/api';
 import { parseResumeFile, parseResumeText, ParsedResume } from '../../utils/resumeParser';
 import { CustomDropdown } from '../../components/common/CustomDropdown';
+import { CareerQuizModal, CareerSuggestion } from './CareerQuizModal';
 
 export default function RegisterForm() {
   const { t } = useTranslation();
@@ -41,6 +43,8 @@ export default function RegisterForm() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isCareerQuizOpen, setIsCareerQuizOpen] = useState(false);
+  const [careerSuggestion, setCareerSuggestion] = useState<CareerSuggestion | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -92,6 +96,15 @@ export default function RegisterForm() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleApplyCareer = (suggestion: CareerSuggestion) => {
+    setCareerSuggestion(suggestion);
+    setForm((prev) => ({
+      ...prev,
+      interests: suggestion.interestValue,
+    }));
+    setIsCareerQuizOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -286,9 +299,19 @@ export default function RegisterForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('auth.interestsLabel', 'Interests')}
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  {t('auth.interestsLabel', 'Interests')} *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsCareerQuizOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-bold text-saffron-700 hover:text-saffron-800 bg-saffron-50 hover:bg-saffron-100/80 px-2.5 py-0.5 rounded-full border border-saffron-200/80 transition cursor-pointer"
+                >
+                  <Sparkles className="w-3 h-3 text-saffron" />
+                  <span>Unsure? 1-Min Career Quiz</span>
+                </button>
+              </div>
               <CustomDropdown
                 name="interests"
                 value={form.interests}
@@ -297,6 +320,30 @@ export default function RegisterForm() {
                 placeholder="Select Interest"
                 className="w-full px-2.5 py-1.5 text-sm"
               />
+
+              {careerSuggestion && (
+                <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-start justify-between gap-2 text-xs">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-emerald-900">{careerSuggestion.title}</span>
+                      <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-emerald-200 text-emerald-900 font-extrabold text-[10px]">
+                        {careerSuggestion.matchScore}% Match
+                      </span>
+                      <p className="text-[11px] text-emerald-700 mt-0.5 leading-snug line-clamp-2">
+                        {careerSuggestion.rationale}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsCareerQuizOpen(true)}
+                    className="text-[10px] font-bold text-emerald-700 hover:underline shrink-0 cursor-pointer pt-0.5"
+                  >
+                    Retake
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -486,6 +533,12 @@ export default function RegisterForm() {
           </Link>
         </div>
       </div>
+
+      <CareerQuizModal
+        isOpen={isCareerQuizOpen}
+        onClose={() => setIsCareerQuizOpen(false)}
+        onApplyCareer={handleApplyCareer}
+      />
     </div>
   );
 }
