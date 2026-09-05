@@ -104,27 +104,39 @@ router.get('/me', authenticateJWT, requireRole(['STUDENT']), async (req: Authent
 // GET /api/v1/profile/me/skills (Member 4 - Student Evaluated Skills & Readiness)
 router.get('/me/skills', async (req: Request, res: Response) => {
   try {
-    let studentId = req.query.student_id as string | undefined;
-    let roleId = req.query.role_id as string | undefined;
+    let studentId = (req.query.student_id || req.headers['x-student-id']) as string | undefined;
+    let roleId = (req.query.role_id || req.headers['x-role-id']) as string | undefined;
 
-    // Check if optional Authorization header is present
+    // 1. Resolve studentId & roleId via Bearer JWT token or memoryStore if not passed
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ') && (!studentId || !roleId)) {
       try {
         const token = authHeader.split(' ')[1];
         const decoded = verifyToken(token);
         if (decoded?.id) {
-          const profileRes = await query(
-            `SELECT id, selected_role_id FROM student_profiles WHERE user_id = $1`,
-            [decoded.id]
-          );
-          if (profileRes.rows.length > 0) {
-            studentId = studentId || profileRes.rows[0].id;
-            roleId = roleId || profileRes.rows[0].selected_role_id;
+          studentId = studentId || decoded.id;
+          // Try DB first
+          try {
+            const profileRes = await query(
+              `SELECT id, selected_role_id FROM student_profiles WHERE user_id = $1 OR id = $1 LIMIT 1`,
+              [decoded.id]
+            );
+            if (profileRes.rows.length > 0) {
+              studentId = profileRes.rows[0].id;
+              if (!roleId) roleId = profileRes.rows[0].selected_role_id;
+            }
+          } catch {
+            // DB offline - check memoryStore
+            const memProf = memoryStore.profiles.get(decoded.id) || 
+              Array.from(memoryStore.profiles.values()).find(p => p.user_id === decoded.id);
+            if (memProf) {
+              studentId = memProf.id;
+              if (!roleId) roleId = memProf.selected_role_id;
+            }
           }
         }
       } catch {
-        // Continue with query params if token check fails
+        // Fallback
       }
     }
 
@@ -139,6 +151,19 @@ router.get('/me/skills', async (req: Request, res: Response) => {
           roleId = roleId || defaultProfile.rows[0].selected_role_id;
         }
       } catch {}
+    }
+
+    // Fallbacks if still missing (in-memory)
+    if (!studentId) {
+      const firstProf = Array.from(memoryStore.profiles.values())[0];
+      studentId = firstProf?.id || 'student-demo';
+      if (!roleId) roleId = firstProf?.selected_role_id;
+    }
+
+    if (!roleId) {
+      const memProf = memoryStore.profiles.get(studentId) ||
+        Array.from(memoryStore.profiles.values()).find(p => p.user_id === studentId);
+      roleId = memProf?.selected_role_id || 'role-backend';
     }
 
     if (!roleId) {
@@ -181,56 +206,97 @@ router.get('/me/skills', async (req: Request, res: Response) => {
       rows = [];
     }
 
-    // Fallback if role skills were not joined
+    // Fallback if role skills were not joined in DB
     if (rows.length === 0) {
       try {
         const fallbackSkills = await query(
           `SELECT id AS skill_id, name AS skill_name, name, category FROM skills WHERE role_id = $1 ORDER BY name`,
           [roleId]
         );
-        rows = fallbackSkills.rows.map(r => ({
-          ...r,
-          assessed_level: 'AWARENESS',
-          accuracy: 0,
-          target_level: 'PROFICIENT',
-        }));
+        if (fallbackSkills.rows.length > 0) {
+          rows = fallbackSkills.rows.map(r => ({
+            ...r,
+            assessed_level: 'AWARENESS',
+            accuracy: 0,
+            target_level: 'PROFICIENT',
+          }));
+        }
       } catch {}
     }
 
-    const skills = rows.map((s) => {
-      let assessedLevel = s.assessed_level;
-      let accuracy = Number(s.accuracy);
+    let skills: any[] = [];
+    if (rows.length > 0) {
+      skills = rows.map((s) => {
+        let assessedLevel = s.assessed_level;
+        let accuracy = Number(s.accuracy);
 
-      // Check in-memory store for newly evaluated skills from diagnostic tests
-      const memKey = `${studentId}:${s.skill_id}`;
-      const inMem = inMemorySkillStates.get(memKey);
-      if (inMem && (accuracy === 0 || assessedLevel === 'AWARENESS')) {
-        assessedLevel = inMem.assessed_level;
-        accuracy = inMem.accuracy;
-      }
+        // Check in-memory store for newly evaluated skills from diagnostic tests
+        const memKey = `${studentId}:${s.skill_id}`;
+        const inMem = memoryStore.skill_states.get(memKey);
+        if (inMem && (accuracy === 0 || assessedLevel === 'AWARENESS')) {
+          assessedLevel = inMem.assessed_level;
+          accuracy = inMem.accuracy !== undefined ? Number(inMem.accuracy) : 0;
+        }
 
-      let status: 'completed' | 'in_progress' | 'not_started' = 'not_started';
-      if (['PROFICIENT', 'EXPERT'].includes(assessedLevel)) {
-        status = 'completed';
-      } else if (assessedLevel !== 'AWARENESS') {
-        status = 'in_progress';
-      }
+        let status: 'completed' | 'in_progress' | 'not_started' = 'not_started';
+        if (['PROFICIENT', 'EXPERT'].includes(assessedLevel)) {
+          status = 'completed';
+        } else if (assessedLevel !== 'AWARENESS') {
+          status = 'in_progress';
+        }
 
-      return {
-        skill_id: s.skill_id,
-        name: s.name,
-        skill_name: s.skill_name,
-        category: s.category,
-        assessed_level: assessedLevel,
-        target_level: s.target_level,
-        accuracy: accuracy,
-        status
-      };
-    });
+        return {
+          skill_id: s.skill_id,
+          name: s.name,
+          skill_name: s.skill_name,
+          category: s.category,
+          assessed_level: assessedLevel,
+          target_level: s.target_level,
+          accuracy: accuracy,
+          status
+        };
+      });
+    } else {
+      const { FALLBACK_GRAPHS } = require('../modules/skill_graph/router');
+      const roleGraph = FALLBACK_GRAPHS[roleId] || FALLBACK_GRAPHS['role-backend'];
+      const rawSkills = roleGraph?.skills || [];
+
+      skills = rawSkills.map((s: any) => {
+        const memKey = `${studentId}:${s.id}`;
+        const mem = memoryStore.skill_states.get(memKey);
+        const assessed_level = mem?.assessed_level || 'AWARENESS';
+        const accuracy = mem?.accuracy !== undefined ? Number(mem.accuracy) : 0;
+
+        let status: 'completed' | 'in_progress' | 'not_started' = 'not_started';
+        if (['PROFICIENT', 'EXPERT'].includes(assessed_level)) {
+          status = 'completed';
+        } else if (assessed_level !== 'AWARENESS') {
+          status = 'in_progress';
+        }
+
+        return {
+          skill_id: s.id,
+          name: s.name,
+          skill_name: s.name,
+          category: s.category || 'GENERAL',
+          assessed_level,
+          target_level: mem?.target_level || 'PROFICIENT',
+          accuracy,
+          status
+        };
+      });
+    }
 
     const totalSkills = skills.length;
     const completedSkills = skills.filter((s) => s.status === 'completed').length;
-    const readinessPct = totalSkills === 0 ? 0 : Math.round((completedSkills / totalSkills) * 100);
+    let readinessPct = totalSkills === 0 ? 0 : Math.round((completedSkills / totalSkills) * 100);
+
+    // If profile has an assessed readiness_pct from an assessment, reflect that
+    const memProf = memoryStore.profiles.get(studentId) ||
+      Array.from(memoryStore.profiles.values()).find(p => p.user_id === studentId);
+    if (memProf?.readiness_pct && memProf.readiness_pct > 0) {
+      readinessPct = Math.max(readinessPct, Math.round(memProf.readiness_pct));
+    }
 
     return apiSuccess(res, {
       student_id: studentId,

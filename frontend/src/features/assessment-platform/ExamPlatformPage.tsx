@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useExamSession } from './hooks/useExamSession';
 import { useExamTimer } from './hooks/useExamTimer';
@@ -6,6 +6,7 @@ import { useProctoring } from './hooks/useProctoring';
 import { useDeviceCheck } from './hooks/useDeviceCheck';
 import { useClipboardProtection } from './hooks/useClipboardProtection';
 import { useSingleTabLock } from './hooks/useSingleTabLock';
+import { useAudioVisualProctoring } from './hooks/useAudioVisualProctoring';
 import { ExamNavbar } from './components/ExamNavbar';
 import { QuestionPalette } from './components/QuestionPalette';
 import { QuestionViewer } from './components/QuestionViewer';
@@ -17,6 +18,9 @@ import { ResultAnalyticsView } from './components/ResultAnalyticsView';
 import { MobileRestrictedGate } from './components/MobileRestrictedGate';
 import { FullscreenGateModal } from './components/FullscreenGateModal';
 import { CodingWorkspace } from './components/CodingWorkspace';
+import { ProctoringConsentModal } from './components/ProctoringConsentModal';
+import { ProctoringVideoHUD } from './components/ProctoringVideoHUD';
+import { ProctoringLogModal } from './components/ProctoringLogModal';
 import { AlertCircle, RefreshCw, ShieldAlert } from 'lucide-react';
 
 export const ExamPlatformPage: React.FC = () => {
@@ -56,12 +60,30 @@ export const ExamPlatformPage: React.FC = () => {
     initSession,
   } = useExamSession({ initialSessionId: id });
 
-  // 3. Timer hook with auto-submit upon expiry
+  // 3. Audio-Visual Proctoring Module (Camera, Microphone, Gaze, Multi-Face, Noise Detection)
+  const {
+    stream: proctoringStream,
+    consentState: proctoringConsent,
+    status: proctoringStatus,
+    events: proctoringEvents,
+    requestPermissions: requestProctoringPermissions,
+    setConsentAgreed: setProctoringConsentAgreed,
+    stopMonitoring: stopProctoringMonitoring,
+    dismissActiveWarning: dismissProctoringWarning,
+  } = useAudioVisualProctoring({
+    sessionId,
+    isActive: examStatus === 'READY',
+  });
+
+  const [isProctoringLogsOpen, setIsProctoringLogsOpen] = useState(false);
+
+  // 4. Timer hook with auto-submit upon expiry
   const handleTimerExpire = useCallback(() => {
     if (examStatus === 'READY') {
+      stopProctoringMonitoring();
       submitExam();
     }
-  }, [examStatus, submitExam]);
+  }, [examStatus, submitExam, stopProctoringMonitoring]);
 
   const {
     formattedTime,
@@ -73,13 +95,14 @@ export const ExamPlatformPage: React.FC = () => {
     onExpire: handleTimerExpire,
   });
 
-  // 4. Forceful auto-submission at 4 tab-switch strikes
+  // 5. Forceful auto-submission at 4 tab-switch strikes
   const handleForcefulSubmit = useCallback(() => {
     console.warn('[Proctoring Alert] 4 tab switches exceeded. Forcefully completing test...');
+    stopProctoringMonitoring();
     submitExam();
-  }, [submitExam]);
+  }, [submitExam, stopProctoringMonitoring]);
 
-  // 5. Proctoring hook (Strict 4-strike limit + Fullscreen monitoring)
+  // 6. Proctoring hook (Strict 4-strike limit + Fullscreen monitoring)
   const {
     tabSwitchCount,
     showAlertModal,
@@ -96,13 +119,12 @@ export const ExamPlatformPage: React.FC = () => {
     isActive: examStatus === 'READY',
   });
 
-  // 6. Anti-Copy/Paste & Clipboard Protection (with DevTools / Inspect Mode Detection)
-  // 6. Anti-Copy/Paste & Clipboard Protection (with DevTools / Inspect Mode Detection)
+  // 7. Anti-Copy/Paste & Clipboard Protection (with DevTools / Inspect Mode Detection)
   const { warningMessage: clipboardWarning, isDevToolsOpen, setIsDevToolsOpen } = useClipboardProtection({
     isActive: examStatus === 'READY',
   });
 
-  // 7. Single Tab Exclusive Lock & Auto-Close Hook
+  // 8. Single Tab Exclusive Lock & Auto-Close Hook
   const {
     isLockedByAnotherTab,
     otherTabsDetected,
@@ -115,13 +137,25 @@ export const ExamPlatformPage: React.FC = () => {
   // Handle final submission confirm
   const handleConfirmSubmit = async () => {
     setIsSubmitModalOpen(false);
+    stopProctoringMonitoring();
     await submitExam();
   };
+
+  // Explicitly ensure camera and microphone streams stop when the test completes
+  useEffect(() => {
+    if (examStatus === 'COMPLETED') {
+      stopProctoringMonitoring();
+    }
+  }, [examStatus, stopProctoringMonitoring]);
 
   // Handle entering fullscreen and locking other tabs
   const handleEnterFullscreen = async () => {
     enforceSingleTab();
     await requestFullscreen();
+  };
+
+  const handleProceedFromConsent = () => {
+    handleEnterFullscreen();
   };
 
   // Navigate to roadmap
@@ -323,9 +357,38 @@ export const ExamPlatformPage: React.FC = () => {
         />
       </div>
 
+      {/* Live Audio-Visual Proctoring HUD (Floating Bottom-Right) */}
+      {proctoringConsent.isReady && examStatus === 'READY' && (
+        <ProctoringVideoHUD
+          stream={proctoringStream}
+          status={proctoringStatus}
+          events={proctoringEvents}
+          onOpenLogs={() => setIsProctoringLogsOpen(true)}
+          onDismissWarning={dismissProctoringWarning}
+        />
+      )}
+
+      {/* Proctoring Event Audit Log Modal */}
+      <ProctoringLogModal
+        isOpen={isProctoringLogsOpen}
+        onClose={() => setIsProctoringLogsOpen(false)}
+        events={proctoringEvents}
+      />
+
+      {/* Gate 1.5: Audio-Visual Proctoring Setup & Consent Check */}
+      <ProctoringConsentModal
+        isOpen={examStatus === 'READY' && !hasEnteredFullscreenOnce && !proctoringConsent.isReady}
+        stream={proctoringStream}
+        consentState={proctoringConsent}
+        status={proctoringStatus}
+        onRequestPermissions={requestProctoringPermissions}
+        onConsentChange={setProctoringConsentAgreed}
+        onProceedToExam={handleProceedFromConsent}
+      />
+
       {/* Gate 2: Fullscreen Mode Enforcement Modal (3-min countdown with forceful auto-submit & close-all-tabs requirement) */}
       <FullscreenGateModal
-        isOpen={!isFullscreen && examStatus === 'READY'}
+        isOpen={!isFullscreen && examStatus === 'READY' && (hasEnteredFullscreenOnce || proctoringConsent.isReady)}
         onEnterFullscreen={handleEnterFullscreen}
         hasStarted={hasEnteredFullscreenOnce}
         onTimeoutAutoSubmit={submitExam}

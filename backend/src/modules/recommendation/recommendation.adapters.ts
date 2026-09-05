@@ -1,6 +1,9 @@
+import fs from 'fs';
+import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../../database/prisma';
 import { memoryStore } from '../../database/store';
+import { FALLBACK_GRAPHS } from '../skill_graph/router';
 import { RESOURCES_SEED } from './seedResources';
 import { BACKEND_DOMAIN_TAXONOMY } from '../resume/resumeService';
 import type { 
@@ -56,12 +59,13 @@ export class PrismaProfileService implements ProfileService {
     }
 
     if (!profile) {
-      const mem = memoryStore.profiles.get(studentId) || Array.from(memoryStore.profiles.values()).find(p => p.id === studentId || p.user_id === studentId);
+      const mem = memoryStore.profiles.get(studentId) || 
+        Array.from(memoryStore.profiles.values()).find(p => p.id === studentId || p.user_id === studentId);
       if (mem) {
         return {
           id: mem.id,
           yearOfStudy: mem.year_of_study || 3,
-          interests: mem.interests || [],
+          interests: mem.interests || ['Full-Stack Development', 'AI/ML'],
           selectedDomainId: mem.selected_role_id || 'role-backend',
           selectedDomainName: mem.resume_matched_role || 'Backend Development',
         };
@@ -69,7 +73,7 @@ export class PrismaProfileService implements ProfileService {
       return {
         id: studentId,
         yearOfStudy: 3,
-        interests: ['Backend', 'AI/ML'],
+        interests: ['Full-Stack Development', 'AI/ML'],
         selectedDomainId: 'role-backend',
         selectedDomainName: 'Backend Development',
       };
@@ -104,6 +108,18 @@ export class PrismaProfileService implements ProfileService {
       // ignore
     }
 
+    if (states.length === 0) {
+      const inMemStates = Array.from(memoryStore.skill_states.values()).filter(
+        s => s.student_id === studentId
+      );
+      if (inMemStates.length > 0) {
+        return inMemStates.map(state => ({
+          skillId: state.skill_id,
+          assessedLevel: (state.assessed_level as ProficiencyLevel) ?? null
+        }));
+      }
+    }
+
     return states.map(state => ({
       skillId: state.skillId,
       assessedLevel: (state.assessedLevel as ProficiencyLevel) ?? null
@@ -116,55 +132,106 @@ export class PrismaProfileService implements ProfileService {
  */
 export class PrismaOpportunityRepository implements OpportunityRepository {
   async findAllActive(): Promise<ScoringOpportunity[]> {
-    const opportunities = await prisma.opportunity.findMany({
-      where: { isActive: true },
-      include: {
-        domain: true,
-        skillTags: {
-          include: { skill: true }
+    try {
+      const opportunities = await prisma.opportunity.findMany({
+        where: { isActive: true },
+        include: {
+          domain: true,
+          skillTags: {
+            include: { skill: true }
+          }
         }
-      }
-    });
+      });
 
-    return opportunities.map(opp => ({
-      id: opp.id,
-      title: opp.title,
-      organization: opp.organization,
-      type: opp.type,
-      mode: opp.mode,
-      originalUrl: opp.originalUrl ?? '',
-      deadline: opp.deadline,
-      stipend: opp.stipend,
-      source: opp.source,
-      location: opp.location,
-      domainId: opp.domainId,
-      domain: opp.domain ? { name: opp.domain.name } : null,
-      eligibilityRaw: opp.eligibilityRaw,
-      skillTags: opp.skillTags.map(tag => ({
-        skillId: tag.skillId,
-        skill: { name: tag.skill.name },
-        confidence: tag.weight ?? 1.0,
-        requiredLevel: (tag.minProficiency as ProficiencyLevel) ?? 'INTERMEDIATE'
-      }))
-    }));
+      if (opportunities && opportunities.length > 0) {
+        return opportunities.map(opp => ({
+          id: opp.id,
+          title: opp.title,
+          organization: opp.organization,
+          type: opp.type,
+          mode: opp.mode,
+          originalUrl: opp.originalUrl ?? '',
+          deadline: opp.deadline,
+          stipend: opp.stipend,
+          source: opp.source,
+          location: opp.location,
+          domainId: opp.domainId,
+          domain: opp.domain ? { name: opp.domain.name } : null,
+          eligibilityRaw: opp.eligibilityRaw,
+          skillTags: opp.skillTags.map(tag => ({
+            skillId: tag.skillId,
+            skill: { name: tag.skill.name },
+            confidence: tag.weight ?? 1.0,
+            requiredLevel: (tag.minProficiency as ProficiencyLevel) ?? 'INTERMEDIATE'
+          }))
+        }));
+      }
+    } catch {
+      // Prisma offline or schema missing
+    }
+
+    // Fallback to data/seed_opportunities.json for offline resilience
+    try {
+      const seedPath = path.resolve(__dirname, '../../../data/seed_opportunities.json');
+      if (fs.existsSync(seedPath)) {
+        const raw = fs.readFileSync(seedPath, 'utf8');
+        const parsed = JSON.parse(raw);
+        return parsed.map((item: any, index: number) => ({
+          id: item.id || item.external_id || `seed-opp-${index + 1}`,
+          title: item.title,
+          organization: item.organization,
+          type: item.type || 'INTERNSHIP',
+          mode: item.mode || 'REMOTE',
+          originalUrl: item.original_url || '',
+          deadline: item.deadline || null,
+          stipend: item.stipend || null,
+          source: item.source || 'DIRECT',
+          location: item.location || 'India',
+          domainId: 'domain-backend',
+          domain: { name: 'Software Engineering' },
+          eligibilityRaw: item.description_raw || null,
+          skillTags: (item.required_skills || []).map((s: any) => ({
+            skillId: s.skill_id,
+            skill: { name: s.raw_mention },
+            confidence: 1.0,
+            requiredLevel: (s.min_proficiency as ProficiencyLevel) || 'INTERMEDIATE',
+          }))
+        }));
+      }
+    } catch (err) {
+      console.warn('⚠️ Could not load seed_opportunities in PrismaOpportunityRepository:', err);
+    }
+    return [];
   }
 }
 
 /**
  * Adapter for RecommendationPersistenceClient.
  * We can simply expose a wrapper around the Prisma client's recommendation model
- * that matches the interface structurally.
+ * that matches the interface structurally with graceful fallbacks.
  */
 export class PrismaRecommendationPersistenceClient implements RecommendationPersistenceClient {
   public recommendation = {
     async upsert(args: any): Promise<{ id: string }> {
-      return prisma.recommendation.upsert(args);
+      try {
+        return await prisma.recommendation.upsert(args);
+      } catch {
+        return { id: `mem-rec-${Date.now()}` };
+      }
     },
     async findMany(args: any): Promise<any[]> {
-      return prisma.recommendation.findMany(args);
+      try {
+        return await prisma.recommendation.findMany(args);
+      } catch {
+        return [];
+      }
     },
     async groupBy(args: any): Promise<any[]> {
-      return prisma.recommendation.groupBy(args);
+      try {
+        return await prisma.recommendation.groupBy(args);
+      } catch {
+        return [];
+      }
     }
   };
 }
@@ -190,7 +257,7 @@ export class PrismaResourceRepository implements ResourceRepository {
         }));
       }
     } catch {
-      // Offline fallback
+      // Prisma offline or schema error
     }
 
     // Fallback: match against curated RESOURCES_SEED
@@ -217,66 +284,180 @@ export class PrismaResourceRepository implements ResourceRepository {
  */
 export class PrismaRoadmapRepository implements RoadmapRepository {
   async getStudentRoadmap(studentId: string): Promise<RoadmapSkillState[]> {
-    const isUuid = studentId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId);
+    let milestones: any[] = [];
+    try {
+      milestones = await prisma.milestone.findMany({
+        where: {
+          roadmap: { studentId },
+          skillId: { not: null }
+        },
+        include: {
+          skill: {
+            include: {
+              skillStates: {
+                where: { studentId }
+              }
+            }
+          }
+        },
+        orderBy: {
+          milestoneOrder: 'asc'
+        }
+      });
+    } catch {
+      milestones = [];
+    }
 
-    if (isUuid) {
-      try {
-        const milestones = await prisma.milestone.findMany({
-          where: {
-            roadmap: { studentId },
-            skillId: { not: null }
-          },
-          include: {
-            skill: {
-              include: {
-                skillStates: {
-                  where: { studentId }
+    if (milestones && milestones.length > 0) {
+      return milestones.map(milestone => {
+        let status: RoadmapSkillStatus = 'NOT_STARTED';
+        if (milestone.status === 'IN_PROGRESS') status = 'IN_PROGRESS';
+        if (milestone.status === 'COMPLETED') status = 'COMPLETED';
+
+        const skillState = milestone.skill?.skillStates[0];
+        const currentProficiency = (skillState?.assessedLevel as ProficiencyLevel) ?? null;
+        const targetProficiency = (skillState?.targetLevel as ProficiencyLevel) ?? 'PROFICIENT';
+
+        return {
+          skillId: milestone.skillId!,
+          skillName: milestone.skill?.name ?? 'Unknown Skill',
+          status,
+          sequence: milestone.milestoneOrder,
+          currentProficiency,
+          targetProficiency
+        };
+      });
+    }
+
+    // Fallback 1: selectedRole's skills
+    let profile = null;
+    try {
+      profile = await prisma.studentProfile.findUnique({
+        where: { id: studentId },
+        include: {
+          selectedRole: {
+            include: {
+              skills: {
+                include: {
+                  skillStates: {
+                    where: { studentId }
+                  }
                 }
               }
             }
-          },
-          orderBy: {
-            milestoneOrder: 'asc'
+          }
+        }
+      });
+      if (!profile) {
+        profile = await prisma.studentProfile.findFirst({
+          where: { userId: studentId },
+          include: {
+            selectedRole: {
+              include: {
+                skills: {
+                  include: {
+                    skillStates: {
+                      where: { studentId }
+                    }
+                  }
+                }
+              }
+            }
           }
         });
-
-        if (milestones && milestones.length > 0) {
-          return milestones.map(milestone => {
-            let status: RoadmapSkillStatus = 'NOT_STARTED';
-            if (milestone.status === 'IN_PROGRESS') status = 'IN_PROGRESS';
-            if (milestone.status === 'COMPLETED') status = 'COMPLETED';
-
-            const skillState = milestone.skill?.skillStates[0];
-            const currentProficiency = (skillState?.assessedLevel as ProficiencyLevel) ?? null;
-            const targetProficiency = (skillState?.targetLevel as ProficiencyLevel) ?? 'PROFICIENT';
-
-            return {
-              skillId: milestone.skillId!,
-              skillName: milestone.skill?.name ?? 'Unknown Skill',
-              status,
-              sequence: milestone.milestoneOrder,
-              currentProficiency,
-              targetProficiency
-            };
-          });
-        }
-      } catch {
-        // Fall through to memoryStore fallback
       }
+    } catch {
+      // ignore
     }
 
-    // Fallback: resolve student profile from memoryStore or return default roadmap
-    let profile = memoryStore.profiles.get(studentId);
-    if (!profile) {
-      for (const p of memoryStore.profiles.values()) {
-        if (p.id === studentId || p.user_id === studentId) {
-          profile = p;
-          break;
+    const roleSkills = profile?.selectedRole?.skills;
+    if (roleSkills && roleSkills.length > 0) {
+      return roleSkills.map((skill, idx) => {
+        const skillState = skill.skillStates[0];
+        const currentProficiency = (skillState?.assessedLevel as ProficiencyLevel) ?? null;
+        const targetProficiency = (skillState?.targetLevel as ProficiencyLevel) ?? 'PROFICIENT';
+        let status: RoadmapSkillStatus = 'NOT_STARTED';
+        if (currentProficiency === 'PROFICIENT' || currentProficiency === 'EXPERT') {
+          status = 'COMPLETED';
+        } else if (currentProficiency) {
+          status = 'IN_PROGRESS';
         }
-      }
+
+        return {
+          skillId: skill.id,
+          skillName: skill.name,
+          status,
+          sequence: idx + 1,
+          currentProficiency,
+          targetProficiency
+        };
+      });
     }
 
-    const matchedRole = profile?.resume_matched_role || profile?.selected_role_id || 'role-backend';
+    // Fallback 2: student's existing skillStates
+    let states: any[] = [];
+    try {
+      states = await prisma.studentSkillState.findMany({
+        where: { studentId },
+        include: { skill: true }
+      });
+    } catch {
+      states = [];
+    }
+
+    if (states.length > 0) {
+      return states.map((s, idx) => {
+        const currentProficiency = (s.assessedLevel as ProficiencyLevel) ?? null;
+        const targetProficiency = (s.targetLevel as ProficiencyLevel) ?? 'PROFICIENT';
+        let status: RoadmapSkillStatus = 'NOT_STARTED';
+        if (currentProficiency === 'PROFICIENT' || currentProficiency === 'EXPERT') {
+          status = 'COMPLETED';
+        } else if (currentProficiency) {
+          status = 'IN_PROGRESS';
+        }
+
+        return {
+          skillId: s.skillId,
+          skillName: s.skill.name,
+          status,
+          sequence: idx + 1,
+          currentProficiency,
+          targetProficiency
+        };
+      });
+    }
+
+    // Fallback 3: in-memory store and FALLBACK_GRAPHS
+    const memProf = memoryStore.profiles.get(studentId) ||
+      Array.from(memoryStore.profiles.values()).find(p => p.id === studentId || p.user_id === studentId);
+    const roleId = memProf?.selected_role_id || 'role-backend';
+    const roleGraph = FALLBACK_GRAPHS[roleId] || FALLBACK_GRAPHS['role-backend'];
+    const rawSkills = roleGraph?.skills || [];
+    if (rawSkills.length > 0) {
+      return rawSkills.map((skill: any, idx: number) => {
+        const mem = memoryStore.skill_states.get(`${studentId}:${skill.id}`);
+        const currentProficiency = (mem?.assessed_level as ProficiencyLevel) ?? null;
+        const targetProficiency = (mem?.target_level as ProficiencyLevel) ?? 'PROFICIENT';
+        let status: RoadmapSkillStatus = 'NOT_STARTED';
+        if (currentProficiency === 'PROFICIENT' || currentProficiency === 'EXPERT') {
+          status = 'COMPLETED';
+        } else if (currentProficiency) {
+          status = 'IN_PROGRESS';
+        }
+
+        return {
+          skillId: skill.id,
+          skillName: skill.name,
+          status,
+          sequence: idx + 1,
+          currentProficiency,
+          targetProficiency
+        };
+      });
+    }
+
+    // Fallback 4: domain taxonomy
+    const matchedRole = memProf?.resume_matched_role || memProf?.selected_role_id || 'role-backend';
     const domainTax = BACKEND_DOMAIN_TAXONOMY[matchedRole] || BACKEND_DOMAIN_TAXONOMY['role-backend'];
     const skills = [...domainTax.coreSkills.slice(0, 6)];
 

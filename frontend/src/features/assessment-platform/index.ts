@@ -1,7 +1,9 @@
 export * from './types/exam';
+export * from './types/proctoring';
 export * from './hooks/useExamSession';
 export * from './hooks/useExamTimer';
 export * from './hooks/useProctoring';
+export * from './hooks/useAudioVisualProctoring';
 export * from './hooks/useDeviceCheck';
 export * from './hooks/useClipboardProtection';
 export * from './hooks/useSingleTabLock';
@@ -18,4 +20,7 @@ export * from './components/ResultAnalyticsView';
 export * from './components/MobileRestrictedGate';
 export * from './components/FullscreenGateModal';
 export * from './components/CodingWorkspace';
+export * from './components/ProctoringConsentModal';
+export * from './components/ProctoringVideoHUD';
+export * from './components/ProctoringLogModal';
 export * from './ExamPlatformPage';

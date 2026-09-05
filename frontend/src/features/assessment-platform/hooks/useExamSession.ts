@@ -434,7 +434,9 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
       setExamStatus('COMPLETED');
 
       // 1. Cache latest assessment result for immediate dashboard and roadmap inheritance
+      const storedUser = getStoredUser();
       const scoreData = {
+        student_id: storedUser?.student_profile_id || storedUser?.id,
         session_id: fullReport.session_id || sessionId,
         test_title: fullReport.test_title || testTitle,
         role_id: fullReport.role_id,
@@ -481,13 +483,12 @@ export function useExamSession({ initialSessionId }: UseExamSessionProps) {
 
       // 4. Update stored user profile in localStorage
       try {
-        const currentUser = getStoredUser();
-        if (currentUser) {
+        if (storedUser) {
           setStoredUser({
-            ...currentUser,
+            ...storedUser,
             readiness_pct: scoreData.overall_readiness_pct || scoreData.overall_accuracy_pct,
-            selected_role: scoreData.test_title || currentUser.selected_role,
-            selected_role_id: scoreData.role_id || currentUser.selected_role_id,
+            selected_role: scoreData.test_title || storedUser.selected_role,
+            selected_role_id: scoreData.role_id || storedUser.selected_role_id,
           });
         }
       } catch (e) {

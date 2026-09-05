@@ -528,7 +528,7 @@ The functions \`get\` and \`put\` must each run in O(1) average time complexity.
 // In-Memory Storage Instances
 export const inMemorySessions = new Map<string, StoredSession>();
 export const inMemoryResponses = new Map<string, StoredResponse>(); // key: `${sessionId}:${questionId}`
-export const inMemorySkillStates = new Map<string, StoredSkillState>(); // key: `${studentId}:${skillId}`
+export const inMemorySkillStates = memoryStore.skill_states; // Unified alias sharing the same Map instance: key: `${studentId}:${skillId}`
 export const inMemorySelfRatings = new Map<string, Record<string, string>>(); // studentId -> { skillId: rating }
 
 // Helper Seed Accessor

@@ -4,7 +4,7 @@ import { apiSuccess, apiError } from '../../core/responses';
 
 const router = Router();
 
-const FALLBACK_GRAPHS: Record<string, any> = {
+export const FALLBACK_GRAPHS: Record<string, any> = {
   'role-backend': {
     role: { id: 'role-backend', name: 'Backend Developer', description: 'Develops scalable APIs, databases and server-side applications.' },
     skills: [
