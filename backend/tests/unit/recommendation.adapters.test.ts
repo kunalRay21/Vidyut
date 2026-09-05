@@ -50,7 +50,9 @@ describe('Role 5 Prisma Adapters', () => {
         yearOfStudy: 3,
         interests: ['AI', 'Web'],
         selectedDomainId: 'd1',
-        selectedDomainName: 'Engineering'
+        selectedDomainName: 'Engineering',
+        academicBranchId: null,
+        academicBranchRelevanceMap: {}
       });
     });
 
