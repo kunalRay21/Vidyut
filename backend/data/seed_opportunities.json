@@ -1758,5 +1758,215 @@
         "min_proficiency": "INTERMEDIATE"
       }
     ]
+  },
+  {
+    "external_id": "direct-emp-101",
+    "source": "DIRECT",
+    "original_url": "https://vidyut.gov.in/industry/opp/bangalore-analytics-ml",
+    "title": "Junior ML Engineer Intern",
+    "organization": "Bangalore Analytics Co.",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-11-15",
+    "stipend": "₹35,000 / month",
+    "description_raw": "Join Bangalore Analytics Co. to build predictive analytics microservices, fine-tune tabular ML pipelines, and collaborate directly with senior data scientists on production customer behavioral models.",
+    "required_skills": [
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-machine-learning",
+        "raw_mention": "Machine Learning",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-pandas",
+        "raw_mention": "pandas",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-sql",
+        "raw_mention": "SQL",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "direct-emp-102",
+    "source": "DIRECT",
+    "original_url": "https://vidyut.gov.in/industry/opp/cloudscale-devops",
+    "title": "Cloud & DevOps Associate Intern",
+    "organization": "CloudScale Systems India",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Remote, India",
+    "deadline": "2026-11-20",
+    "stipend": "₹32,000 / month",
+    "description_raw": "Automate CI/CD pipelines, provision multi-tenant Kubernetes clusters with Terraform on AWS, and monitor high-availability microservices for cloud-native client architectures.",
+    "required_skills": [
+      {
+        "skill_id": "skill-docker",
+        "raw_mention": "Docker",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-kubernetes",
+        "raw_mention": "Kubernetes",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-aws",
+        "raw_mention": "AWS",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-linux",
+        "raw_mention": "Linux",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "direct-emp-103",
+    "source": "DIRECT",
+    "original_url": "https://vidyut.gov.in/industry/opp/razorpay-payments-backend",
+    "title": "Backend Systems Engineer (Go / Distributed Systems)",
+    "organization": "Razorpay Payments",
+    "type": "INTERNSHIP",
+    "mode": "HYBRID",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-12-01",
+    "stipend": "₹45,000 / month",
+    "description_raw": "Design and implement fault-tolerant transactional services handling millions of payment requests per second. Focus on concurrency, ACID compliance, Redis pub-sub caching, and idempotent APIs.",
+    "required_skills": [
+      {
+        "skill_id": "skill-golang",
+        "raw_mention": "Go",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-postgresql",
+        "raw_mention": "PostgreSQL",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-redis",
+        "raw_mention": "Redis",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-docker",
+        "raw_mention": "Docker",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "direct-emp-104",
+    "source": "DIRECT",
+    "original_url": "https://vidyut.gov.in/industry/opp/cred-fullstack-product",
+    "title": "Full Stack Product Engineering Intern",
+    "organization": "CRED Tech",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-11-10",
+    "stipend": "₹45,000 / month",
+    "description_raw": "Work on member-facing web workflows, interactive financial analytics widgets, and lightning-fast user interfaces with a relentless focus on aesthetics and micro-interactions.",
+    "required_skills": [
+      {
+        "skill_id": "skill-react",
+        "raw_mention": "React",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-typescript",
+        "raw_mention": "TypeScript",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-node",
+        "raw_mention": "Node.js",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-tailwind",
+        "raw_mention": "Tailwind CSS",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "direct-emp-105",
+    "source": "DIRECT",
+    "original_url": "https://vidyut.gov.in/industry/opp/tata-analytics-bi",
+    "title": "Data Analytics & BI Trainee",
+    "organization": "Tata Insights & Quants",
+    "type": "INTERNSHIP",
+    "mode": "REMOTE",
+    "location": "Mumbai / Remote",
+    "deadline": "2026-11-28",
+    "stipend": "₹28,000 / month",
+    "description_raw": "Extract enterprise datasets, design automated KPI dashboards in Power BI/Tableau, and perform exploratory data analysis to surface strategic growth opportunities across business units.",
+    "required_skills": [
+      {
+        "skill_id": "skill-sql",
+        "raw_mention": "SQL",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-python",
+        "raw_mention": "Python",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-powerbi",
+        "raw_mention": "Power BI",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-statistics",
+        "raw_mention": "Statistics",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
+  },
+  {
+    "external_id": "direct-emp-106",
+    "source": "DIRECT",
+    "original_url": "https://vidyut.gov.in/industry/opp/ather-embedded-firmware",
+    "title": "Embedded Systems & Firmware Trainee",
+    "organization": "Ather Energy Labs",
+    "type": "INTERNSHIP",
+    "mode": "ON_SITE",
+    "location": "Bengaluru, Karnataka",
+    "deadline": "2026-12-05",
+    "stipend": "₹36,000 / month",
+    "description_raw": "Develop low-level device drivers, optimize battery management firmware routines, and integrate CAN bus telemetry protocols for electric vehicle smart dashboard clusters.",
+    "required_skills": [
+      {
+        "skill_id": "skill-c",
+        "raw_mention": "C",
+        "min_proficiency": "PROFICIENT"
+      },
+      {
+        "skill_id": "skill-cpp",
+        "raw_mention": "C++",
+        "min_proficiency": "INTERMEDIATE"
+      },
+      {
+        "skill_id": "skill-rtos",
+        "raw_mention": "RTOS",
+        "min_proficiency": "BEGINNER"
+      },
+      {
+        "skill_id": "skill-microcontrollers",
+        "raw_mention": "Microcontrollers",
+        "min_proficiency": "INTERMEDIATE"
+      }
+    ]
   }
 ]

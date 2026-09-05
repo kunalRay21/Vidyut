@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, ShieldCheck } from 'lucide-react';
 import { industryApi } from '../../../services/api';
+import { MOCK_INDUSTRY_DATA } from '../mocks/industryMockData';
 
 export const TalentPoolTable: React.FC = () => {
   const { t } = useTranslation();
-  const [candidates, setCandidates] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [candidates, setCandidates] = useState<any[]>(MOCK_INDUSTRY_DATA.matched_talent_pool);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -14,11 +15,14 @@ export const TalentPoolTable: React.FC = () => {
       try {
         setLoading(true);
         const res = await industryApi.getTalentPool(70);
-        if (mounted && res.success && Array.isArray(res.data?.matched_talent_pool)) {
+        if (mounted && res.success && Array.isArray(res.data?.matched_talent_pool) && res.data.matched_talent_pool.length > 0) {
           setCandidates(res.data.matched_talent_pool);
+        } else if (mounted) {
+          setCandidates(MOCK_INDUSTRY_DATA.matched_talent_pool);
         }
       } catch (err) {
         console.warn('Talent pool fetch error:', err);
+        if (mounted) setCandidates(MOCK_INDUSTRY_DATA.matched_talent_pool);
       } finally {
         if (mounted) setLoading(false);
       }

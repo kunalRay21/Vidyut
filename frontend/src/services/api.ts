@@ -575,6 +575,10 @@ export const industryApi = {
   getTalentPool: async (minScore = 70) => {
     return await request(`/api/v1/industry/talent?min_score=${minScore}`);
   },
+
+  getPostedOpportunities: async () => {
+    return await request('/api/v1/industry/opportunities');
+  },
 };
 
 // ----------------------------------------------------
