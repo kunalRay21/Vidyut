@@ -213,8 +213,8 @@ export const RoadmapPage: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-6 md:px-12 space-y-8">
       {/* Header with National GovTech identity */}
-      <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-6">
-        <FadeIn delay={100}>
+      <header className="mb-8 flex flex-col md:flex-row md:justify-between md:items-start gap-6 md:gap-8">
+        <FadeIn delay={100} className="flex-1 min-w-0">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-saffron/10 text-saffron-700 text-xs font-bold uppercase tracking-wider mb-2.5 border border-saffron/30 shadow-2xs">
               <Compass className="w-3.5 h-3.5 text-saffron-600" />
@@ -258,13 +258,13 @@ export const RoadmapPage: React.FC = () => {
         </FadeIn>
 
         {/* Readiness Arc Gauge */}
-        <FadeIn delay={200}>
-          <div className="flex flex-col items-center relative bg-white/80 p-4 rounded-2xl border border-[#EAE3B3] shadow-xs">
+        <FadeIn delay={200} className="shrink-0 w-full md:w-auto flex justify-center md:justify-end">
+          <div className="flex flex-col items-center relative bg-white/80 p-4 rounded-2xl border border-[#EAE3B3] shadow-xs shrink-0">
             <span className="block text-xs text-gray-500 font-bold mb-1 uppercase tracking-wider">
               {t('roadmap.currentReadiness', 'Role Readiness Index')}
             </span>
             
-            <div className="relative w-48 h-26 flex justify-center items-end">
+            <div className="relative w-48 h-28 flex justify-center items-end">
               <svg className="absolute top-0 left-0 w-full h-full drop-shadow-sm" viewBox="0 0 200 120">
                 <defs>
                   <linearGradient id="roadmap-gauge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
